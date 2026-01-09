@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Juice Therapy - Staff Management</title>
+    
+    <!-- App Manifest -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkp1aWNlIFRoZXJhcHkiLAogICJzaG9ydF9uYW1lIjogIkpUIE1hbmFnZXIiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzE4MTgxYiIsCiAgInRoZW1lX2NvbG9yIjogIiNmOTczMTYiCn0=">
+    
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Styles -->
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
+        .hidden { display: none !important; }
+        .loader { border-top-color: #ea580c; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .nav-item.active { @apply text-orange-600 border-b-2 border-orange-600; }
+        .nav-item { @apply text-gray-500 pb-2 transition-colors; }
+        
+        /* Profile Modal Tabs */
+        .profile-tab { @apply text-slate-500 border-b-4 border-transparent pb-2 w-1/2 font-bold transition-colors; }
+        .profile-tab.active { @apply text-orange-600 border-orange-600; }
+    </style>
+</head>
+<body class="h-screen flex flex-col text-slate-800 overflow-hidden">
+
+    <!-- Notifications -->
+    <div id="toast" class="fixed top-5 right-5 z-[100] transform translate-x-full transition-transform duration-300 bg-slate-900 text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 border-l-4 border-orange-500">
+        <i class="fas fa-info-circle text-orange-400"></i> <span id="toastMsg" class="text-sm font-medium">Notification</span>
+    </div>
+
+    <!-- 1. AUTHENTICATION SCREEN -->
+    <div id="authScreen" class="flex-grow flex flex-col items-center justify-center p-6 bg-orange-50">
+        <div class="bg-white p-4 rounded-full shadow-lg mb-6 ring-4 ring-orange-100">
+            <div class="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">JT</div>
+        </div>
+        <div class="bg-white p-8 rounded-2xl shadow-sm w-full max-w-md border border-gray-100">
+            <h1 class="text-2xl font-bold text-center text-slate-800 mb-1">Juice Therapy</h1>
+            <p class="text-center text-slate-400 text-xs mb-6 uppercase tracking-wider font-bold">Staff Portal</p>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-1">Email ID</label>
+                    <input type="email" id="loginEmail" class="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition" required>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-1">Password</label>
+                    <input type="password" id="loginPass" class="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none transition" required>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold shadow-lg shadow-orange-200 transition transform active:scale-95">
+                    Secure Login
+                </button>
+            </form>
+            <p id="loginError" class="text-red-500 text-center text-sm mt-4 hidden bg-red-50 p-2 rounded border border-red-100"></p>
+        </div>
+    </div>
+
+    <!-- 2. MAIN APPLICATION -->
+    <div id="appScreen" class="flex-grow flex flex-col hidden h-full">
+        
+        <!-- Header -->
+        <header class="bg-white h-16 shadow-sm border-b border-gray-200 flex justify-between items-center px-4 z-20 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm shadow">JT</div>
+                <div>
+                    <h1 class="font-bold text-sm leading-tight text-slate-800">Juice Therapy</h1>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        <p id="userRoleBadge" class="text-[10px] text-slate-500 uppercase font-bold tracking-wide">...</p>
+                    </div>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <main id="mainContent" class="flex-grow overflow-y-auto bg-slate-50 relative">
+            
+            <!-- Loader -->
+            <div id="pageLoader" class="absolute inset-0 flex items-center justify-center bg-white/80 z-50 hidden">
+                <div class="loader w-10 h-10 rounded-full border-4 border-gray-200"></div>
+            </div>
+
+            <!-- ===================== PANEL: ADMIN ===================== -->
+            <div id="panelAdmin" class="panel-view hidden flex flex-col h-full">
+                <!-- Admin Nav -->
+                <div class="bg-white border-b px-4 flex gap-6 overflow-x-auto sticky top-0 z-10">
+                    <button onclick="setAdminTab('dash')" class="nav-item active py-3 text-xs font-bold uppercase whitespace-nowrap">Dashboard</button>
+                    <button onclick="setAdminTab('staff')" class="nav-item py-3 text-xs font-bold uppercase whitespace-nowrap">Staff</button>
+                    <button onclick="setAdminTab('finance')" class="nav-item py-3 text-xs font-bold uppercase whitespace-nowrap">Financials</button>
+                    <button onclick="setAdminTab('config')" class="nav-item py-3 text-xs font-bold uppercase whitespace-nowrap">Config</button>
+                </div>
+
+                <div class="p-4 space-y-6">
+                    <!-- Dashboard Tab -->
+                    <div id="tab-dash" class="admin-tab space-y-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white p-4 rounded-xl border shadow-sm">
+                                <p class="text-xs text-slate-400 font-bold uppercase">Total Staff</p>
+                                <p class="text-2xl font-bold" id="admStatTotal">0</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border shadow-sm">
+                                <p class="text-xs text-slate-400 font-bold uppercase">Active Shifts</p>
+                                <p class="text-2xl font-bold text-green-600" id="admStatActive">0</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border shadow-sm col-span-2 md:col-span-1">
+                                <p class="text-xs text-slate-400 font-bold uppercase">Pending Payouts</p>
+                                <p class="text-2xl font-bold text-slate-800">₹<span id="admStatLiability">0</span></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Live Attendance -->
+                        <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+                            <div class="p-3 border-b bg-slate-50 font-bold text-xs uppercase text-slate-600">Live Attendance Monitor</div>
+                            <div id="adminLiveList" class="p-4 space-y-2 text-sm text-slate-500 italic text-center">No active shifts</div>
+                        </div>
+                    </div>
+
+                    <!-- Staff Tab -->
+                    <div id="tab-staff" class="admin-tab hidden space-y-4">
+                        <div class="flex justify-between">
+                            <input type="text" placeholder="Search staff..." class="border p-2 rounded-lg text-sm w-1/2">
+                            <button onclick="toggleModal('createUserModal')" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold shadow hover:bg-black transition"><i class="fas fa-plus mr-2"></i> Add Staff</button>
+                        </div>
+                        <div class="bg-white rounded-xl border overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+                                        <tr><th class="p-3">Staff Profile</th><th class="p-3">Financials</th><th class="p-3">Stats</th><th class="p-3 text-right">Actions</th></tr>
+                                    </thead>
+                                    <tbody id="adminStaffList" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Finance Tab -->
+                    <div id="tab-finance" class="admin-tab hidden space-y-4">
+                        <div class="bg-white rounded-xl border overflow-hidden">
+                            <div class="p-3 border-b bg-slate-50 flex justify-between items-center">
+                                <h3 class="font-bold text-xs uppercase text-slate-600">Global Payout History</h3>
+                                <button class="text-xs text-blue-600 hover:underline"><i class="fas fa-download"></i> Export CSV</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+                                        <tr><th class="p-3">Date</th><th class="p-3">Staff</th><th class="p-3">Amount</th><th class="p-3 text-right">Processed By</th></tr>
+                                    </thead>
+                                    <tbody id="adminPayoutList" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Config Tab -->
+                    <div id="tab-config" class="admin-tab hidden space-y-4">
+                        <div class="bg-white p-5 rounded-xl border shadow-sm">
+                            <h3 class="font-bold text-sm text-slate-800 border-b pb-2 mb-4">System Configuration</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div><label class="text-[10px] font-bold uppercase text-slate-400">Hourly Rate (₹)</label><input type="number" id="confRate" class="w-full p-2 border rounded font-mono text-sm"></div>
+                                <div><label class="text-[10px] font-bold uppercase text-slate-400">Bonus (Pts/Hr)</label><input type="number" id="confBonus" class="w-full p-2 border rounded font-mono text-sm"></div>
+                                <div><label class="text-[10px] font-bold uppercase text-slate-400">Geo Radius (m)</label><input type="number" id="confRadius" class="w-full p-2 border rounded font-mono text-sm"></div>
+                                <div><label class="text-[10px] font-bold uppercase text-slate-400">Training Period (Days)</label><input type="number" id="confTraining" class="w-full p-2 border rounded font-mono text-sm"></div>
+                            </div>
+                            <div class="mb-6">
+                                <label class="text-[10px] font-bold uppercase text-slate-400">Outlet Coordinates</label>
+                                <div class="flex gap-2">
+                                    <input type="number" step="any" id="confLat" placeholder="Latitude" class="w-1/2 p-2 border rounded font-mono text-xs">
+                                    <input type="number" step="any" id="confLng" placeholder="Longitude" class="w-1/2 p-2 border rounded font-mono text-xs">
+                                </div>
+                            </div>
+                            <button onclick="saveConfig()" class="w-full py-3 bg-orange-600 text-white rounded-lg font-bold text-sm shadow hover:bg-orange-700">Save Configuration</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================== PANEL: MANAGER / FULL-TIME / SQUAD ===================== -->
+            <div id="panelUser" class="panel-view hidden flex flex-col h-full p-4 space-y-5 pb-24">
+                
+                <!-- Manager Ops Switcher -->
+                <div id="mgrOpsBar" class="hidden bg-white p-3 rounded-xl border border-orange-100 shadow-sm flex justify-between items-center mb-2">
+                    <h2 class="text-sm font-bold text-slate-700">Manager Operations</h2>
+                    <div class="flex gap-2">
+                        <button onclick="toggleMgrMode('ops')" class="px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-lg" id="btnOps">Ops</button>
+                        <button onclick="toggleMgrMode('personal')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg" id="btnPers">Personal</button>
+                    </div>
+                </div>
+
+                <!-- 1. MANAGER OPS VIEW (Only visible in Ops Mode) -->
+                <div id="viewOps" class="hidden space-y-5">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                            <p class="text-[10px] uppercase font-bold text-blue-400">Squad Active</p>
+                            <p class="text-xl font-bold text-blue-900" id="mgrActiveCount">0</p>
+                        </div>
+                        <button onclick="toggleModal('redeemModal')" class="bg-orange-50 p-4 rounded-xl border border-orange-100 flex flex-col justify-center items-center hover:bg-orange-100 transition">
+                            <i class="fas fa-gift text-orange-500 mb-1"></i>
+                            <span class="text-xs font-bold text-orange-700">Redeem Points</span>
+                        </button>
+                    </div>
+
+                    <!-- Live Floor -->
+                    <div class="bg-white rounded-xl border shadow-sm">
+                        <div class="p-3 border-b bg-slate-50 font-bold text-xs uppercase text-slate-600">Live Squad Floor</div>
+                        <div id="mgrLiveList" class="p-3 space-y-2 text-sm text-slate-500 italic text-center">No active members</div>
+                    </div>
+
+                    <!-- Approvals -->
+                    <div class="bg-white rounded-xl border shadow-sm">
+                        <div class="p-3 border-b bg-slate-50 font-bold text-xs uppercase text-slate-600">Pending Requests</div>
+                        <div id="mgrRequestList" class="p-3 space-y-2 text-sm text-slate-500 italic text-center">No pending requests</div>
+                    </div>
+                </div>
+
+                <!-- 2. PERSONAL DASHBOARD VIEW (Squad / FullTime / Manager Personal) -->
+                <div id="viewPersonal" class="space-y-5">
+                    
+                    <!-- Profile Card -->
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
+                        <div class="relative z-10 flex items-center gap-4">
+                            <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center text-orange-600 font-bold text-xl border-4 border-slate-600" id="profileInitials">JT</div>
+                            <div>
+                                <h2 class="font-bold text-lg leading-tight" id="profileName">Staff Name</h2>
+                                <p class="text-xs text-slate-400 font-mono mb-1">ID: <span id="profileId">...</span></p>
+                                <span class="bg-orange-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide" id="profileRole">Role</span>
+                            </div>
+                        </div>
+                        <!-- Dynamic Stats -->
+                        <div class="grid grid-cols-3 gap-2 border-t border-slate-700 pt-4 mt-4" id="personalStats">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Training Warning (Squad Only) -->
+                    <div id="trainingAlert" class="hidden bg-orange-50 border border-orange-200 p-3 rounded-xl flex items-center gap-3">
+                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0"><i class="fas fa-graduation-cap"></i></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-700">Training Period Active</p>
+                            <p class="text-[10px] text-slate-500">Earnings held in Training Wallet</p>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Action -->
+                    <div class="bg-white p-5 rounded-xl border shadow-sm text-center">
+                        <h3 class="font-bold text-xs text-slate-400 uppercase mb-4 tracking-wider">Attendance Control</h3>
+                        
+                        <div id="actionCheckIn">
+                            <button onclick="initCheckIn()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-green-100 transition active:scale-95 flex items-center justify-center gap-2">
+                                <i class="fas fa-camera"></i> CHECK IN
+                            </button>
+                            <p class="text-[10px] text-slate-400 mt-2"><i class="fas fa-map-marker-alt mr-1"></i> Geo-Location Required</p>
+                        </div>
+
+                        <div id="actionCheckOut" class="hidden">
+                            <span class="inline-block px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-bold mb-3 animate-pulse">ON DUTY</span>
+                            <div class="text-4xl font-mono font-bold text-slate-800 mb-4" id="workTimer">00:00</div>
+                            <button onclick="performCheckOut()" class="w-full py-4 bg-slate-800 hover:bg-black text-white rounded-xl font-bold text-lg shadow-lg transition active:scale-95">END SHIFT</button>
+                        </div>
+                    </div>
+
+                    <!-- Actions (Booking / Leave) -->
+                    <div class="bg-white p-5 rounded-xl border shadow-sm">
+                        <h3 class="font-bold text-xs text-slate-400 uppercase mb-3" id="requestTitle">Actions</h3>
+                        <div class="space-y-3">
+                            <div class="flex gap-2" id="timeInputs">
+                                <input type="time" id="reqStart" class="w-1/2 p-2 border rounded bg-slate-50 text-sm">
+                                <input type="time" id="reqEnd" class="w-1/2 p-2 border rounded bg-slate-50 text-sm">
+                            </div>
+                            <button onclick="submitRequest()" class="w-full py-3 bg-orange-50 text-orange-600 border border-orange-200 rounded-lg font-bold text-sm hover:bg-orange-100 transition" id="requestBtn">Submit Request</button>
+                        </div>
+                    </div>
+
+                    <!-- History -->
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-3 px-1">Work History</h3>
+                        <div id="personalHistory" class="space-y-3 pb-10"></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Nav (Personal) -->
+        <nav id="personalNav" class="bg-white border-t p-2 flex justify-around items-center z-40 fixed bottom-0 w-full hidden">
+            <button onclick="togglePersonalTab('dash')" class="nav-btn active flex flex-col items-center p-2"><i class="fas fa-home text-xl"></i><span class="text-[10px]">Home</span></button>
+            <button onclick="togglePersonalTab('history')" class="nav-btn flex flex-col items-center p-2"><i class="fas fa-clock text-xl"></i><span class="text-[10px]">History</span></button>
+            <button onclick="togglePersonalTab('payouts')" class="nav-btn flex flex-col items-center p-2"><i class="fas fa-wallet text-xl"></i><span class="text-[10px]">Pay</span></button>
+        </nav>
+    </div>
+
+    <!-- MODALS -->
+    
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6">
+            <h3 class="font-bold text-lg mb-4">Add Staff</h3>
+            <form id="createUserForm" class="space-y-3">
+                <input type="text" id="newIdxName" placeholder="Full Name" class="w-full p-2 border rounded" required>
+                <input type="email" id="newIdxEmail" placeholder="Email" class="w-full p-2 border rounded" required>
+                <input type="password" id="newIdxPass" placeholder="Password" class="w-full p-2 border rounded" required>
+                <select id="newIdxRole" class="w-full p-2 border rounded bg-white" onchange="toggleSalaryField(this.value)">
+                    <option value="squad">Squad Member</option>
+                    <option value="fulltime">Full-Time Staff</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <div id="salaryField" class="hidden">
+                    <input type="number" id="newIdxSalary" placeholder="Monthly Salary (₹)" class="w-full p-2 border rounded">
+                </div>
+                <button type="submit" class="w-full py-3 bg-slate-800 text-white rounded-lg font-bold">Create</button>
+            </form>
+            <button onclick="toggleModal('createUserModal')" class="w-full mt-2 text-slate-400 text-sm">Close</button>
+        </div>
+    </div>
+
+    <!-- Payout Modal -->
+    <div id="payoutModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 text-center">
+            <h3 class="font-bold text-lg mb-1">Process Payment</h3>
+            <p class="text-xs text-slate-500 mb-4" id="paySubtitle">Record transaction</p>
+            <input type="hidden" id="payUid"> <input type="hidden" id="payType"> <input type="hidden" id="payMax">
+            <input type="number" id="payAmount" class="w-full p-3 border rounded-xl text-center text-xl font-bold mb-4" placeholder="₹0.00">
+            <div class="flex gap-2">
+                <button onclick="toggleModal('payoutModal')" class="flex-1 py-3 border rounded-xl font-bold text-sm">Cancel</button>
+                <button onclick="confirmPayout()" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold text-sm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Profile Modal (Detailed View) -->
+    <div id="staffProfileModal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl h-[90vh] flex flex-col overflow-hidden relative">
+            <!-- Header -->
+            <div class="p-6 bg-slate-900 text-white flex justify-between items-start shrink-0">
+                <div>
+                    <h2 class="text-2xl font-bold" id="spName">Staff Name</h2>
+                    <p class="text-sm opacity-80" id="spRole">Role</p>
+                    <p class="text-xs opacity-60 mt-1" id="spEmail">Email</p>
+                </div>
+                <button onclick="toggleModal('staffProfileModal')" class="text-white hover:text-orange-400 w-8 h-8 flex items-center justify-center rounded-full bg-white/10"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            
+            <!-- Stats Bar -->
+            <div class="bg-slate-100 p-4 grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0" id="spStats">
+                <!-- Dynamic Stats -->
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b shrink-0 bg-white">
+                <button class="profile-tab active py-3 text-center" onclick="switchProfileTab('work', this)">Work History</button>
+                <button class="profile-tab py-3 text-center" onclick="switchProfileTab('payout', this)">Payouts</button>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-grow overflow-y-auto p-4 bg-slate-50">
+                <div id="spWorkContent" class="space-y-2">Loading...</div>
+                <div id="spPayoutContent" class="hidden space-y-2">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera -->
+    <div id="cameraModal" class="fixed inset-0 bg-black z-[100] hidden flex flex-col">
+        <div class="relative flex-grow bg-black">
+            <video id="camVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+            <canvas id="camCanvas" class="hidden"></canvas>
+            <div class="absolute top-0 w-full p-4 bg-gradient-to-b from-black/50 to-transparent text-white text-center text-xs font-bold">Face Verification</div>
+        </div>
+        <div class="h-32 bg-black flex items-center justify-center gap-8 pb-4">
+            <button onclick="toggleModal('cameraModal')" class="w-12 h-12 rounded-full bg-slate-800 text-white"><i class="fas fa-times"></i></button>
+            <button onclick="captureSelfie()" class="w-20 h-20 rounded-full bg-white border-4 border-slate-400 active:scale-90 transition"></button>
+        </div>
+    </div>
+
+    <!-- Redeem -->
+    <div id="redeemModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h3 class="font-bold text-lg mb-4">Redeem Bonus Points</h3>
+            <select id="redeemUser" class="w-full p-2 border rounded mb-3 text-sm"></select>
+            <input type="number" id="redeemPts" class="w-full p-2 border rounded mb-3 text-sm" placeholder="Points to Redeem">
+            <input type="text" id="redeemNote" class="w-full p-2 border rounded mb-4 text-sm" placeholder="Note (e.g. Snack)">
+            <button onclick="processRedeem()" class="w-full py-3 bg-orange-600 text-white rounded-lg font-bold">Redeem</button>
+            <button onclick="toggleModal('redeemModal')" class="w-full mt-2 text-slate-400 text-xs">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, deleteDoc, serverTimestamp, runTransaction, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Config
+        const firebaseConfig = { apiKey: "AIzaSyCtrDxf2S2Zp1hY1RMJQzLHb9TGnup4SLE", authDomain: "jt-squad-manager.firebaseapp.com", projectId: "jt-squad-manager", storageBucket: "jt-squad-manager.firebasestorage.app", messagingSenderId: "444609515858", appId: "1:444609515858:web:0e4d00cf14a107618bea8b" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const secApp = initializeApp(firebaseConfig, "Secondary"); // Admin creation helper
+        const secAuth = getAuth(secApp);
+
+        // Offline Persistence
+        enableIndexedDbPersistence(db).catch(err => console.log("Persistence error", err));
+
+        // State
+        let currentUser = null;
+        let CONFIG = { rate: 30, bonus: 5, radius: 200, training: 30, lat: 13.024976, lng: 77.562472 };
+        let activeShift = null;
+        let timerInt = null;
+        let listeners = [];
+
+        // --- AUTH ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('appScreen').classList.remove('hidden');
+                await fetchConfig();
+                // Listen to User Profile
+                listeners.push(onSnapshot(doc(db, "users", user.uid), (snap) => {
+                    if (snap.exists()) {
+                        currentUser = { uid: user.uid, ...snap.data() };
+                        initRouter();
+                    }
+                }));
+            } else {
+                listeners.forEach(u => u()); listeners = [];
+                document.getElementById('authScreen').classList.remove('hidden');
+                document.getElementById('appScreen').classList.add('hidden');
+            }
+        });
+
+        async function fetchConfig() {
+            const snap = await getDoc(doc(db, "settings", "global"));
+            if (snap.exists()) CONFIG = { ...CONFIG, ...snap.data() };
+        }
+
+        // --- ROUTER ---
+        function initRouter() {
+            const role = currentUser.role;
+            document.getElementById('userRoleBadge').innerText = role.toUpperCase();
+            
+            // Hide high-level panels
+            ['panelAdmin', 'panelUser'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('personalNav').classList.add('hidden');
+
+            if (role === 'admin') {
+                document.getElementById('panelAdmin').classList.remove('hidden');
+                initAdminPanel();
+            } else {
+                // All other roles use panelUser
+                document.getElementById('panelUser').classList.remove('hidden');
+                
+                if (role === 'manager') {
+                    document.getElementById('mgrOpsBar').classList.remove('hidden');
+                    // Check mode
+                    if (window.managerMode === 'personal') {
+                        toggleMgrMode('personal');
+                        document.getElementById('personalNav').classList.remove('hidden');
+                    } else {
+                        toggleMgrMode('ops');
+                    }
+                } else {
+                    // Fulltime / Squad
+                    document.getElementById('mgrOpsBar').classList.add('hidden');
+                    toggleMgrMode('personal'); // Re-use this to show personal view and hide ops view
+                    document.getElementById('personalNav').classList.remove('hidden');
+                }
+            }
+        }
+
+        // --- ADMIN LOGIC ---
+        function initAdminPanel() {
+            // Populate Config UI
+            document.getElementById('confRate').value = CONFIG.rate;
+            document.getElementById('confBonus').value = CONFIG.bonus;
+            document.getElementById('confRadius').value = CONFIG.radius;
+            document.getElementById('confTrain').value = CONFIG.training;
+            document.getElementById('confLat').value = CONFIG.lat;
+            document.getElementById('confLng').value = CONFIG.lng;
+
+            // Live Stats & Staff List
+            listeners.push(onSnapshot(query(collection(db, "users")), (snap) => {
+                const tbody = document.getElementById('adminStaffList'); tbody.innerHTML = '';
+                let total = 0, active = 0, liability = 0;
+                
+                snap.forEach(d => {
+                    const u = d.data(); total++;
+                    if(u.role === 'squad') liability += (u.mainWallet || 0);
+                    
+                    const joined = u.joinedAt?.toDate().toLocaleDateString() || '-';
+                    const isSquad = u.role === 'squad';
+                    
+                    // Perf Score
+                    const perf = isSquad ? Math.max(0, (u.rating||5)*20 - (u.strikes||0)*10).toFixed(0) + '%' : 'N/A';
+
+                    const row = document.createElement('tr');
+                    row.className = "border-b hover:bg-slate-50 transition cursor-pointer";
+                    // Add click event to open profile, exclude action buttons
+                    row.onclick = (e) => {
+                        if(!e.target.closest('button')) openStaffProfile(d.id);
+                    };
+
+                    row.innerHTML = `
+                        <td class="p-3">
+                            <div class="font-bold text-slate-700 hover:text-orange-600 transition">${u.name}</div>
+                            <div class="text-[10px] text-slate-400">${u.email}</div>
+                            <div class="text-[10px] text-slate-500">Joined: ${joined}</div>
+                        </td>
+                        <td class="p-3">
+                            <span class="text-xs font-bold uppercase bg-slate-100 px-2 py-1 rounded">${u.role}</span>
+                            <div class="text-xs mt-1">Score: <span class="${parseInt(perf)>70?'text-green-600':'text-red-500'} font-bold">${perf}</span></div>
+                        </td>
+                        <td class="p-3">
+                            ${isSquad ? `
+                                <div class="text-xs"><span class="font-bold">₹${(u.mainWallet||0).toFixed(0)}</span> | ${u.bonusWallet||0}pts</div>
+                                <div class="text-[10px] text-red-400">Blocked: ₹${u.blockedWallet||0}</div>
+                            ` : '<span class="text-xs text-slate-400">Salary</span>'}
+                        </td>
+                        <td class="p-3 text-right">
+                            <button onclick="event.stopPropagation(); openPayModal('${d.id}', '${u.name}', '${u.role}', ${u.mainWallet||0})" class="bg-green-100 text-green-700 p-2 rounded text-xs font-bold hover:bg-green-200 mr-1"><i class="fas fa-money-bill"></i></button>
+                            <button onclick="event.stopPropagation(); deleteUser('${d.id}')" class="bg-red-100 text-red-700 p-2 rounded hover:bg-red-200"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                document.getElementById('admStatTotal').innerText = total;
+                document.getElementById('admStatLiability').innerText = liability.toFixed(0);
+            }));
+
+            // Live Attendance Monitor
+            listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
+                document.getElementById('admStatActive').innerText = snap.size;
+                const l = document.getElementById('adminLiveList'); 
+                if(snap.empty) l.innerHTML = '<p class="text-center text-slate-400 text-xs italic">No active shifts</p>';
+                else {
+                    l.innerHTML = '';
+                    snap.forEach(d => {
+                        const s = d.data();
+                        const start = s.checkInTime.toDate();
+                        l.innerHTML += `<div class="flex justify-between items-center bg-green-50 p-2 rounded border border-green-100 mb-1"><span class="text-xs font-bold text-green-800">${s.userName}</span><span class="text-[10px] text-green-600">${start.toLocaleTimeString()}</span></div>`;
+                    });
+                }
+            }));
+
+            // Payout History
+            listeners.push(onSnapshot(query(collection(db, "payouts"), orderBy("date", "desc"), limit(20)), (snap) => {
+                const l = document.getElementById('adminPayoutList'); l.innerHTML = '';
+                snap.forEach(d => {
+                    const p = d.data();
+                    l.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-3 text-xs text-slate-500">${p.date.toDate().toLocaleDateString()}</td>
+                            <td class="p-3 text-sm font-bold text-slate-700">${p.userName}</td>
+                            <td class="p-3 text-sm font-bold text-green-600">₹${p.amount}</td>
+                            <td class="p-3 text-xs text-slate-400">${p.by}</td>
+                        </tr>`;
+                });
+            }));
+        }
+
+        // --- STAFF PROFILE LOGIC ---
+        window.openStaffProfile = async (uid) => {
+            const userSnap = await getDoc(doc(db, "users", uid));
+            if(!userSnap.exists()) return showToast("User not found");
+            const u = userSnap.data();
+            
+            // Header
+            document.getElementById('spName').innerText = u.name;
+            document.getElementById('spRole').innerText = u.role.toUpperCase();
+            document.getElementById('spEmail').innerText = u.email;
+            
+            // Dynamic Stats Grid
+            const grid = document.getElementById('spStats');
+            const isSquad = u.role === 'squad';
+            
+            if(isSquad) {
+                grid.innerHTML = `
+                    <div class="bg-white p-3 rounded shadow-sm"><p class="text-[10px] text-slate-400 uppercase">Wallet</p><p class="text-xl font-bold">₹${(u.mainWallet||0).toFixed(0)}</p></div>
+                    <div class="bg-white p-3 rounded shadow-sm"><p class="text-[10px] text-slate-400 uppercase">Blocked</p><p class="text-xl font-bold text-red-500">₹${(u.blockedWallet||0).toFixed(0)}</p></div>
+                    <div class="bg-white p-3 rounded shadow-sm"><p class="text-[10px] text-slate-400 uppercase">Points</p><p class="text-xl font-bold text-orange-500">${u.bonusWallet||0}</p></div>
+                    <div class="bg-white p-3 rounded shadow-sm"><p class="text-[10px] text-slate-400 uppercase">Strikes</p><p class="text-xl font-bold text-red-600">${u.strikes||0}</p></div>
+                `;
+            } else {
+                grid.innerHTML = `
+                    <div class="bg-white p-3 rounded shadow-sm"><p class="text-[10px] text-slate-400 uppercase">Total Days</p><p class="text-xl font-bold">${u.totalDays||0}</p></div>
+                    <div class="bg-white p-3 rounded shadow-sm"><p class="text-[10px] text-slate-400 uppercase">Leaves</p><p class="text-xl font-bold text-blue-500">${u.leavesTaken||0}</p></div>
+                    <div class="bg-white p-3 rounded shadow-sm"><p class="text-[10px] text-slate-400 uppercase">Hours</p><p class="text-xl font-bold">${(u.totalHours||0).toFixed(0)}</p></div>
+                    <div class="bg-white p-3 rounded shadow-sm"><p class="text-[10px] text-slate-400 uppercase">Salary</p><p class="text-xl font-bold text-green-600">₹${u.salary||0}</p></div>
+                `;
+            }
+
+            // Fetch History (Async)
+            const shiftQ = query(collection(db, "shifts"), where("userId", "==", uid), orderBy("checkInTime", "desc"), limit(50));
+            const payQ = query(collection(db, "payouts"), where("userId", "==", uid), orderBy("date", "desc"), limit(20));
+            
+            const [shiftSnap, paySnap] = await Promise.all([getDocs(shiftQ), getDocs(payQ)]);
+            
+            // Render Work History
+            const workDiv = document.getElementById('spWorkContent');
+            workDiv.innerHTML = '';
+            if(shiftSnap.empty) workDiv.innerHTML = '<p class="text-center text-slate-400 italic mt-4">No work records</p>';
+            else {
+                shiftSnap.forEach(doc => {
+                    const s = doc.data();
+                    const start = s.checkInTime.toDate();
+                    const end = s.checkOutTime ? s.checkOutTime.toDate() : null;
+                    const duration = s.duration ? s.duration.toFixed(2) + ' hrs' : 'Active';
+                    const earn = isSquad ? `₹${(s.earnings||0).toFixed(0)}` : '-';
+                    
+                    workDiv.innerHTML += `
+                        <div class="bg-white p-3 rounded border border-slate-100 flex justify-between items-center text-sm">
+                            <div>
+                                <div class="font-bold text-slate-700">${start.toLocaleDateString()}</div>
+                                <div class="text-xs text-slate-400">${start.toLocaleTimeString()} - ${end ? end.toLocaleTimeString() : '...'}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-slate-800">${duration}</div>
+                                <div class="text-xs text-green-600 font-bold">${earn}</div>
+                            </div>
+                        </div>`;
+                });
+            }
+
+            // Render Payouts
+            const payDiv = document.getElementById('spPayoutContent');
+            payDiv.innerHTML = '';
+            if(paySnap.empty) payDiv.innerHTML = '<p class="text-center text-slate-400 italic mt-4">No payouts found</p>';
+            else {
+                paySnap.forEach(doc => {
+                    const p = doc.data();
+                    payDiv.innerHTML += `
+                        <div class="bg-white p-3 rounded border border-slate-100 flex justify-between items-center text-sm">
+                            <div>
+                                <div class="font-bold text-slate-700">${p.date.toDate().toLocaleDateString()}</div>
+                                <div class="text-xs text-slate-400">By: ${p.by}</div>
+                            </div>
+                            <div class="font-bold text-green-600 text-lg">₹${p.amount}</div>
+                        </div>`;
+                });
+            }
+
+            document.getElementById('staffProfileModal').classList.remove('hidden');
+        };
+
+        window.switchProfileTab = (tab, btn) => {
+            document.querySelectorAll('.profile-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            document.getElementById('spWorkContent').classList.toggle('hidden', tab !== 'work');
+            document.getElementById('spPayoutContent').classList.toggle('hidden', tab !== 'payout');
+        };
+
+        // --- MANAGER LOGIC ---
+        function initManagerOps() {
+            document.getElementById('mgrDate').innerText = new Date().toDateString();
+            
+            // Populate Redeem Select
+            getDocs(query(collection(db, "users"), where("role", "==", "squad"))).then(snap => {
+                const s = document.getElementById('redeemUser'); s.innerHTML = '';
+                snap.forEach(d => {
+                    const u = d.data();
+                    s.innerHTML += `<option value="${d.id}">${u.name} (${u.bonusWallet||0} pts)</option>`;
+                });
+            });
+
+            // Live Squad
+            listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
+                const l = document.getElementById('mgrLiveList'); l.innerHTML = '';
+                document.getElementById('mgrActiveCount').innerText = snap.size;
+                snap.forEach(d => {
+                    const s = d.data();
+                    if (s.role === 'squad') {
+                        l.innerHTML += `
+                            <div class="flex justify-between items-center bg-white p-3 rounded-lg border shadow-sm">
+                                <div><p class="font-bold text-xs">${s.userName}</p><p class="text-[10px] text-slate-400">${s.checkInTime.toDate().toLocaleTimeString()}</p></div>
+                                <button onclick="forceStop('${d.id}')" class="text-[10px] bg-white border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50">End</button>
+                            </div>`;
+                    }
+                });
+            }));
+
+            // Requests
+            listeners.push(onSnapshot(query(collection(db, "requests"), where("status", "==", "pending")), (snap) => {
+                const l = document.getElementById('mgrRequestList'); l.innerHTML = '';
+                if(snap.empty) l.innerHTML = '<p class="text-center italic text-slate-400">No pending requests</p>';
+                snap.forEach(d => {
+                    const r = d.data();
+                    const badge = r.type === 'slot' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600';
+                    l.innerHTML += `
+                        <div class="bg-white p-3 rounded-lg border shadow-sm flex justify-between items-center">
+                            <div><p class="font-bold text-xs">${r.userName} <span class="text-[10px] ${badge} px-1 rounded uppercase">${r.type}</span></p><p class="text-[10px] text-slate-500">${r.date} (${r.start}-${r.end})</p></div>
+                            <div class="flex gap-1"><button onclick="approveReq('${d.id}', 'approved')" class="text-green-500 bg-green-50 p-1.5 rounded"><i class="fas fa-check"></i></button><button onclick="approveReq('${d.id}', 'rejected')" class="text-red-500 bg-red-50 p-1.5 rounded"><i class="fas fa-times"></i></button></div>
+                        </div>`;
+                });
+            }));
+        }
+
+        // --- PERSONAL / SHARED LOGIC ---
+        function initPersonalView() {
+            const u = currentUser;
+            const isSquad = u.role === 'squad';
+            const isManager = u.role === 'manager';
+
+            // Manager Back Button
+            document.getElementById('mgrBackBtn').classList.toggle('hidden', !isManager);
+
+            // Profile
+            document.getElementById('pInitials').innerText = u.name.substring(0,2).toUpperCase();
+            document.getElementById('pName').innerText = u.name;
+            document.getElementById('pId').innerText = u.uid.substring(0,6).toUpperCase();
+            document.getElementById('pRole').innerText = u.role.toUpperCase();
+
+            // Stats Grid
+            const grid = document.getElementById('personalStats');
+            if(isSquad) {
+                grid.innerHTML = `
+                    <div class="text-center p-2 bg-slate-800 rounded"><p class="text-[10px] text-slate-400">MAIN</p><p class="text-lg font-bold">₹${(u.mainWallet||0).toFixed(0)}</p></div>
+                    <div class="text-center p-2 bg-slate-800 rounded"><p class="text-[10px] text-slate-400">BONUS</p><p class="text-lg font-bold text-orange-400">${u.bonusWallet||0}</p></div>
+                    <div class="text-center p-2 bg-slate-800 rounded"><p class="text-[10px] text-slate-400">STRIKES</p><p class="text-lg font-bold text-red-400">${u.strikes||0}</p></div>
+                `;
+                // Check Training
+                const days = Math.floor((new Date() - u.joinedAt.toDate()) / 86400000);
+                if(days < CONFIG.training) {
+                    document.getElementById('pTrainingAlert').classList.remove('hidden');
+                    document.getElementById('pHeldAmt').innerText = (u.blockedWallet||0).toFixed(0);
+                }
+                
+                // Booking UI
+                document.getElementById('bookingTitle').innerText = "BOOK NEXT DAY SLOT";
+                document.getElementById('bookingBtn').innerText = "Request Slot";
+                document.getElementById('timeInputs').classList.remove('hidden');
+            } else {
+                // Full Time
+                grid.innerHTML = `
+                    <div class="text-center p-2 bg-slate-800 rounded"><p class="text-[10px] text-slate-400">DAYS</p><p class="text-lg font-bold">${u.totalDays||0}</p></div>
+                    <div class="text-center p-2 bg-slate-800 rounded"><p class="text-[10px] text-slate-400">HOURS</p><p class="text-lg font-bold">${(u.totalHours||0).toFixed(0)}</p></div>
+                    <div class="text-center p-2 bg-slate-800 rounded"><p class="text-[10px] text-slate-400">LEAVES</p><p class="text-lg font-bold text-blue-400">${u.leavesTaken||0}</p></div>
+                `;
+                document.getElementById('bookingTitle').innerText = "APPLY FOR LEAVE";
+                document.getElementById('bookingBtn').innerText = "Request Leave";
+                document.getElementById('timeInputs').classList.add('hidden'); // Leave is whole day
+            }
+
+            // Monitor Active Shift
+            listeners.push(onSnapshot(query(collection(db, "shifts"), where("userId", "==", u.uid), where("status", "==", "active")), (snap) => {
+                if(!snap.empty) {
+                    activeShift = snap.docs[0];
+                    document.getElementById('checkInArea').classList.add('hidden');
+                    document.getElementById('checkOutArea').classList.remove('hidden');
+                    startTimer(activeShift.data().checkInTime.toDate());
+                } else {
+                    document.getElementById('checkInArea').classList.remove('hidden');
+                    document.getElementById('checkOutArea').classList.add('hidden');
+                    clearInterval(timerInt);
+                }
+            }));
+
+            // Personal History
+            listeners.push(onSnapshot(query(collection(db, "shifts"), where("userId", "==", u.uid), where("status", "==", "completed"), orderBy("checkOutTime", "desc"), limit(10)), (snap) => {
+                const l = document.getElementById('pHistoryList'); l.innerHTML = '';
+                snap.forEach(d => {
+                    const s = d.data();
+                    const date = s.checkOutTime.toDate();
+                    const earn = isSquad ? `<span class="text-green-600 font-bold">₹${s.earnings.toFixed(0)}</span>` : `${s.duration.toFixed(1)}h`;
+                    l.innerHTML += `
+                        <div class="bg-white p-3 rounded-xl border flex justify-between items-center text-sm">
+                            <div><p class="font-bold text-slate-700">${date.toLocaleDateString()}</p><p class="text-xs text-slate-400">In: ${s.checkInTime.toDate().toLocaleTimeString()} - Out: ${date.toLocaleTimeString()}</p></div>
+                            <div>${earn}</div>
+                        </div>`;
+                });
+            }));
+        }
+
+        // --- GLOBAL ACTIONS ---
+        
+        // 1. Attendance
+        window.startCamera = () => {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const dist = getDist(pos.coords.latitude, pos.coords.longitude, CONFIG.lat, CONFIG.lng);
+                if(dist*1000 > CONFIG.radius) return showToast("You are not at the outlet!");
+                
+                document.getElementById('cameraModal').classList.remove('hidden');
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(stream => {
+                    document.getElementById('camVideo').srcObject = stream;
+                });
+            }, () => showToast("GPS Permission Required"));
+        };
+
+        window.captureSelfie = async () => {
+            const vid = document.getElementById('camVideo');
+            const cvs = document.getElementById('camCanvas');
+            cvs.width = vid.videoWidth; cvs.height = vid.videoHeight;
+            cvs.getContext('2d').drawImage(vid, 0, 0);
+            const photo = cvs.toDataURL('image/jpeg', 0.5);
+            
+            // Stop Cam
+            vid.srcObject.getTracks().forEach(t => t.stop());
+            document.getElementById('cameraModal').classList.add('hidden');
+
+            await addDoc(collection(db, "shifts"), {
+                userId: currentUser.uid, userName: currentUser.name, role: currentUser.role,
+                checkInTime: serverTimestamp(), status: 'active', photo: photo
+            });
+            showToast("Checked In!");
+        };
+
+        window.checkOut = async () => {
+            if(!confirm("End Shift?")) return;
+            const shiftRef = doc(db, "shifts", activeShift.id);
+            const shiftData = activeShift.data();
+            
+            await runTransaction(db, async(t) => {
+                const userRef = doc(db, "users", currentUser.uid);
+                const u = (await t.get(userRef)).data();
+                
+                const now = new Date();
+                const start = shiftData.checkInTime.toDate();
+                const hrs = (now - start) / 3600000;
+                
+                let pay = 0, pts = 0;
+                if(u.role === 'squad') {
+                    pay = hrs * CONFIG.rate;
+                    pts = Math.floor(hrs * CONFIG.bonus);
+                    
+                    const days = Math.floor((new Date() - u.joinedAt.toDate()) / 86400000);
+                    if(days < CONFIG.training) t.update(userRef, { blockedWallet: (u.blockedWallet||0) + pay });
+                    else t.update(userRef, { mainWallet: (u.mainWallet||0) + pay });
+                    
+                    t.update(userRef, { bonusWallet: (u.bonusWallet||0) + pts });
+                } else {
+                    t.update(userRef, { totalHours: (u.totalHours||0) + hrs, totalDays: (u.totalDays||0) + 1 });
+                }
+
+                t.update(shiftRef, { checkOutTime: serverTimestamp(), status: 'completed', duration: hrs, earnings: pay });
+            });
+            showToast("Shift Ended");
+        };
+
+        // 2. Booking / Requests
+        window.submitRequest = async () => {
+            const isSquad = currentUser.role === 'squad';
+            const tmr = new Date(); tmr.setDate(tmr.getDate()+1);
+            const dateStr = tmr.toISOString().split('T')[0];
+            
+            // Validation
+            if(isSquad && (currentUser.strikes||0) >= 3) return showToast("Blocked due to strikes");
+            
+            const start = document.getElementById('bookStart').value;
+            const end = document.getElementById('bookEnd').value;
+            
+            await addDoc(collection(db, "requests"), {
+                userId: currentUser.uid, userName: currentUser.name,
+                type: isSquad ? 'slot' : 'leave',
+                date: dateStr, start: start || 'Full Day', end: end || '',
+                status: 'pending', createdAt: serverTimestamp()
+            });
+            showToast("Request Sent");
+        };
+
+        // 3. Admin & Manager Helpers
+        window.openPayModal = (uid, name, role, bal) => {
+            document.getElementById('payoutModal').classList.remove('hidden');
+            document.getElementById('payUid').value = uid;
+            document.getElementById('payType').value = role;
+            document.getElementById('paySubtitle').innerText = role === 'squad' ? `Wallet Balance: ₹${bal}` : `Record Salary Payment for ${name}`;
+        };
+
+        window.confirmPayout = async () => {
+            const uid = document.getElementById('payUid').value;
+            const role = document.getElementById('payType').value;
+            const amt = Number(document.getElementById('payAmount').value);
+            const max = Number(document.getElementById('payMax').value);
+
+            if(role === 'squad' && amt > max) return showToast("Insufficient Wallet Balance");
+
+            await runTransaction(db, async(t) => {
+                const userRef = doc(db, "users", uid);
+                const userDoc = await t.get(userRef);
+                
+                // Deduct only if Squad
+                if(role === 'squad') {
+                    t.update(userRef, { mainWallet: (userDoc.data().mainWallet || 0) - amt });
+                }
+                
+                // Log Record
+                const payRef = doc(collection(db, "payouts"));
+                t.set(payRef, { userId: uid, userName: userDoc.data().name, amount: amt, date: serverTimestamp(), by: currentUser.name });
+            });
+            
+            toggleModal('payoutModal');
+            showToast("Payout Recorded");
+        };
+
+        window.processRedeem = async () => {
+            const uid = document.getElementById('redeemUser').value;
+            const pts = Number(document.getElementById('redeemPts').value);
+            
+            await runTransaction(db, async(t) => {
+                const ref = doc(db, "users", uid);
+                const u = (await t.get(ref)).data();
+                if((u.bonusWallet||0) < pts) throw "Not enough points";
+                t.update(ref, { bonusWallet: u.bonusWallet - pts });
+            });
+            toggleModal('redeemModal'); showToast("Redeemed!");
+        };
+
+        window.runAutoStrikeEngine = async () => {
+            // Logic: Find requests approved for yesterday where no shift exists
+            alert("Audit Complete: 0 violations found (Simulation)");
+        };
+
+        window.exportCSV = (type) => {
+            alert(`Downloading ${type}.csv ...`); 
+            // Implementation would generate blob and trigger download
+        };
+
+        window.forceStop = async (id) => { 
+            // Reusing logic via direct call or copy
+            if(!confirm("Force Stop?")) return;
+            // ... (Simple update for demo)
+            await updateDoc(doc(db,"shifts",id), { status: 'completed', checkOutTime: serverTimestamp() });
+            showToast("Terminated");
+        };
+        
+        window.approveReq = async (id, st) => {
+            await updateDoc(doc(db, "requests", id), { status: st });
+            showToast("Updated");
+        };
+        
+        window.deleteUser = async (id) => {
+            if(confirm("Delete User?")) await deleteDoc(doc(db, "users", id));
+        };
+
+        // UI Helpers
+        window.setAdminTab = (tab) => {
+            document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        };
+
+        window.toggleModal = (id) => document.getElementById(id).classList.toggle('hidden');
+        window.showToast = (msg) => { document.getElementById('toastMsg').innerText = msg; document.getElementById('toast').classList.remove('translate-x-full'); setTimeout(()=>document.getElementById('toast').classList.add('translate-x-full'), 3000); };
+        
+        // --- Manager Ops Switcher ---
+        window.toggleMgrMode = (mode) => {
+            window.managerMode = mode; // Save state
+            const isOps = mode === 'ops';
+            
+            document.getElementById('viewOps').classList.toggle('hidden', !isOps);
+            document.getElementById('viewPersonal').classList.toggle('hidden', isOps);
+            
+            // Toggle button styles
+            const btnOps = document.getElementById('btnOps');
+            const btnPers = document.getElementById('btnPers');
+            if(btnOps && btnPers) {
+                btnOps.className = isOps ? "px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-lg" : "px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg";
+                btnPers.className = !isOps ? "px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-lg" : "px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg";
+            }
+
+            if (isOps) initManagerOps(); else initPersonalView();
+        };
+
+        window.switchToPersonal = () => { toggleMgrMode('personal'); };
+        window.switchToManager = () => { toggleMgrMode('ops'); };
+        
+        window.toggleSalaryField = (val) => document.getElementById('salaryField').classList.toggle('hidden', val === 'squad');
+        window.logout = () => signOut(auth);
+        
+        // Personal Tabs (Bottom Nav)
+        window.togglePersonalTab = (tab) => {
+            // Simple scroll to section for demo, or could be tab switcher
+            if(tab === 'dash') document.getElementById('viewPersonal').scrollIntoView();
+            if(tab === 'history') document.getElementById('personalHistory').scrollIntoView();
+        };
+
+        // Auth Handler
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPass').value); }
+            catch(err) { document.getElementById('loginError').innerText = err.message; document.getElementById('loginError').classList.remove('hidden'); }
+        };
+
+        document.getElementById('createUserForm').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const cred = await createUserWithEmailAndPassword(secondaryAuth, document.getElementById('newIdxEmail').value, document.getElementById('newIdxPass').value);
+                await setDoc(doc(db, "users", cred.user.uid), {
+                    name: document.getElementById('newIdxName').value,
+                    email: document.getElementById('newIdxEmail').value,
+                    role: document.getElementById('newIdxRole').value,
+                    salary: Number(document.getElementById('newIdxSalary').value || 0),
+                    joinedAt: serverTimestamp(),
+                    // Defaults
+                    mainWallet: 0, bonusWallet: 0, blockedWallet: 0, strikes: 0, rating: 5, totalDays: 0, totalHours: 0, leavesTaken: 0
+                });
+                await signOut(secondaryAuth);
+                toggleModal('createUserModal'); showToast("User Created Successfully");
+            } catch(e) { alert(e.message); }
+        };
+
+        // Utils
+        function startTimer(start) {
+            timerInt = setInterval(() => {
+                const d = new Date() - start;
+                const h = Math.floor(d/3600000).toString().padStart(2,'0');
+                const m = Math.floor((d%3600000)/60000).toString().padStart(2,'0');
+                document.getElementById('workTimer').innerText = `${h}:${m}`;
+            }, 1000);
+        }
+        function getDist(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; const φ1 = lat1 * Math.PI/180; const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180; const Δλ = (lon2-lon1) * Math.PI/180;
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+        function deg2rad(d) { return d * (Math.PI/180); }
+
+        window.saveConfig = async () => {
+            await setDoc(doc(db, "settings", "global"), {
+                rate: Number(document.getElementById('confRate').value),
+                bonus: Number(document.getElementById('confBonus').value),
+                radius: Number(document.getElementById('confRadius').value),
+                training: Number(document.getElementById('confTraining').value),
+                lat: Number(document.getElementById('confLat').value),
+                lng: Number(document.getElementById('confLng').value)
+            });
+            showToast("Config Saved");
+        };
+
+    </script>
+</body>
+</html>
