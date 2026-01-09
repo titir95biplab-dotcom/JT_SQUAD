@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JT Squad Manager v2.0</title>
+    <title>JT Squad Manager v2.1</title>
     
     <!-- Manifest -->
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkp1aWNlIFRoZXJhcHkgU3F1YWQiLAogICJzaG9ydF9uYW1lIjogIkpUIFNxdWFkIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciIjogIiNmOTczMTYiCn0=">
@@ -11,8 +11,6 @@
     <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for Admin Analytics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Styles -->
     <style>
@@ -25,8 +23,6 @@
         .nav-btn.active i { transform: translateY(-2px); }
         .admin-tab-btn { transition: all 0.2s; border-bottom: 2px solid transparent; color: #6b7280; }
         .admin-tab-btn.active { border-bottom-color: #ea580c; color: #ea580c; font-weight: 700; background-color: #fff7ed; }
-        .toggle-checkbox:checked { right: 0; border-color: #68D391; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #68D391; }
         /* Mobile Optimization */
         input, select, button { touch-action: manipulation; }
     </style>
@@ -111,10 +107,14 @@
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm col-span-2"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Liability (Pending Wages)</p><p class="text-2xl font-bold text-gray-800">₹<span id="adminPendingPayout">0</span></p></div>
                         </div>
                         
-                        <!-- Charts -->
-                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                            <h3 class="font-bold text-xs text-gray-600 uppercase mb-4">Financial Overview</h3>
-                            <canvas id="payoutChart" class="w-full h-48"></canvas>
+                        <!-- Schedule Card (Today & Tomorrow) -->
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <div class="p-3 border-b border-gray-50 bg-gray-50/50">
+                                <h3 class="font-bold text-xs text-gray-600 uppercase">Squad Schedule (Today & Next Day)</h3>
+                            </div>
+                            <div id="adminScheduleList" class="p-4 space-y-3">
+                                <p class="text-center text-xs text-gray-400 italic">Loading Schedule...</p>
+                            </div>
                         </div>
                     </div>
 
@@ -142,7 +142,6 @@
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                             <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
                                 <h3 class="font-bold text-xs text-gray-600 uppercase">Recent Activity</h3>
-                                <span class="text-[10px] text-orange-500 bg-orange-50 px-2 py-1 rounded">Auto-delete photos > 7 days</span>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left">
@@ -155,9 +154,15 @@
 
                     <!-- Tab: Requests (Leaves for Admin) -->
                     <div id="adminTab-requests" class="hidden space-y-4">
+                        <!-- Pending -->
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                            <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Full Time Staff Leave Requests</h3></div>
+                            <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Pending Leave Requests</h3></div>
                             <div id="adminLeaveList" class="p-4 space-y-3"></div>
+                        </div>
+                        <!-- Upcoming Approved -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                            <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-green-600 uppercase">Upcoming Approved Leaves</h3></div>
+                            <div id="adminUpcomingLeaveList" class="p-4 space-y-3"></div>
                         </div>
                     </div>
 
@@ -211,9 +216,19 @@
                     <div id="liveWorkersList" class="p-4 space-y-3"><p class="text-center text-gray-400 text-xs italic">Floor is clear.</p></div>
                 </div>
 
+                <!-- Squad Schedule -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="p-3 border-b border-gray-50 bg-gray-50/50">
+                        <h3 class="font-bold text-xs text-gray-600 uppercase">Squad Schedule (Today & Next Day)</h3>
+                    </div>
+                    <div id="mgrScheduleList" class="p-4 space-y-3">
+                        <p class="text-center text-xs text-gray-400 italic">Loading Schedule...</p>
+                    </div>
+                </div>
+
                 <!-- Squad Request Approvals -->
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Squad Slot Requests (Next Day)</h3></div>
+                    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Squad Slot Requests</h3></div>
                     <div id="slotRequestsList" class="p-4 space-y-3"></div>
                 </div>
             </div>
@@ -262,6 +277,12 @@
                         <option value="last_month">Last Month</option>
                         <option value="all_time">All Time</option>
                     </select>
+                </div>
+
+                <!-- Upcoming Approved Slots (Squad Only) -->
+                <div id="memberUpcomingSlotsBox" class="bg-blue-50 border border-blue-100 rounded-xl p-4 hidden">
+                    <h3 class="font-bold text-blue-800 text-xs uppercase mb-2"><i class="fas fa-calendar-check mr-2"></i>My Upcoming Slots</h3>
+                    <div id="memberUpcomingList" class="space-y-2 text-sm text-blue-700"></div>
                 </div>
 
                 <!-- Attendance Action -->
@@ -347,6 +368,28 @@
                     <button id="closeCameraBtn" class="w-12 h-12 rounded-full bg-gray-800 text-white flex items-center justify-center"><i class="fas fa-times"></i></button>
                     <button id="captureBtn" class="w-20 h-20 rounded-full bg-white border-4 border-gray-400 active:scale-90 transition"></button>
                     <div class="w-12"></div>
+                </div>
+            </div>
+
+            <!-- Edit Shift Modal -->
+            <div id="editShiftModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl w-full max-w-sm p-5">
+                    <h3 class="font-bold text-gray-800 mb-4">Edit Session Time</h3>
+                    <input type="hidden" id="editShiftId">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-gray-400">Check In Time</label>
+                            <input type="datetime-local" id="editShiftIn" class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-gray-400">Check Out Time</label>
+                            <input type="datetime-local" id="editShiftOut" class="w-full p-2 border rounded text-sm">
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="document.getElementById('editShiftModal').classList.add('hidden')" class="flex-1 py-2 border rounded-lg text-sm">Cancel</button>
+                            <button id="saveShiftTimeBtn" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm">Update</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -474,7 +517,6 @@
 
         let APP_CONFIG = { hourlyRate: 30, bonusRate: 5, radius: 200, trainingDays: 30, outletLat: 13.024976, outletLng: 77.562472 };
         let currentUserData = null, workTimerInterval = null, currentShiftId = null, listeners = [];
-        let payoutChartInstance = null;
 
         // --- AUTH & INIT ---
         onAuthStateChanged(auth, async (user) => {
@@ -556,18 +598,16 @@
 
         // --- ADMIN CONTROLLER ---
         function initAdmin() {
-            // Auto Clean Photos > 7 Days (Simulated)
             
             // 1. Staff List & Stats
             listeners.push(onSnapshot(query(collection(db, "users")), (snap) => {
                 const tbody = document.getElementById('userTableBody'); tbody.innerHTML = '';
-                let totSquad = 0, liab = 0, fulltime = 0;
+                let totSquad = 0, liab = 0;
                 
                 snap.forEach(d => {
                     const u = d.data();
                     const isSquad = u.role === 'member';
                     if(isSquad) { totSquad++; liab += (u.mainWallet||0); }
-                    else fulltime++;
 
                     const funds = isSquad ? 
                         `<div><span class="font-bold">₹${(u.mainWallet||0).toFixed(0)}</span> <span class="text-xs text-orange-500">(${u.bonusWallet||0}p)</span></div><div class="text-[10px] text-red-400">Locked: ₹${u.blockedWallet||0}</div>` : 
@@ -594,12 +634,9 @@
                 
                 document.getElementById('adminTotalSquad').innerText = totSquad; 
                 document.getElementById('adminPendingPayout').innerText = liab.toFixed(0);
-
-                // Update Chart
-                updateAdminChart(liab, fulltime, totSquad);
             }));
 
-            // 2. Shifts
+            // 2. Shifts (Recent)
             listeners.push(onSnapshot(query(collection(db, "shifts"), orderBy("checkInTime", "desc"), limit(20)), (snap) => {
                 const b = document.getElementById('shiftTableBody'); b.innerHTML='';
                 let active = 0;
@@ -608,13 +645,20 @@
                     if(s.status === 'active') active++;
                     const dur = s.status==='active' ? 'Active' : `${(s.hoursWorked||0).toFixed(2)} hrs`;
                     const tr = document.createElement('tr'); tr.className="border-b";
-                    tr.innerHTML = `<td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td><td class="p-3 font-bold">${s.userName}</td><td class="p-3 text-xs text-gray-500">${dur}</td><td class="p-3 text-right"><button onclick="window.delShift('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td>`;
+                    tr.innerHTML = `
+                        <td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td>
+                        <td class="p-3 font-bold">${s.userName}</td>
+                        <td class="p-3 text-xs text-gray-500">${dur}</td>
+                        <td class="p-3 text-right flex justify-end gap-2">
+                             <button onclick="window.openEditShiftModal('${d.id}')" class="text-blue-500 text-xs font-bold border px-1 rounded">Edit</button>
+                            <button onclick="window.delShift('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
+                        </td>`;
                     b.appendChild(tr);
                 });
                 document.getElementById('adminActiveStaff').innerText = active;
             }));
 
-            // 3. Leave Requests (Full Time)
+            // 3. Pending Leaves
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "leave"), where("status", "==", "pending")), (snap) => {
                 const l = document.getElementById('adminLeaveList'); l.innerHTML = '';
                 if(snap.empty) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No pending leave requests.</p>';
@@ -626,6 +670,22 @@
                 });
             }));
 
+            // 4. Upcoming Approved Leaves (New Feature)
+            const todayStr = new Date().toISOString().split('T')[0];
+            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "leave"), where("status", "==", "approved"), where("date", ">=", todayStr)), (snap) => {
+                const l = document.getElementById('adminUpcomingLeaveList'); l.innerHTML = '';
+                if(snap.empty) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No upcoming leaves.</p>';
+                snap.forEach(d => {
+                    const r = d.data();
+                    const el = document.createElement('div'); el.className="bg-green-50 p-3 rounded-lg flex justify-between items-center border border-green-100";
+                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName}</p><p class="text-xs text-gray-600">${r.date}</p></div><div class="text-[10px] text-green-700 font-bold bg-white px-2 py-1 rounded">Approved</div>`;
+                    l.appendChild(el);
+                });
+            }));
+            
+            // 5. Squad Schedule (Today & Tomorrow) (New Feature)
+            loadSharedSchedule('adminScheduleList');
+
             // Init Settings
             document.getElementById('settingRate').value = APP_CONFIG.hourlyRate;
             document.getElementById('settingBonus').value = APP_CONFIG.bonusRate;
@@ -635,35 +695,49 @@
             document.getElementById('settingLng').value = APP_CONFIG.outletLng;
         }
 
-        function updateAdminChart(liability, fulltime, squad) {
-            const ctx = document.getElementById('payoutChart').getContext('2d');
-            if(payoutChartInstance) payoutChartInstance.destroy();
-            payoutChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Liability (₹)', 'Squad Count', 'FullTime Count'],
-                    datasets: [{
-                        label: 'System Metrics',
-                        data: [liability, squad, fulltime],
-                        backgroundColor: ['#f87171', '#fb923c', '#60a5fa']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+        // Shared Logic for Admin and Manager Schedule
+        function loadSharedSchedule(elementId) {
+             const today = new Date();
+             const todayStr = today.toISOString().split('T')[0];
+             const tmrw = new Date(); tmrw.setDate(tmrw.getDate()+1);
+             const tmrwStr = tmrw.toISOString().split('T')[0];
+
+             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "shift"), where("status", "==", "approved"), where("date", ">=", todayStr)), (snap) => {
+                const l = document.getElementById(elementId); 
+                if(!l) return;
+                l.innerHTML = '';
+                
+                let events = [];
+                snap.forEach(d => events.push(d.data()));
+                
+                // Filter only today and tomorrow and sort
+                events = events.filter(e => e.date === todayStr || e.date === tmrwStr);
+                events.sort((a,b) => (a.date > b.date) ? 1 : (a.date === b.date ? (a.startTime > b.startTime ? 1 : -1) : -1));
+
+                if(events.length === 0) { l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No approved slots for today or tomorrow.</p>'; return; }
+
+                events.forEach(r => {
+                    const isToday = r.date === todayStr;
+                    const colorClass = isToday ? "bg-blue-50 border-blue-100" : "bg-gray-50 border-gray-100";
+                    const badge = isToday ? '<span class="text-[10px] bg-blue-200 text-blue-800 px-1 rounded font-bold">TODAY</span>' : '<span class="text-[10px] bg-gray-200 text-gray-800 px-1 rounded font-bold">TOMORROW</span>';
+                    
+                    const el = document.createElement('div'); el.className=`flex justify-between items-center p-3 rounded-lg border ${colorClass}`;
+                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName} ${badge}</p><p class="text-xs text-gray-600">${r.startTime} - ${r.endTime}</p></div>`;
+                    l.appendChild(el);
+                });
+             }));
         }
 
         // --- MANAGER CONTROLLER ---
         function initManager() {
             const today = new Date(); document.getElementById('mgrDateDisplay').innerText = today.toDateString();
             
-            // Live View (Squad Only for Operations)
+            // Live View
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
                 const l = document.getElementById('liveWorkersList'); l.innerHTML = '';
                 let count = 0;
                 snap.forEach(d => {
                     const s = d.data();
-                    // Optional: Managers might only want to manage Squad, not other managers/fulltime
-                    // but for safety, showing all active shifts is better.
                     count++;
                     const start = s.checkInTime.toDate();
                     const el = document.createElement('div'); el.className="flex justify-between items-center bg-green-50 p-3 rounded-lg border border-green-100";
@@ -674,7 +748,7 @@
                 if(count === 0) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic py-4">Floor Clear</p>';
             }));
 
-            // Slot Requests (Squad Only - Shift type)
+            // Slot Requests (Squad Only)
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "shift"), where("status", "==", "pending")), (snap) => {
                 const l = document.getElementById('slotRequestsList'); l.innerHTML = '';
                 if(snap.empty) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No pending requests.</p>';
@@ -685,6 +759,9 @@
                     l.appendChild(el);
                 });
             }));
+
+            // Manager Schedule View (New Feature)
+            loadSharedSchedule('mgrScheduleList');
         }
 
         // --- MEMBER / PERSONAL CONTROLLER ---
@@ -702,33 +779,36 @@
             document.getElementById('profileEmail').innerText = d.email;
             document.getElementById('profileJoined').innerText = d.joinedAt?.toDate().toLocaleDateString() || '-';
             
+            // Explicitly handle "Training Wallet" visibility
+            const trainingAlert = document.getElementById('blockedFundsAlert');
             if(!isSquad) {
+                trainingAlert.classList.add('hidden'); // Ensure hidden for FT
                 document.getElementById('profileSalaryDisplay').innerText = `Salary: ₹${d.salary || 'Not Set'}`;
                 document.getElementById('fullTimeFilter').classList.remove('hidden');
                 document.getElementById('squadBookingUI').classList.add('hidden');
                 document.getElementById('ftLeaveUI').classList.remove('hidden');
                 document.getElementById('bookingTitle').innerText = "Request Leave";
+                document.getElementById('memberUpcomingSlotsBox').classList.add('hidden'); // Hide slots for FT
             } else {
+                // Check training days for Squad
+                const days = Math.floor((new Date() - (d.joinedAt?.toDate()||new Date()))/(1000*60*60*24));
+                if (days < APP_CONFIG.trainingDays) {
+                    trainingAlert.classList.remove('hidden');
+                    document.getElementById('memberBlockedWallet').innerText = (d.blockedWallet||0).toFixed(0);
+                } else {
+                    trainingAlert.classList.add('hidden');
+                }
+
                 document.getElementById('profileSalaryDisplay').innerText = '';
                 document.getElementById('fullTimeFilter').classList.add('hidden');
                 document.getElementById('squadBookingUI').classList.remove('hidden');
                 document.getElementById('ftLeaveUI').classList.add('hidden');
                 document.getElementById('bookingTitle').innerText = "Book Slot (Next Day)";
+                document.getElementById('memberUpcomingSlotsBox').classList.remove('hidden');
             }
 
             // Stats Grid
-            window.renderFullTimeStats(); // Initial render
-
-            // Training Check (Squad)
-            if (isSquad) {
-                const days = Math.floor((new Date() - (d.joinedAt?.toDate()||new Date()))/(1000*60*60*24));
-                if (days < APP_CONFIG.trainingDays) {
-                    document.getElementById('blockedFundsAlert').classList.remove('hidden');
-                    document.getElementById('memberBlockedWallet').innerText = (d.blockedWallet||0).toFixed(0);
-                } else {
-                    document.getElementById('blockedFundsAlert').classList.add('hidden');
-                }
-            }
+            window.renderFullTimeStats(); 
 
             // Active Shift Monitor
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("userId", "==", d.uid), where("status", "==", "active")), (snap) => {
@@ -754,19 +834,18 @@
                 }
             }));
 
-            // Upcoming Requests Monitor
-            const todayStr = new Date().toISOString().split('T')[0];
-            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("date", ">=", todayStr)), (snap) => {
-                const disp = document.getElementById('requestStatusDisplay');
-                if(snap.empty) { disp.classList.add('hidden'); return; }
-                disp.classList.remove('hidden');
-                disp.innerHTML = '<h4 class="font-bold text-xs uppercase text-gray-400 mb-2">Request Status</h4>';
-                snap.forEach(doc => {
-                    const r = doc.data();
-                    let color = r.status==='approved'?'green':(r.status==='rejected'?'red':'yellow');
-                    disp.innerHTML += `<div class="flex justify-between items-center mb-1"><span class="text-xs">${r.date} (${r.type})</span><span class="text-[10px] font-bold bg-${color}-100 text-${color}-700 px-2 py-0.5 rounded uppercase">${r.status}</span></div>`;
-                });
-            }));
+            // Upcoming Approved Slots Monitor (Squad Only) (New Feature)
+            if(isSquad) {
+                const todayStr = new Date().toISOString().split('T')[0];
+                listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("status", "==", "approved"), where("date", ">=", todayStr)), (snap) => {
+                    const l = document.getElementById('memberUpcomingList'); l.innerHTML = '';
+                    if(snap.empty) l.innerHTML = '<p class="text-center italic opacity-50">No upcoming slots</p>';
+                    snap.forEach(doc => {
+                        const r = doc.data();
+                        l.innerHTML += `<div class="flex justify-between items-center"><span class="font-bold">${r.date}</span><span>${r.startTime} - ${r.endTime}</span></div>`;
+                    });
+                }));
+            }
 
             loadHistory();
             loadPayouts();
@@ -785,9 +864,8 @@
                 `;
             } else {
                 const filter = document.getElementById('statsDateFilter').value;
-                let q = query(collection(db, "shifts"), where("userId", "==", currentUserData.uid), where("status", "==", "completed"));
-                
-                // Client-side filtering for simplicity (Firestore composite index limits)
+                // Client-side filtering logic remains same...
+                const q = query(collection(db, "shifts"), where("userId", "==", currentUserData.uid), where("status", "==", "completed"));
                 const snap = await getDocs(q);
                 let hours = 0, days = 0;
                 const now = new Date();
@@ -818,16 +896,22 @@
         };
 
         async function loadHistory() {
-            const q = query(collection(db, "shifts"), where("userId", "==", currentUserData.uid), where("status", "==", "completed"), orderBy("checkInTime", "desc"), limit(20));
+            // FIX: Removed orderBy to avoid index errors, doing client-side sort
+            const q = query(collection(db, "shifts"), where("userId", "==", currentUserData.uid), where("status", "==", "completed"), limit(50));
             const snap = await getDocs(q);
             const l = document.getElementById('historyList'); l.innerHTML = '';
             
-            snap.forEach(sDoc => {
-                const s = sDoc.data();
+            let shifts = [];
+            snap.forEach(d => shifts.push(d.data()));
+            shifts.sort((a,b) => b.checkInTime.seconds - a.checkInTime.seconds); // Sort Descending
+
+            if(shifts.length === 0) { l.innerHTML = '<p class="text-center text-xs text-gray-400 italic mt-4">No work history found.</p>'; return; }
+
+            shifts.forEach(s => {
                 const start = s.checkInTime.toDate();
                 const end = s.checkOutTime.toDate();
                 const timeStr = `${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-                const earn = currentUserData.role === 'member' ? `<span class="text-green-600 font-bold text-xs">₹${s.earnings?.toFixed(2)}</span>` : '';
+                const earn = currentUserData.role === 'member' ? `<span class="text-green-600 font-bold text-xs">₹${(s.earnings||0).toFixed(2)}</span>` : '';
 
                 const el = document.createElement('div');
                 el.className = "bg-white p-3 rounded-lg border border-gray-100 flex justify-between items-center";
@@ -837,7 +921,7 @@
                         <div class="text-[10px] text-gray-400 font-mono mt-1">${timeStr}</div>
                     </div>
                     <div class="text-right">
-                        <div class="text-xs font-bold text-gray-600">${s.hoursWorked?.toFixed(2)}h</div>
+                        <div class="text-xs font-bold text-gray-600">${(s.hoursWorked||0).toFixed(2)}h</div>
                         ${earn}
                     </div>
                 `;
@@ -846,12 +930,18 @@
         }
 
         async function loadPayouts() {
-            const snap = await getDocs(query(collection(db, "payouts"), where("userId", "==", currentUserData.uid), orderBy("date", "desc"), limit(10)));
+            // FIX: Removed orderBy for same reason
+            const snap = await getDocs(query(collection(db, "payouts"), where("userId", "==", currentUserData.uid), limit(20)));
             const l = document.getElementById('payoutHistoryList'); 
-            if(snap.empty) { l.innerHTML = '<p class="text-center italic text-gray-400">No records found.</p>'; return; }
             l.innerHTML = '';
-            snap.forEach(d => {
-                const p = d.data();
+            
+            let payouts = [];
+            snap.forEach(d => payouts.push(d.data()));
+            payouts.sort((a,b) => b.date.seconds - a.date.seconds);
+
+            if(payouts.length === 0) { l.innerHTML = '<p class="text-center italic text-gray-400">No records found.</p>'; return; }
+            
+            payouts.forEach(p => {
                 l.innerHTML += `<div class="flex justify-between border-b border-gray-50 pb-2 mb-2"><span class="text-gray-600">${p.date.toDate().toLocaleDateString()}</span><span class="font-bold text-green-600">+₹${p.amount}</span></div>`;
             });
         }
@@ -888,6 +978,87 @@
             const isFt = r === 'fulltime' || r === 'manager';
             document.getElementById('newUserSalary').classList.toggle('hidden', !isFt);
             document.getElementById('squadRateOverride').classList.toggle('hidden', isFt);
+        };
+
+        // Config Save Logic (Fixed)
+        document.getElementById('saveSettingsBtn').onclick = async () => {
+            try {
+                const rate = Number(document.getElementById('settingRate').value);
+                const bonus = Number(document.getElementById('settingBonus').value);
+                const radius = Number(document.getElementById('settingRadius').value);
+                const train = Number(document.getElementById('settingTraining').value);
+                const lat = Number(document.getElementById('settingLat').value);
+                const lng = Number(document.getElementById('settingLng').value);
+                
+                await setDoc(doc(db, "settings", "global"), { 
+                    hourlyRate: rate, bonusRate: bonus, radius: radius, trainingDays: train, outletLat: lat, outletLng: lng 
+                });
+                
+                APP_CONFIG = { ...APP_CONFIG, hourlyRate: rate, bonusRate: bonus, radius: radius, trainingDays: train, outletLat: lat, outletLng: lng };
+                showToast("Configuration Saved");
+            } catch(e) { alert("Save Failed: " + e); }
+        };
+
+        // Edit Shift Logic (New Feature)
+        window.openEditShiftModal = async (id) => {
+            const s = (await getDoc(doc(db, "shifts", id))).data();
+            document.getElementById('editShiftId').value = id;
+            
+            // Format for datetime-local (YYYY-MM-DDTHH:MM)
+            const toLocal = (ts) => {
+                if(!ts) return "";
+                const d = ts.toDate();
+                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                return d.toISOString().slice(0,16);
+            };
+
+            document.getElementById('editShiftIn').value = toLocal(s.checkInTime);
+            document.getElementById('editShiftOut').value = toLocal(s.checkOutTime);
+            document.getElementById('editShiftModal').classList.remove('hidden');
+        };
+
+        document.getElementById('saveShiftTimeBtn').onclick = async () => {
+            const id = document.getElementById('editShiftId').value;
+            const inTimeStr = document.getElementById('editShiftIn').value;
+            const outTimeStr = document.getElementById('editShiftOut').value;
+            
+            if(!inTimeStr) return alert("Check-in time is required");
+
+            try {
+                await runTransaction(db, async(t) => {
+                    const sRef = doc(db, "shifts", id);
+                    const s = (await t.get(sRef)).data();
+                    
+                    const newIn = new Date(inTimeStr);
+                    const newOut = outTimeStr ? new Date(outTimeStr) : null;
+                    
+                    let updates = { checkInTime: Timestamp.fromDate(newIn) };
+                    
+                    // If check-out is set, calculate duration and possibly close shift
+                    if (newOut) {
+                         const msWorked = newOut - newIn;
+                         const mins = msWorked / (1000 * 60);
+                         const hours = mins / 60;
+                         if (hours <= 0) throw "Invalid Duration";
+                         
+                         updates.checkOutTime = Timestamp.fromDate(newOut);
+                         updates.hoursWorked = hours;
+                         
+                         // If it was active, now it's completed
+                         if(s.status === 'active') updates.status = 'completed';
+                    } else {
+                        // If clearing checkout time (reopening shift)
+                        if(s.checkOutTime) {
+                             updates.checkOutTime = null;
+                             updates.status = 'active';
+                             updates.hoursWorked = 0; // Reset
+                        }
+                    }
+                    t.update(sRef, updates);
+                });
+                showToast("Shift Updated");
+                document.getElementById('editShiftModal').classList.add('hidden');
+            } catch(e) { alert(e); }
         };
 
         // Payout Logic
