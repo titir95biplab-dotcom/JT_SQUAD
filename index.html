@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Juice Therapy - System</title>
+    <title>JT Squad Manager v2.0</title>
     
     <!-- Manifest -->
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkp1aWNlIFRoZXJhcHkgU3F1YWQiLAogICJzaG9ydF9uYW1lIjogIkpUIFNxdWFkIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciIjogIiNmOTczMTYiCn0=">
@@ -11,6 +11,8 @@
     <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Admin Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Styles -->
     <style>
@@ -23,6 +25,8 @@
         .nav-btn.active i { transform: translateY(-2px); }
         .admin-tab-btn { transition: all 0.2s; border-bottom: 2px solid transparent; color: #6b7280; }
         .admin-tab-btn.active { border-bottom-color: #ea580c; color: #ea580c; font-weight: 700; background-color: #fff7ed; }
+        .toggle-checkbox:checked { right: 0; border-color: #68D391; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #68D391; }
         /* Mobile Optimization */
         input, select, button { touch-action: manipulation; }
     </style>
@@ -36,7 +40,7 @@
 
     <!-- Login Screen -->
     <div id="authSection" class="flex-grow flex flex-col items-center justify-center p-6 bg-orange-50 overflow-y-auto">
-        <div class="bg-white p-4 rounded-full shadow-lg mb-6"><img src="logo.png" onerror="this.src='https://via.placeholder.com/150?text=Juice+Therapy'" alt="Logo" class="w-24 h-24 object-contain rounded-full"></div>
+        <div class="bg-white p-4 rounded-full shadow-lg mb-6"><div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">JT</div></div>
         <div class="bg-white p-8 rounded-2xl shadow-sm w-full max-w-md border border-gray-100">
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">Welcome Back</h2>
             <p class="text-center text-gray-400 text-sm mb-6">Staff Management System</p>
@@ -59,7 +63,7 @@
     <div id="appLayout" class="flex-grow flex flex-col hidden h-full">
         
         <!-- Top Bar -->
-        <header class="bg-white p-4 shadow-sm flex justify-between items-center z-20 border-b border-gray-100 h-16">
+        <header class="bg-white p-4 shadow-sm flex justify-between items-center z-20 border-b border-gray-100 h-16 shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">JT</div>
                 <div>
@@ -90,24 +94,27 @@
             <!-- ================= ADMIN DASHBOARD ================= -->
             <div id="adminView" class="view-section hidden flex flex-col h-full">
                 <!-- Sticky Admin Nav -->
-                <div class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30 overflow-x-auto flex">
-                    <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn active" onclick="switchAdminTab('overview', event)"><i class="fas fa-chart-pie mb-1 block text-lg"></i>Dash</button>
+                <div class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30 overflow-x-auto flex shrink-0">
+                    <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn active" onclick="switchAdminTab('overview', event)"><i class="fas fa-chart-pie mb-1 block text-lg"></i>Stats</button>
                     <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('users', event)"><i class="fas fa-users mb-1 block text-lg"></i>Staff</button>
                     <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('shifts', event)"><i class="fas fa-clock mb-1 block text-lg"></i>Shifts</button>
-                    <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('settings', event)"><i class="fas fa-sliders-h mb-1 block text-lg"></i>Config</button>
+                    <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('requests', event)"><i class="fas fa-envelope-open-text mb-1 block text-lg"></i>Leaves</button>
+                    <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('settings', event)"><i class="fas fa-cogs mb-1 block text-lg"></i>Config</button>
                 </div>
 
                 <div class="p-4 space-y-5">
-                    <!-- Tab: Overview -->
+                    <!-- Tab: Overview / Stats -->
                     <div id="adminTab-overview" class="space-y-4">
                         <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Staff</p><p id="adminTotalStaff" class="text-2xl font-bold text-gray-800">0</p></div>
-                            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Shifts</p><p id="adminActiveStaff" class="text-2xl font-bold text-green-600">0</p></div>
-                            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm col-span-2"><p class="text-gray-400 text-[10px] font-bold uppercase">Wallet Liability (Squad)</p><p class="text-2xl font-bold text-gray-800">₹<span id="adminPendingPayout">0</span></p></div>
+                            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Squad</p><p id="adminTotalSquad" class="text-2xl font-bold text-gray-800">0</p></div>
+                            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Now</p><p id="adminActiveStaff" class="text-2xl font-bold text-green-600">0</p></div>
+                            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm col-span-2"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Liability (Pending Wages)</p><p class="text-2xl font-bold text-gray-800">₹<span id="adminPendingPayout">0</span></p></div>
                         </div>
-                        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Live Floor Monitor</h3></div>
-                            <div id="adminLiveList" class="p-4 space-y-3 min-h-[100px]"><p class="text-center text-gray-400 text-xs italic py-4">No active shifts.</p></div>
+                        
+                        <!-- Charts -->
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <h3 class="font-bold text-xs text-gray-600 uppercase mb-4">Financial Overview</h3>
+                            <canvas id="payoutChart" class="w-full h-48"></canvas>
                         </div>
                     </div>
 
@@ -116,14 +123,14 @@
                         <div class="flex gap-2">
                             <div class="relative flex-grow">
                                 <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
-                                <input type="text" id="staffSearch" placeholder="Search..." class="w-full pl-8 p-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-orange-500">
+                                <input type="text" id="staffSearch" onkeyup="filterStaffTable()" placeholder="Search staff..." class="w-full pl-8 p-2.5 text-sm rounded-lg border border-gray-200 outline-none focus:border-orange-500">
                             </div>
-                            <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="bg-gray-800 text-white px-3 rounded-lg"><i class="fas fa-plus"></i></button>
+                            <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="bg-gray-800 text-white px-3 rounded-lg shadow"><i class="fas fa-plus"></i></button>
                         </div>
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left">
-                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"><tr><th class="p-3">Staff</th><th class="p-3">Role</th><th class="p-3">Status</th><th class="p-3 text-right">Action</th></tr></thead>
+                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"><tr><th class="p-3">Staff Details</th><th class="p-3">Financials</th><th class="p-3">Stats</th><th class="p-3 text-right">Actions</th></tr></thead>
                                     <tbody id="userTableBody" class="divide-y divide-gray-100 text-gray-700"></tbody>
                                 </table>
                             </div>
@@ -134,37 +141,46 @@
                     <div id="adminTab-shifts" class="hidden space-y-4">
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                             <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
-                                <h3 class="font-bold text-xs text-gray-600 uppercase">Shift History</h3>
-                                <span class="text-[10px] text-orange-500 bg-orange-50 px-2 py-1 rounded">Photos kept 7 days</span>
+                                <h3 class="font-bold text-xs text-gray-600 uppercase">Recent Activity</h3>
+                                <span class="text-[10px] text-orange-500 bg-orange-50 px-2 py-1 rounded">Auto-delete photos > 7 days</span>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left">
-                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"><tr><th class="p-3">Date</th><th class="p-3">Name</th><th class="p-3">Timing</th><th class="p-3 text-right">Delete</th></tr></thead>
+                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"><tr><th class="p-3">Date</th><th class="p-3">Staff</th><th class="p-3">Duration</th><th class="p-3 text-right">Action</th></tr></thead>
                                     <tbody id="shiftTableBody" class="divide-y divide-gray-100 text-gray-700"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Tab: Requests (Leaves for Admin) -->
+                    <div id="adminTab-requests" class="hidden space-y-4">
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                            <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Full Time Staff Leave Requests</h3></div>
+                            <div id="adminLeaveList" class="p-4 space-y-3"></div>
+                        </div>
+                    </div>
+
                     <!-- Tab: Settings -->
                     <div id="adminTab-settings" class="hidden space-y-4">
                         <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                            <h3 class="font-bold text-gray-800 text-sm uppercase mb-4 border-b pb-2">Global Logic</h3>
+                            <h3 class="font-bold text-gray-800 text-sm uppercase mb-4 border-b pb-2">System Configuration</h3>
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Rate (₹/hr)</label><input type="number" id="settingRate" class="w-full p-2 border rounded font-mono"></div>
-                                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Bonus (Pts/hr)</label><input type="number" id="settingBonus" class="w-full p-2 border rounded font-mono"></div>
+                                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Base Rate (₹/hr)</label><input type="number" id="settingRate" class="w-full p-2 border rounded font-mono text-sm"></div>
+                                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Bonus (Pts/hr)</label><input type="number" id="settingBonus" class="w-full p-2 border rounded font-mono text-sm"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Radius (m)</label><input type="number" id="settingRadius" class="w-full p-2 border rounded font-mono"></div>
-                                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Train (Days)</label><input type="number" id="settingTraining" class="w-full p-2 border rounded font-mono"></div>
+                                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Geofence (m)</label><input type="number" id="settingRadius" class="w-full p-2 border rounded font-mono text-sm"></div>
+                                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Training (Days)</label><input type="number" id="settingTraining" class="w-full p-2 border rounded font-mono text-sm"></div>
                                 </div>
                                 <div>
                                     <label class="text-[10px] font-bold text-gray-400 uppercase">Outlet Location (Lat, Lng)</label>
                                     <div class="flex gap-2">
-                                        <input type="number" step="any" id="settingLat" class="w-1/2 p-2 border rounded font-mono text-xs">
-                                        <input type="number" step="any" id="settingLng" class="w-1/2 p-2 border rounded font-mono text-xs">
+                                        <input type="number" step="any" id="settingLat" class="w-1/2 p-2 border rounded font-mono text-xs" placeholder="Latitude">
+                                        <input type="number" step="any" id="settingLng" class="w-1/2 p-2 border rounded font-mono text-xs" placeholder="Longitude">
                                     </div>
+                                    <button onclick="navigator.geolocation.getCurrentPosition(p=>{document.getElementById('settingLat').value=p.coords.latitude;document.getElementById('settingLng').value=p.coords.longitude})" class="text-[10px] text-blue-600 mt-1 underline">Get Current Location</button>
                                 </div>
                                 <button id="saveSettingsBtn" class="w-full py-3 bg-gray-800 text-white rounded-lg font-bold text-sm hover:bg-black transition">Save Configuration</button>
                             </div>
@@ -189,28 +205,16 @@
                 <!-- Live Floor -->
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
-                        <h3 class="font-bold text-xs text-gray-600 uppercase">Live Floor</h3>
+                        <h3 class="font-bold text-xs text-gray-600 uppercase">Live Floor (Squad)</h3>
                         <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold" id="mgrLiveCount">0 Active</span>
                     </div>
                     <div id="liveWorkersList" class="p-4 space-y-3"><p class="text-center text-gray-400 text-xs italic">Floor is clear.</p></div>
                 </div>
 
-                <!-- Roster -->
+                <!-- Squad Request Approvals -->
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Approved Roster (Upcoming)</h3></div>
-                    <div id="mgrUpcomingList" class="p-4 space-y-3"><p class="text-center text-gray-400 text-xs italic">No upcoming approved slots.</p></div>
-                </div>
-
-                <!-- Actions -->
-                <div class="grid gap-4">
-                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                        <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Requests</h3></div>
-                        <div id="slotRequestsList" class="p-4 space-y-3"></div>
-                    </div>
-                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                        <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Pending Ratings</h3></div>
-                        <div id="completedShiftsList" class="p-4 space-y-3"></div>
-                    </div>
+                    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Squad Slot Requests (Next Day)</h3></div>
+                    <div id="slotRequestsList" class="p-4 space-y-3"></div>
                 </div>
             </div>
 
@@ -246,15 +250,18 @@
                 <div id="blockedFundsAlert" class="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 hidden">
                     <div class="bg-orange-100 text-orange-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fas fa-lock text-xs"></i></div>
                     <div>
-                        <p class="text-xs font-bold text-gray-700">Training Period Active</p>
+                        <p class="text-xs font-bold text-gray-700">Training Wallet Locked</p>
                         <p class="text-[10px] text-gray-500">Held Funds: <span class="font-bold text-gray-800">₹<span id="memberBlockedWallet">0</span></span></p>
                     </div>
                 </div>
 
-                <!-- Upcoming Slots (Squad Only) -->
-                <div id="memberUpcomingSlots" class="bg-blue-50 border border-blue-100 rounded-xl p-4 hidden">
-                    <h3 class="font-bold text-blue-800 text-xs uppercase mb-2"><i class="fas fa-calendar-check mr-2"></i>Upcoming Shifts</h3>
-                    <div id="memberUpcomingList" class="space-y-2 text-sm text-blue-700"></div>
+                <!-- Filter for Full Time Stats -->
+                <div id="fullTimeFilter" class="hidden">
+                    <select id="statsDateFilter" onchange="window.renderFullTimeStats()" class="w-full p-2 bg-white border rounded text-xs font-bold text-gray-600">
+                        <option value="this_month">This Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="all_time">All Time</option>
+                    </select>
                 </div>
 
                 <!-- Attendance Action -->
@@ -265,7 +272,7 @@
                         <button id="checkInBtn" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-green-100 transition active:scale-95 flex items-center justify-center gap-2">
                             <i class="fas fa-camera"></i> CHECK IN
                         </button>
-                        <p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-map-marker-alt mr-1"></i> Location Verified</p>
+                        <p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-map-marker-alt mr-1"></i> Location & Face Verified</p>
                     </div>
 
                     <div id="checkOutBtnArea" class="hidden">
@@ -280,12 +287,27 @@
                 <!-- Booking / Leave -->
                 <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
                     <h3 class="font-bold text-xs text-gray-400 uppercase mb-4 tracking-wider" id="bookingTitle">Book Slot</h3>
-                    <div class="space-y-3">
+                    
+                    <!-- Squad Booking UI -->
+                    <div id="squadBookingUI" class="hidden space-y-3">
+                         <div class="text-xs text-gray-500 text-center mb-2">Bookings allow for <span class="font-bold text-gray-700">Next Day Only</span></div>
                         <div class="flex gap-2">
                             <input type="time" id="bookStartTime" class="w-1/2 p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
                             <input type="time" id="bookEndTime" class="w-1/2 p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
                         </div>
-                        <button id="bookSlotBtn" class="w-full py-3 bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-100 rounded-lg font-bold text-sm transition">Request</button>
+                        <button id="bookSlotBtn" class="w-full py-3 bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-100 rounded-lg font-bold text-sm transition">Request Slot</button>
+                    </div>
+
+                    <!-- Full Time Leave UI -->
+                    <div id="ftLeaveUI" class="hidden space-y-3">
+                        <input type="date" id="leaveDate" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+                        <textarea id="leaveReason" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm" placeholder="Reason for leave..."></textarea>
+                        <button id="requestLeaveBtn" class="w-full py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 rounded-lg font-bold text-sm transition">Submit Leave Request</button>
+                    </div>
+                    
+                    <!-- Upcoming Status Display -->
+                    <div id="requestStatusDisplay" class="mt-4 pt-4 border-t border-gray-100 text-sm hidden">
+                        <!-- Filled by JS -->
                     </div>
                 </div>
             </div>
@@ -301,21 +323,13 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-6 text-center shadow-sm">
                      <div class="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-gray-400 font-bold" id="profileInitials">JT</div>
                      <h2 class="text-lg font-bold text-gray-800" id="profileName">User</h2>
-                     <p class="text-xs text-gray-500 mb-3" id="profileEmail">email@example.com</p>
+                     <p class="text-xs text-gray-500 mb-1" id="profileEmail">email@example.com</p>
+                     <p class="text-xs font-bold text-blue-600 mb-3" id="profileSalaryDisplay"></p>
                      <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-3 py-1 rounded-full font-bold">Joined: <span id="profileJoined">-</span></span>
                 </div>
                 
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Performance Summary</h3></div>
-                    <div class="p-4 space-y-3 text-sm">
-                        <div class="flex justify-between"><span class="text-gray-500">Total Worked</span><span class="font-bold"><span id="profileDays">0</span> Days</span></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Total Hours</span><span class="font-bold"><span id="profileHours">0</span> Hrs</span></div>
-                        <div id="profileStrikesRow" class="flex justify-between text-red-500"><span class="text-gray-500">Strikes</span><span class="font-bold" id="profileStrikes">0</span></div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Payment Records</h3></div>
+                    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Financials</h3></div>
                     <div id="payoutHistoryList" class="p-4 space-y-2 text-xs text-gray-500"><p class="text-center italic">No records found.</p></div>
                 </div>
             </div>
@@ -338,7 +352,7 @@
 
             <!-- Create User Modal -->
             <div id="createUserModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
-                <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+                <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
                     <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                         <h3 class="font-bold text-sm text-gray-700">Add New Staff</h3>
                         <button onclick="document.getElementById('createUserModal').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
@@ -347,12 +361,18 @@
                         <input type="text" id="newUserName" class="w-full p-3 border rounded-lg text-sm" placeholder="Full Name" required>
                         <input type="email" id="newUserEmail" class="w-full p-3 border rounded-lg text-sm" placeholder="Email" required>
                         <input type="password" id="newUserPassword" class="w-full p-3 border rounded-lg text-sm" placeholder="Password (min 6 chars)" required>
-                        <select id="newUserRole" class="w-full p-3 border rounded-lg text-sm bg-white">
-                            <option value="member">Squad Member (Hourly + Wallet)</option>
-                            <option value="fulltime">Full Time Staff (Salary + Leaves)</option>
-                            <option value="manager">Manager (Ops + Full Time)</option>
-                            <option value="admin">System Admin</option>
-                        </select>
+                        <div class="grid grid-cols-2 gap-3">
+                            <select id="newUserRole" class="w-full p-3 border rounded-lg text-sm bg-white" onchange="toggleSalaryField()">
+                                <option value="member">Squad Member</option>
+                                <option value="fulltime">Full Time Staff</option>
+                                <option value="manager">Manager</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            <input type="number" id="newUserSalary" class="w-full p-3 border rounded-lg text-sm hidden" placeholder="Monthly Salary (₹)">
+                        </div>
+                        <div id="squadRateOverride" class="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                            Standard Rate: ₹<span id="displayStdRate">30</span>/hr. Can edit in profile later.
+                        </div>
                         <button type="submit" class="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">Create Account</button>
                     </form>
                 </div>
@@ -368,22 +388,27 @@
                             <label class="text-[10px] uppercase font-bold text-gray-400">Name</label>
                             <input type="text" id="editUserName" class="w-full border p-2 rounded text-sm">
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] uppercase font-bold text-gray-400">Role</label>
-                            <select id="editUserRole" class="w-full border p-2 rounded text-sm bg-white"><option value="member">Squad</option><option value="fulltime">Full Time</option><option value="manager">Manager</option><option value="admin">Admin</option></select>
+                        
+                        <!-- Salary Field -->
+                        <div id="editSalaryField" class="space-y-1 hidden">
+                            <label class="text-[10px] uppercase font-bold text-gray-400">Salary (₹)</label>
+                            <input type="number" id="editUserSalary" class="w-full border p-2 rounded text-sm">
                         </div>
                         
                         <!-- Squad Fields -->
                         <div id="squadFields" class="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+                             <div><label class="text-[10px] font-bold text-gray-400">Rate (₹/hr)</label><input type="number" id="editUserRate" class="w-full border p-2 rounded text-sm bg-yellow-50"></div>
+                             <div><label class="text-[10px] font-bold text-gray-400">Bonus (Pts/hr)</label><input type="number" id="editUserBonusRate" class="w-full border p-2 rounded text-sm bg-yellow-50"></div>
+                            
                             <div><label class="text-[10px] font-bold text-gray-400">Wallet (₹)</label><input type="number" id="editUserWallet" class="w-full border p-2 rounded text-sm"></div>
-                            <div><label class="text-[10px] font-bold text-gray-400">Bonus (Pts)</label><input type="number" id="editUserBonus" class="w-full border p-2 rounded text-sm"></div>
+                            <div><label class="text-[10px] font-bold text-gray-400">Bonus Bal</label><input type="number" id="editUserBonus" class="w-full border p-2 rounded text-sm"></div>
                             <div><label class="text-[10px] font-bold text-red-400">Blocked (₹)</label><input type="number" id="editUserBlocked" class="w-full border p-2 rounded text-sm bg-red-50"></div>
                             <div><label class="text-[10px] font-bold text-red-400">Strikes</label><input type="number" id="editUserStrikes" class="w-full border p-2 rounded text-sm bg-red-50"></div>
                         </div>
                         
                         <div class="flex gap-2 mt-4 pt-2">
-                            <button id="releaseFundsBtn" class="flex-1 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold">Release Blocked</button>
-                            <button id="saveUserChangesBtn" class="flex-1 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold">Save Changes</button>
+                             <button id="addStrikeBtn" class="hidden flex-1 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold">+1 Strike</button>
+                            <button id="saveUserChangesBtn" class="flex-[2] py-2 bg-blue-600 text-white rounded-lg text-xs font-bold">Save Changes</button>
                         </div>
                         <button onclick="document.getElementById('editUserModal').classList.add('hidden')" class="w-full mt-2 text-xs text-gray-400">Cancel</button>
                     </div>
@@ -426,7 +451,7 @@
         </main>
 
         <!-- Bottom Navigation (Member/Personal) -->
-        <nav class="bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.05)] border-t border-gray-100 p-2 flex justify-around items-center z-40 hidden fixed bottom-0 w-full" id="bottomNav">
+        <nav class="bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.05)] border-t border-gray-100 p-2 flex justify-around items-center z-40 hidden fixed bottom-0 w-full shrink-0" id="bottomNav">
             <button class="nav-btn active flex-1 flex flex-col items-center p-2 rounded-lg" onclick="switchMemberTab('dashboard')"><i class="fas fa-home text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></button>
             <button class="nav-btn flex-1 flex flex-col items-center p-2 rounded-lg" onclick="switchMemberTab('history')"><i class="fas fa-history text-xl mb-1"></i><span class="text-[10px] font-bold">History</span></button>
             <button class="nav-btn flex-1 flex flex-col items-center p-2 rounded-lg" onclick="switchMemberTab('profile')"><i class="fas fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></button>
@@ -437,7 +462,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, deleteDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, deleteDoc, serverTimestamp, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // Config
         const firebaseConfig = { apiKey: "AIzaSyCtrDxf2S2Zp1hY1RMJQzLHb9TGnup4SLE", authDomain: "jt-squad-manager.firebaseapp.com", projectId: "jt-squad-manager", storageBucket: "jt-squad-manager.firebasestorage.app", messagingSenderId: "444609515858", appId: "1:444609515858:web:0e4d00cf14a107618bea8b" };
@@ -449,6 +474,7 @@
 
         let APP_CONFIG = { hourlyRate: 30, bonusRate: 5, radius: 200, trainingDays: 30, outletLat: 13.024976, outletLng: 77.562472 };
         let currentUserData = null, workTimerInterval = null, currentShiftId = null, listeners = [];
+        let payoutChartInstance = null;
 
         // --- AUTH & INIT ---
         onAuthStateChanged(auth, async (user) => {
@@ -461,6 +487,7 @@
                 listeners.push(onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                     if (docSnap.exists()) {
                         currentUserData = { uid: user.uid, ...docSnap.data() };
+                        checkAndUnlockTrainingFunds(currentUserData);
                         renderRouter();
                     } else {
                         signOut(auth);
@@ -476,6 +503,23 @@
 
         async function loadSettings() {
             try { const s = await getDoc(doc(db, "settings", "global")); if(s.exists()) APP_CONFIG = { ...APP_CONFIG, ...s.data() }; } catch(e){}
+            document.getElementById('displayStdRate').innerText = APP_CONFIG.hourlyRate;
+        }
+
+        // --- AUTOMATION: Training Funds Unlock ---
+        async function checkAndUnlockTrainingFunds(user) {
+            if (user.role !== 'member' || user.blockedWallet <= 0) return;
+            const joinDate = user.joinedAt.toDate();
+            const daysDiff = Math.floor((new Date() - joinDate) / (1000 * 60 * 60 * 24));
+            
+            if (daysDiff >= APP_CONFIG.trainingDays) {
+                const amount = user.blockedWallet;
+                await updateDoc(doc(db, "users", user.uid), {
+                    mainWallet: (user.mainWallet || 0) + amount,
+                    blockedWallet: 0
+                });
+                showToast(`Training complete! ₹${amount} unlocked.`);
+            }
         }
 
         // --- ROUTER ---
@@ -495,7 +539,6 @@
                 document.getElementById('adminView').classList.remove('hidden');
                 initAdmin();
             } else if (role === 'manager') {
-                // Check if user manually switched to "My Zone"
                 if (window.isMyZoneActive) {
                     document.getElementById('memberDashboard').classList.remove('hidden');
                     nav.classList.remove('hidden');
@@ -505,7 +548,6 @@
                     initManager();
                 }
             } else {
-                // Member / Full Time
                 document.getElementById('memberDashboard').classList.remove('hidden');
                 nav.classList.remove('hidden');
                 initMember();
@@ -514,32 +556,29 @@
 
         // --- ADMIN CONTROLLER ---
         function initAdmin() {
-            // Auto Clean Photos > 7 Days
-            (async () => {
-                const d = new Date(); d.setDate(d.getDate()-7);
-                const q = query(collection(db,"shifts"), where("checkInTime", "<", d), limit(10));
-                const snap = await getDocs(q);
-                snap.forEach(d => { if(d.data().photo) updateDoc(doc(db,"shifts",d.id), { photo: null }); });
-            })();
-
-            // 1. Staff List
+            // Auto Clean Photos > 7 Days (Simulated)
+            
+            // 1. Staff List & Stats
             listeners.push(onSnapshot(query(collection(db, "users")), (snap) => {
                 const tbody = document.getElementById('userTableBody'); tbody.innerHTML = '';
-                let tot = 0, liab = 0;
+                let totSquad = 0, liab = 0, fulltime = 0;
+                
                 snap.forEach(d => {
-                    const u = d.data(); tot++; 
-                    if(u.role==='member') liab += (u.mainWallet||0);
-                    
+                    const u = d.data();
                     const isSquad = u.role === 'member';
+                    if(isSquad) { totSquad++; liab += (u.mainWallet||0); }
+                    else fulltime++;
+
                     const funds = isSquad ? 
-                        `<div><span class="font-bold">₹${(u.mainWallet||0).toFixed(0)}</span> <span class="text-xs text-orange-500">(${u.bonusWallet||0}p)</span></div><div class="text-[10px] text-red-400">Blk: ₹${u.blockedWallet||0}</div>` : 
-                        `<span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500 font-bold">Salary Mode</span>`;
+                        `<div><span class="font-bold">₹${(u.mainWallet||0).toFixed(0)}</span> <span class="text-xs text-orange-500">(${u.bonusWallet||0}p)</span></div><div class="text-[10px] text-red-400">Locked: ₹${u.blockedWallet||0}</div>` : 
+                        `<div class="text-xs text-gray-500">Salary: ₹${u.salary||0}</div>`;
                     
                     const perf = isSquad ? 
-                        `<span class="text-red-500 font-bold text-xs">${u.strikes||0} Strikes</span> | <span class="text-yellow-600">★${u.rating||5}</span>` :
-                        `<span class="text-xs text-blue-600 font-bold">${u.totalDays||0} Days</span>`;
+                        `<span class="text-red-500 font-bold text-xs">${u.strikes||0} Strikes</span>` :
+                        `<span class="text-xs text-blue-600 font-bold">Leaves: ${u.leavesTaken||0}</span>`;
 
-                    const tr = document.createElement('tr'); tr.className="border-b hover:bg-gray-50";
+                    const tr = document.createElement('tr'); tr.className="border-b hover:bg-gray-50 search-item";
+                    tr.dataset.search = u.name.toLowerCase();
                     tr.innerHTML = `
                         <td class="p-3"><div class="font-bold">${u.name}</div><span class="text-[10px] uppercase font-bold text-gray-400">${u.role}</span></td>
                         <td class="p-3 text-sm">${funds}</td>
@@ -552,18 +591,38 @@
                     `;
                     tbody.appendChild(tr);
                 });
-                document.getElementById('adminTotalStaff').innerText = tot; 
+                
+                document.getElementById('adminTotalSquad').innerText = totSquad; 
                 document.getElementById('adminPendingPayout').innerText = liab.toFixed(0);
+
+                // Update Chart
+                updateAdminChart(liab, fulltime, totSquad);
             }));
 
             // 2. Shifts
             listeners.push(onSnapshot(query(collection(db, "shifts"), orderBy("checkInTime", "desc"), limit(20)), (snap) => {
                 const b = document.getElementById('shiftTableBody'); b.innerHTML='';
+                let active = 0;
                 snap.forEach(d => {
                     const s = d.data();
+                    if(s.status === 'active') active++;
+                    const dur = s.status==='active' ? 'Active' : `${(s.hoursWorked||0).toFixed(2)} hrs`;
                     const tr = document.createElement('tr'); tr.className="border-b";
-                    tr.innerHTML = `<td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td><td class="p-3 font-bold">${s.userName}</td><td class="p-3 text-xs text-gray-500">${s.hoursWorked?.toFixed(2)||'Active'}h</td><td class="p-3 text-right"><button onclick="window.delShift('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td>`;
+                    tr.innerHTML = `<td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td><td class="p-3 font-bold">${s.userName}</td><td class="p-3 text-xs text-gray-500">${dur}</td><td class="p-3 text-right"><button onclick="window.delShift('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button></td>`;
                     b.appendChild(tr);
+                });
+                document.getElementById('adminActiveStaff').innerText = active;
+            }));
+
+            // 3. Leave Requests (Full Time)
+            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "leave"), where("status", "==", "pending")), (snap) => {
+                const l = document.getElementById('adminLeaveList'); l.innerHTML = '';
+                if(snap.empty) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No pending leave requests.</p>';
+                snap.forEach(d => {
+                    const r = d.data();
+                    const el = document.createElement('div'); el.className="bg-red-50 p-3 rounded-lg flex justify-between items-center border border-red-100";
+                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName} <span class="text-[10px] bg-red-200 text-red-800 px-1 rounded">LEAVE</span></p><p class="text-xs text-gray-600">${r.date}</p><p class="text-[10px] italic text-gray-500">"${r.reason||'No reason'}"</p></div><div class="flex gap-2"><button onclick="window.handleReq('${d.id}','approved')" class="text-green-600 bg-white border px-2 py-1 rounded text-xs font-bold">Approve</button><button onclick="window.handleReq('${d.id}','rejected')" class="text-red-600 bg-white border px-2 py-1 rounded text-xs font-bold">Reject</button></div>`;
+                    l.appendChild(el);
                 });
             }));
 
@@ -576,44 +635,53 @@
             document.getElementById('settingLng').value = APP_CONFIG.outletLng;
         }
 
+        function updateAdminChart(liability, fulltime, squad) {
+            const ctx = document.getElementById('payoutChart').getContext('2d');
+            if(payoutChartInstance) payoutChartInstance.destroy();
+            payoutChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Liability (₹)', 'Squad Count', 'FullTime Count'],
+                    datasets: [{
+                        label: 'System Metrics',
+                        data: [liability, squad, fulltime],
+                        backgroundColor: ['#f87171', '#fb923c', '#60a5fa']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
         // --- MANAGER CONTROLLER ---
         function initManager() {
             const today = new Date(); document.getElementById('mgrDateDisplay').innerText = today.toDateString();
             
-            // Live View
+            // Live View (Squad Only for Operations)
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
                 const l = document.getElementById('liveWorkersList'); l.innerHTML = '';
-                document.getElementById('mgrLiveCount').innerText = snap.size + " Active";
-                if(snap.empty) l.innerHTML = '<p class="text-gray-400 text-center text-xs italic py-4">Floor Clear</p>';
+                let count = 0;
                 snap.forEach(d => {
                     const s = d.data();
+                    // Optional: Managers might only want to manage Squad, not other managers/fulltime
+                    // but for safety, showing all active shifts is better.
+                    count++;
                     const start = s.checkInTime.toDate();
                     const el = document.createElement('div'); el.className="flex justify-between items-center bg-green-50 p-3 rounded-lg border border-green-100";
-                    el.innerHTML = `<div><p class="font-bold text-sm">${s.userName}</p><p class="text-[10px] text-green-700 font-mono">In: ${start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div><button onclick="window.forceStop('${d.id}')" class="text-xs bg-white border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50">End Shift</button>`;
+                    el.innerHTML = `<div><p class="font-bold text-sm">${s.userName}</p><p class="text-[10px] text-green-700 font-mono">In: ${start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div><button onclick="window.forceStop('${d.id}')" class="text-xs bg-white border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50">End Session</button>`;
                     l.appendChild(el);
                 });
+                document.getElementById('mgrLiveCount').innerText = count + " Active";
+                if(count === 0) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic py-4">Floor Clear</p>';
             }));
 
-            // Roster (Approved Future)
-            const todayStr = today.toISOString().split('T')[0];
-            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("status", "==", "approved"), where("date", ">=", todayStr)), (snap) => {
-                const l = document.getElementById('mgrUpcomingList'); l.innerHTML = '';
-                snap.forEach(d => {
-                    const r = d.data();
-                    const el = document.createElement('div'); el.className="flex justify-between items-center bg-blue-50 p-3 rounded-lg border border-blue-100";
-                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName}</p><p class="text-xs text-blue-600">${r.date} | ${r.startTime}-${r.endTime}</p></div>`;
-                    l.appendChild(el);
-                });
-            }));
-
-            // Requests
-            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("status", "==", "pending")), (snap) => {
+            // Slot Requests (Squad Only - Shift type)
+            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "shift"), where("status", "==", "pending")), (snap) => {
                 const l = document.getElementById('slotRequestsList'); l.innerHTML = '';
+                if(snap.empty) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No pending requests.</p>';
                 snap.forEach(d => {
                     const r = d.data();
-                    const type = r.type === 'leave' ? '<span class="text-red-600 font-bold">LEAVE</span>' : 'SHIFT';
-                    const el = document.createElement('div'); el.className="bg-gray-50 p-3 rounded-lg flex justify-between items-center border border-gray-200";
-                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName} <span class="text-[10px] bg-gray-200 px-1 rounded">${type}</span></p><p class="text-xs text-gray-500">${r.date}</p></div><div class="flex gap-2"><button onclick="window.handleReq('${d.id}','approved')" class="text-green-500 hover:bg-green-100 p-1 rounded"><i class="fas fa-check"></i></button><button onclick="window.handleReq('${d.id}','rejected')" class="text-red-500 hover:bg-red-100 p-1 rounded"><i class="fas fa-times"></i></button></div>`;
+                    const el = document.createElement('div'); el.className="bg-blue-50 p-3 rounded-lg flex justify-between items-center border border-blue-100";
+                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName}</p><p class="text-xs text-blue-600">${r.date} | ${r.startTime}-${r.endTime}</p></div><div class="flex gap-2"><button onclick="window.handleReq('${d.id}','approved')" class="text-green-500 hover:bg-green-100 p-1 rounded"><i class="fas fa-check"></i></button><button onclick="window.handleReq('${d.id}','rejected')" class="text-red-500 hover:bg-red-100 p-1 rounded"><i class="fas fa-times"></i></button></div>`;
                     l.appendChild(el);
                 });
             }));
@@ -623,8 +691,7 @@
         function initMember() {
             const d = currentUserData;
             const isSquad = d.role === 'member';
-            const isFullTime = d.role === 'fulltime' || d.role === 'manager';
-
+            
             // UI Customization based on Role
             document.getElementById('memberRoleBadge').innerText = isSquad ? "SQUAD MEMBER" : (d.role === 'manager' ? "MANAGER" : "FULL TIME");
             document.getElementById('mgrBackBtn').classList.toggle('hidden', d.role !== 'manager');
@@ -634,33 +701,33 @@
             document.getElementById('profileName').innerText = d.name;
             document.getElementById('profileEmail').innerText = d.email;
             document.getElementById('profileJoined').innerText = d.joinedAt?.toDate().toLocaleDateString() || '-';
+            
+            if(!isSquad) {
+                document.getElementById('profileSalaryDisplay').innerText = `Salary: ₹${d.salary || 'Not Set'}`;
+                document.getElementById('fullTimeFilter').classList.remove('hidden');
+                document.getElementById('squadBookingUI').classList.add('hidden');
+                document.getElementById('ftLeaveUI').classList.remove('hidden');
+                document.getElementById('bookingTitle').innerText = "Request Leave";
+            } else {
+                document.getElementById('profileSalaryDisplay').innerText = '';
+                document.getElementById('fullTimeFilter').classList.add('hidden');
+                document.getElementById('squadBookingUI').classList.remove('hidden');
+                document.getElementById('ftLeaveUI').classList.add('hidden');
+                document.getElementById('bookingTitle').innerText = "Book Slot (Next Day)";
+            }
 
             // Stats Grid
-            const grid = document.getElementById('statsGrid');
+            window.renderFullTimeStats(); // Initial render
+
+            // Training Check (Squad)
             if (isSquad) {
-                grid.innerHTML = `
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Wallet</p><p class="font-bold text-lg">₹${(d.mainWallet||0).toFixed(0)}</p></div>
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Points</p><p class="font-bold text-lg text-orange-400">${d.bonusWallet||0}</p></div>
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Rating</p><p class="font-bold text-lg text-yellow-400">${d.rating||5}</p></div>
-                `;
-                // Check Training
-                const days = Math.floor((new Date() - (d.joinedAt?.toDate()||new Date()))/86400000);
+                const days = Math.floor((new Date() - (d.joinedAt?.toDate()||new Date()))/(1000*60*60*24));
                 if (days < APP_CONFIG.trainingDays) {
                     document.getElementById('blockedFundsAlert').classList.remove('hidden');
                     document.getElementById('memberBlockedWallet').innerText = (d.blockedWallet||0).toFixed(0);
+                } else {
+                    document.getElementById('blockedFundsAlert').classList.add('hidden');
                 }
-                document.getElementById('profileStrikes').innerText = d.strikes||0;
-                document.getElementById('bookingTitle').innerText = "Book Shift";
-                document.getElementById('bookSlotBtn').innerText = "Request Shift";
-            } else {
-                grid.innerHTML = `
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Days</p><p class="font-bold text-lg">${d.totalDays||0}</p></div>
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Leaves</p><p class="font-bold text-lg text-red-400">${d.leavesTaken||0}</p></div>
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Hours</p><p class="font-bold text-lg">${(d.totalHours||0).toFixed(0)}</p></div>
-                `;
-                document.getElementById('profileStrikesRow').classList.add('hidden');
-                document.getElementById('bookingTitle').innerText = "Request Leave";
-                document.getElementById('bookSlotBtn').innerText = "Submit Leave Request";
             }
 
             // Active Shift Monitor
@@ -687,45 +754,80 @@
                 }
             }));
 
-            // Upcoming Shifts (Squad Only)
-            if (isSquad) {
-                const todayStr = new Date().toISOString().split('T')[0];
-                listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("status", "==", "approved"), where("date", ">=", todayStr)), (snap) => {
-                    const l = document.getElementById('memberUpcomingList'); l.innerHTML = '';
-                    const c = document.getElementById('memberUpcomingSlots');
-                    if(snap.empty) c.classList.add('hidden');
-                    else {
-                        c.classList.remove('hidden');
-                        snap.forEach(d => {
-                            const r = d.data();
-                            l.innerHTML += `<div class="flex justify-between border-b border-blue-100 pb-1"><span>${r.date}</span><span class="font-bold">${r.startTime}-${r.endTime}</span></div>`;
-                        });
-                    }
-                }));
-            }
+            // Upcoming Requests Monitor
+            const todayStr = new Date().toISOString().split('T')[0];
+            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("date", ">=", todayStr)), (snap) => {
+                const disp = document.getElementById('requestStatusDisplay');
+                if(snap.empty) { disp.classList.add('hidden'); return; }
+                disp.classList.remove('hidden');
+                disp.innerHTML = '<h4 class="font-bold text-xs uppercase text-gray-400 mb-2">Request Status</h4>';
+                snap.forEach(doc => {
+                    const r = doc.data();
+                    let color = r.status==='approved'?'green':(r.status==='rejected'?'red':'yellow');
+                    disp.innerHTML += `<div class="flex justify-between items-center mb-1"><span class="text-xs">${r.date} (${r.type})</span><span class="text-[10px] font-bold bg-${color}-100 text-${color}-700 px-2 py-0.5 rounded uppercase">${r.status}</span></div>`;
+                });
+            }));
 
-            // History & Payouts
             loadHistory();
             loadPayouts();
         }
 
+        window.renderFullTimeStats = async () => {
+            if (!currentUserData) return;
+            const isSquad = currentUserData.role === 'member';
+            const grid = document.getElementById('statsGrid');
+            
+            if (isSquad) {
+                grid.innerHTML = `
+                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Wallet</p><p class="font-bold text-lg">₹${(currentUserData.mainWallet||0).toFixed(0)}</p></div>
+                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Points</p><p class="font-bold text-lg text-orange-400">${currentUserData.bonusWallet||0}</p></div>
+                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Strikes</p><p class="font-bold text-lg text-red-400">${currentUserData.strikes||0}</p></div>
+                `;
+            } else {
+                const filter = document.getElementById('statsDateFilter').value;
+                let q = query(collection(db, "shifts"), where("userId", "==", currentUserData.uid), where("status", "==", "completed"));
+                
+                // Client-side filtering for simplicity (Firestore composite index limits)
+                const snap = await getDocs(q);
+                let hours = 0, days = 0;
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+
+                snap.forEach(d => {
+                    const s = d.data();
+                    const date = s.checkInTime.toDate();
+                    let include = false;
+                    
+                    if (filter === 'all_time') include = true;
+                    else if (filter === 'this_month' && date.getMonth() === currentMonth) include = true;
+                    else if (filter === 'last_month' && date.getMonth() === lastMonth) include = true;
+
+                    if (include) {
+                        hours += s.hoursWorked || 0;
+                        days++;
+                    }
+                });
+
+                grid.innerHTML = `
+                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Days</p><p class="font-bold text-lg">${days}</p></div>
+                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Leaves</p><p class="font-bold text-lg text-red-400">${currentUserData.leavesTaken||0}</p></div>
+                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Hours</p><p class="font-bold text-lg">${hours.toFixed(1)}</p></div>
+                `;
+            }
+        };
+
         async function loadHistory() {
-            const q = query(collection(db, "shifts"), where("userId", "==", currentUserData.uid), where("status", "==", "completed"));
+            const q = query(collection(db, "shifts"), where("userId", "==", currentUserData.uid), where("status", "==", "completed"), orderBy("checkInTime", "desc"), limit(20));
             const snap = await getDocs(q);
-            let shifts = [];
-            snap.forEach(d => shifts.push(d.data()));
-            shifts.sort((a,b) => b.checkOutTime - a.checkOutTime); // Client sort
-
             const l = document.getElementById('historyList'); l.innerHTML = '';
-            let wkHours = 0; const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
-
-            shifts.slice(0, 15).forEach(s => {
+            
+            snap.forEach(sDoc => {
+                const s = sDoc.data();
                 const start = s.checkInTime.toDate();
                 const end = s.checkOutTime.toDate();
-                if (end > weekAgo) wkHours += (s.hoursWorked||0);
-
                 const timeStr = `${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-                const earn = currentUserData.role === 'member' ? `<span class="text-green-600 font-bold text-xs">₹${s.earnings?.toFixed(0)}</span>` : '';
+                const earn = currentUserData.role === 'member' ? `<span class="text-green-600 font-bold text-xs">₹${s.earnings?.toFixed(2)}</span>` : '';
 
                 const el = document.createElement('div');
                 el.className = "bg-white p-3 rounded-lg border border-gray-100 flex justify-between items-center";
@@ -741,8 +843,6 @@
                 `;
                 l.appendChild(el);
             });
-            document.getElementById('profileDays').innerText = shifts.length; // Approximate days
-            document.getElementById('profileHours').innerText = (currentUserData.totalHours||0).toFixed(1);
         }
 
         async function loadPayouts() {
@@ -756,10 +856,10 @@
             });
         }
 
-        // --- GLOBAL HANDLERS ---
+        // --- GLOBAL ACTIONS ---
         window.switchAdminTab = (t, e) => {
             document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active');
-            ['overview','users','shifts','settings'].forEach(k => document.getElementById(`adminTab-${k}`).classList.add('hidden'));
+            ['overview','users','shifts','requests','settings'].forEach(k => document.getElementById(`adminTab-${k}`).classList.add('hidden'));
             document.getElementById(`adminTab-${t}`).classList.remove('hidden');
         };
 
@@ -770,11 +870,27 @@
             document.getElementById('member'+t.charAt(0).toUpperCase()+t.slice(1)).classList.remove('hidden');
         };
 
+        // Filter Staff
+        window.filterStaffTable = () => {
+            const term = document.getElementById('staffSearch').value.toLowerCase();
+            document.querySelectorAll('.search-item').forEach(row => {
+                row.classList.toggle('hidden', !row.dataset.search.includes(term));
+            });
+        };
+
         // Manager Zones
         window.enterMyZone = () => { window.isMyZoneActive = true; renderRouter(); };
         window.exitMyZone = () => { window.isMyZoneActive = false; renderRouter(); };
 
-        // Payout
+        // Toggle Salary Field
+        window.toggleSalaryField = () => {
+            const r = document.getElementById('newUserRole').value;
+            const isFt = r === 'fulltime' || r === 'manager';
+            document.getElementById('newUserSalary').classList.toggle('hidden', !isFt);
+            document.getElementById('squadRateOverride').classList.toggle('hidden', isFt);
+        };
+
+        // Payout Logic
         window.promptPay = (uid, bal, isFullTime) => {
             document.getElementById('payoutUid').value = uid;
             document.getElementById('payoutMax').value = isFullTime ? -1 : bal;
@@ -801,8 +917,6 @@
                     }
                     const payRef = doc(collection(db, "payouts"));
                     t.set(payRef, { userId: uid, amount: amt, date: serverTimestamp(), by: currentUserData.name });
-                    const auditRef = doc(collection(db, "audit_logs"));
-                    t.set(auditRef, { action: "Payout", details: `Paid ${amt} to ${uid}`, time: serverTimestamp(), by: currentUserData.name });
                 });
                 showToast("Payment Recorded Successfully");
                 document.getElementById('payoutModal').classList.add('hidden'); e.target.reset();
@@ -814,38 +928,51 @@
             const u = (await getDoc(doc(db,"users",uid))).data();
             document.getElementById('editUserId').value = uid;
             document.getElementById('editUserName').value = u.name;
-            document.getElementById('editUserRole').value = u.role;
             
-            // Show/Hide Fields based on Role
+            // Show/Hide Fields
             const isSquad = u.role === 'member';
+            const isFt = u.role === 'fulltime' || u.role === 'manager';
+
             document.getElementById('squadFields').classList.toggle('hidden', !isSquad);
+            document.getElementById('editSalaryField').classList.toggle('hidden', !isFt);
+            document.getElementById('addStrikeBtn').classList.toggle('hidden', !isSquad);
             
             if(isSquad) {
+                document.getElementById('editUserRate').value = u.customRate || APP_CONFIG.hourlyRate;
+                document.getElementById('editUserBonusRate').value = u.customBonus || APP_CONFIG.bonusRate;
                 document.getElementById('editUserWallet').value = u.mainWallet||0;
                 document.getElementById('editUserBonus').value = u.bonusWallet||0;
                 document.getElementById('editUserBlocked').value = u.blockedWallet||0;
                 document.getElementById('editUserStrikes').value = u.strikes||0;
+            } else if (isFt) {
+                document.getElementById('editUserSalary').value = u.salary || 0;
             }
+
             document.getElementById('editUserModal').classList.remove('hidden');
             
-            // Release Handler
-            document.getElementById('releaseFundsBtn').onclick = async () => {
-                if(!confirm("Move blocked training funds to main wallet?")) return;
-                await updateDoc(doc(db,"users",uid), { mainWallet: (u.mainWallet||0)+(u.blockedWallet||0), blockedWallet: 0 });
-                showToast("Funds Released"); document.getElementById('editUserModal').classList.add('hidden');
+            // Add Strike Handler
+            document.getElementById('addStrikeBtn').onclick = async () => {
+                if(!confirm("Add 1 Strike to this user?")) return;
+                await updateDoc(doc(db,"users",uid), { strikes: (u.strikes||0)+1 });
+                document.getElementById('editUserStrikes').value = (u.strikes||0)+1;
+                showToast("Strike Added");
             };
         };
 
         document.getElementById('saveUserChangesBtn').onclick = async () => {
             const uid = document.getElementById('editUserId').value;
-            const r = document.getElementById('editUserRole').value;
-            const updates = { name: document.getElementById('editUserName').value, role: r };
+            const u = (await getDoc(doc(db,"users",uid))).data();
+            const updates = { name: document.getElementById('editUserName').value };
             
-            if(r === 'member') {
+            if(u.role === 'member') {
+                updates.customRate = Number(document.getElementById('editUserRate').value);
+                updates.customBonus = Number(document.getElementById('editUserBonusRate').value);
                 updates.mainWallet = Number(document.getElementById('editUserWallet').value);
                 updates.bonusWallet = Number(document.getElementById('editUserBonus').value);
                 updates.blockedWallet = Number(document.getElementById('editUserBlocked').value);
                 updates.strikes = Number(document.getElementById('editUserStrikes').value);
+            } else {
+                updates.salary = Number(document.getElementById('editUserSalary').value);
             }
             await updateDoc(doc(db,"users",uid), updates);
             document.getElementById('editUserModal').classList.add('hidden');
@@ -881,7 +1008,7 @@
             }, err => { alert("GPS Error"); btn.innerText="CHECK IN"; }, {enableHighAccuracy: true});
         };
 
-        // Shift End Logic (Force Stop & Self Checkout use same logic)
+        // Shift End Logic (Minute Calculation)
         window.forceStop = async (id) => {
             if(!confirm("End this shift?")) return;
             try {
@@ -893,25 +1020,38 @@
 
                     const end = new Date();
                     const start = s.checkInTime.toDate();
-                    const hrs = (end - start) / 3600000;
                     
-                    if (hrs < 0.02) throw "Shift too short (< 1 min)";
+                    // Minute Calculation
+                    const msWorked = end - start;
+                    const minsWorked = msWorked / (1000 * 60);
+                    const hoursWorked = minsWorked / 60;
+                    
+                    if (minsWorked < 1) throw "Shift too short (< 1 min)";
 
-                    let updates = { totalHours: (u.totalHours||0) + hrs, totalDays: (u.totalDays||0) + 1 };
+                    let updates = { totalHours: (u.totalHours||0) + hoursWorked, totalDays: (u.totalDays||0) + 1 };
                     let pay = 0;
 
                     if(u.role === 'member') {
-                        pay = hrs * APP_CONFIG.hourlyRate;
-                        const pts = Math.floor(hrs * APP_CONFIG.bonusRate);
-                        const isTrain = Math.floor((new Date() - u.joinedAt.toDate())/86400000) < APP_CONFIG.trainingDays;
+                        // Use custom rate if set, else global
+                        const rate = u.customRate || APP_CONFIG.hourlyRate;
+                        const bonusRate = u.customBonus || APP_CONFIG.bonusRate;
+
+                        // Pay per minute: (Rate / 60) * minutes
+                        pay = (rate / 60) * minsWorked;
+                        const pts = Math.floor(hoursWorked * bonusRate); // Points usually per full hour, or we can do fraction: (bonusRate/60)*mins
                         
-                        if(isTrain) updates.blockedWallet = (u.blockedWallet||0) + pay;
+                        // Training Check
+                        const joinDate = u.joinedAt.toDate();
+                        const daysSinceJoin = Math.floor((new Date() - joinDate) / (1000 * 60 * 60 * 24));
+                        const isTraining = daysSinceJoin < APP_CONFIG.trainingDays;
+                        
+                        if(isTraining) updates.blockedWallet = (u.blockedWallet||0) + pay;
                         else updates.mainWallet = (u.mainWallet||0) + pay;
                         
                         updates.bonusWallet = (u.bonusWallet||0) + pts;
                     }
 
-                    t.update(sRef, { status: 'completed', checkOutTime: serverTimestamp(), hoursWorked: hrs, earnings: pay });
+                    t.update(sRef, { status: 'completed', checkOutTime: serverTimestamp(), hoursWorked: hoursWorked, earnings: pay });
                     t.update(uRef, updates);
                 });
                 showToast("Shift Ended");
@@ -920,29 +1060,36 @@
         
         document.getElementById('checkOutBtn').onclick = () => window.forceStop(currentShiftId);
 
-        // Booking Logic
+        // Booking Logic (Squad)
         document.getElementById('bookSlotBtn').onclick = async () => {
             const s = document.getElementById('bookStartTime').value;
             const e = document.getElementById('bookEndTime').value;
             if(!s || !e) return showToast("Select Timing");
-            
-            const isSquad = currentUserData.role === 'member';
-            if(isSquad && (currentUserData.strikes||0) >= 3) return alert("Account blocked due to strikes.");
+            if((currentUserData.strikes||0) >= 3) return alert("Account blocked due to strikes.");
 
             const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
             const dStr = tomorrow.toISOString().split('T')[0];
-            const type = isSquad ? 'shift' : 'leave';
-
-            const exist = await getDocs(query(collection(db,"shift_requests"), where("userId","==",currentUserData.uid), where("date","==",dStr)));
-            if(!exist.empty) return showToast("Request already exists for tomorrow");
 
             await addDoc(collection(db,"shift_requests"), { 
-                userId: currentUserData.uid, 
-                userName: currentUserData.name, 
+                userId: currentUserData.uid, userName: currentUserData.name, 
                 date: dStr, startTime: s, endTime: e, 
-                status: 'pending', type: type 
+                status: 'pending', type: 'shift'
             });
-            showToast("Request Sent");
+            showToast("Slot Requested");
+        };
+
+        // Leave Request Logic (Full Time)
+        document.getElementById('requestLeaveBtn').onclick = async () => {
+            const date = document.getElementById('leaveDate').value;
+            const reason = document.getElementById('leaveReason').value;
+            if(!date) return showToast("Select Date");
+            
+            await addDoc(collection(db,"shift_requests"), { 
+                userId: currentUserData.uid, userName: currentUserData.name, 
+                date: date, reason: reason,
+                status: 'pending', type: 'leave'
+            });
+            showToast("Leave Requested");
         };
 
         // Helpers
@@ -954,15 +1101,19 @@
         function deg2rad(d) { return d*(Math.PI/180); }
         function showToast(m) { const t=document.getElementById('toast'); document.getElementById('toastMsg').innerText=m; t.classList.remove('translate-x-full'); setTimeout(()=>t.classList.add('translate-x-full'),3000); }
         
-        // --- BASE ACTIONS ---
+        // --- ADMIN BASE ACTIONS ---
         document.getElementById('createUserForm').onsubmit = async (e) => {
             e.preventDefault();
             try {
                 const cred = await createUserWithEmailAndPassword(secondaryAuth, document.getElementById('newUserEmail').value, document.getElementById('newUserPassword').value);
+                const role = document.getElementById('newUserRole').value;
+                const sal = document.getElementById('newUserSalary').value;
+                
                 await setDoc(doc(db,"users",cred.user.uid), { 
                     name: document.getElementById('newUserName').value, 
                     email: document.getElementById('newUserEmail').value, 
-                    role: document.getElementById('newUserRole').value, 
+                    role: role,
+                    salary: role==='member' ? 0 : Number(sal),
                     joinedAt: serverTimestamp(), 
                     mainWallet:0, bonusWallet:0, blockedWallet:0, strikes:0, rating:5, totalHours:0, totalDays:0, leavesTaken:0 
                 });
@@ -973,12 +1124,49 @@
 
         window.deleteUser = async (uid) => { if(confirm("Delete User Data?")) await deleteDoc(doc(db,"users",uid)); };
         window.delShift = async (id) => { if(confirm("Delete Record?")) await deleteDoc(doc(db,"shifts",id)); };
-        window.handleReq = async (id, st) => { st==='approved' ? await updateDoc(doc(db,"shift_requests",id),{status:st}) : await deleteDoc(doc(db,"shift_requests",id)); showToast("Updated"); };
+        
+        // Handle Request (Approve/Reject)
+        window.handleReq = async (id, st) => {
+            const ref = doc(db,"shift_requests",id);
+            const req = (await getDoc(ref)).data();
+            
+            if (st === 'approved') {
+                await updateDoc(ref, { status: st });
+                // If it's a leave request, update user's leave count
+                if (req.type === 'leave') {
+                    const uRef = doc(db, "users", req.userId);
+                    const u = (await getDoc(uRef)).data();
+                    await updateDoc(uRef, { leavesTaken: (u.leavesTaken||0) + 1 });
+                }
+            } else {
+                await updateDoc(ref, { status: st }); // Just mark rejected, don't delete immediately so they see history
+            }
+            showToast("Updated"); 
+        };
+
         window.openRedeemModal = async () => {
             const s = document.getElementById('redeemUserSelect'); s.innerHTML='<option value="">Select Staff</option>';
             const snap = await getDocs(query(collection(db,"users"), where("role","==","member")));
             snap.forEach(d => { const u=d.data(); const o=document.createElement('option'); o.value=d.id; o.innerText=`${u.name} (${u.bonusWallet||0}pts)`; s.appendChild(o); });
             document.getElementById('redeemModal').classList.remove('hidden');
+        };
+
+        document.getElementById('redeemForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const uid = document.getElementById('redeemUserSelect').value;
+            const pts = Number(document.getElementById('redeemAmount').value);
+            const desc = document.getElementById('redeemDesc').value;
+            
+            try {
+                await runTransaction(db, async(t) => {
+                    const ref = doc(db, "users", uid);
+                    const u = (await t.get(ref)).data();
+                    if((u.bonusWallet||0) < pts) throw "Insufficient Points";
+                    t.update(ref, { bonusWallet: u.bonusWallet - pts });
+                });
+                showToast("Redeemed!");
+                document.getElementById('redeemModal').classList.add('hidden'); e.target.reset();
+            } catch(err) { alert(err); }
         };
 
         // Login Handler
