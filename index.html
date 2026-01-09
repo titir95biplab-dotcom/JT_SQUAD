@@ -702,7 +702,7 @@
              const tmrw = new Date(); tmrw.setDate(tmrw.getDate()+1);
              const tmrwStr = tmrw.toISOString().split('T')[0];
 
-             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "shift"), where("status", "==", "approved"), where("date", ">=", todayStr)), (snap) => {
+             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "shift"), where("status", "==", "approved")), (snap) => {
                 const l = document.getElementById(elementId); 
                 if(!l) return;
                 l.innerHTML = '';
@@ -837,14 +837,22 @@
             // Upcoming Approved Slots Monitor (Squad Only) (New Feature)
             if(isSquad) {
                 const todayStr = new Date().toISOString().split('T')[0];
-                listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("status", "==", "approved"), where("date", ">=", todayStr)), (snap) => {
-                    const l = document.getElementById('memberUpcomingList'); l.innerHTML = '';
-                    if(snap.empty) l.innerHTML = '<p class="text-center italic opacity-50">No upcoming slots</p>';
-                    snap.forEach(doc => {
-                        const r = doc.data();
-                        l.innerHTML += `<div class="flex justify-between items-center"><span class="font-bold">${r.date}</span><span>${r.startTime} - ${r.endTime}</span></div>`;
-                    });
-                }));
+                // EDITED BLOCK: Removed date query, added JS filtering
+listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("status", "==", "approved")), (snap) => {
+    const l = document.getElementById('memberUpcomingList'); l.innerHTML = '';
+    let count = 0;
+    
+    snap.forEach(doc => {
+        const r = doc.data();
+        // Manually check if date is today or future
+        if (r.date >= todayStr) {
+            count++;
+            l.innerHTML += `<div class="flex justify-between items-center border-b border-blue-100 py-1"><span class="font-bold text-blue-900">${r.date}</span><span class="text-blue-700">${r.startTime} - ${r.endTime}</span></div>`;
+        }
+    });
+
+    if(count === 0) l.innerHTML = '<p class="text-center italic opacity-50">No upcoming slots</p>';
+}));
             }
 
             loadHistory();
