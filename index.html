@@ -95,6 +95,8 @@
                     <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('users', event)"><i class="fas fa-users mb-1 block text-lg"></i>Staff</button>
                     <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('shifts', event)"><i class="fas fa-clock mb-1 block text-lg"></i>Shifts</button>
                     <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('requests', event)"><i class="fas fa-envelope-open-text mb-1 block text-lg"></i>Leaves</button>
+<!-- Find the Admin Nav buttons and add this new one -->
+<button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('clients', event)"><i class="fas fa-store mb-1 block text-lg"></i>Clients</button>
                     <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('settings', event)"><i class="fas fa-cogs mb-1 block text-lg"></i>Config</button>
                 </div>
 
@@ -121,6 +123,11 @@
     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-blue-600 uppercase">Pending Squad Slot Requests</h3></div>
     <div id="adminSquadRequestList" class="p-4 space-y-3"></div>
 </div>
+<!-- NEW: Client Service Requests (Admin Assign) -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mt-4">
+        <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-purple-600 uppercase">Pending Client Service Requests</h3></div>
+        <div id="adminServiceReqList" class="p-4 space-y-3"></div>
+    </div>
                     </div>
 
                     <!-- Tab: Users -->
@@ -171,6 +178,26 @@
                             <div id="adminUpcomingLeaveList" class="p-4 space-y-3"></div>
                         </div>
                     </div>
+
+
+<!-- Tab: Clients -->
+<div id="adminTab-clients" class="hidden space-y-4">
+    <div class="flex gap-2">
+        <div class="relative flex-grow">
+            <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+            <input type="text" id="clientSearch" onkeyup="filterClientTable()" placeholder="Search clients..." class="w-full pl-8 p-2.5 text-sm rounded-lg border border-gray-200 outline-none">
+        </div>
+        <button onclick="document.getElementById('createClientModal').classList.remove('hidden')" class="bg-gray-800 text-white px-3 rounded-lg shadow"><i class="fas fa-plus"></i></button>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"><tr><th class="p-3">Client Details</th><th class="p-3">Location</th><th class="p-3">Accounts</th><th class="p-3 text-right">Action</th></tr></thead>
+                <tbody id="clientTableBody" class="divide-y divide-gray-100 text-gray-700"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
                     <!-- Tab: Settings -->
                     <div id="adminTab-settings" class="hidden space-y-4">
@@ -239,6 +266,52 @@
                 </div>
             </div>
 
+
+<!-- ================= CLIENT PORTAL ================= -->
+<div id="clientView" class="view-section hidden p-4 space-y-5">
+    <div class="bg-white p-4 rounded-xl border-l-4 border-blue-600 shadow-sm flex justify-between items-center">
+        <div>
+            <h2 class="text-lg font-bold text-gray-800" id="clientHeaderName">Client Portal</h2>
+            <p class="text-xs text-gray-500">Manage Service Requests</p>
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] uppercase font-bold text-gray-400">Due Amount</p>
+            <p class="text-xl font-bold text-red-600">₹<span id="clientDueAmount">0</span></p>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+        <h3 class="font-bold text-xs text-gray-400 uppercase mb-3">Request Service</h3>
+        <div class="space-y-3">
+            <input type="date" id="serviceDate" class="w-full p-2 border rounded text-sm">
+            <div class="flex gap-2">
+                <input type="time" id="serviceStart" class="w-1/2 p-2 border rounded text-sm">
+                <input type="time" id="serviceEnd" class="w-1/2 p-2 border rounded text-sm">
+            </div>
+            <button onclick="window.requestService()" class="w-full py-3 bg-blue-600 text-white rounded-lg font-bold text-sm">Submit Request</button>
+        </div>
+    </div>
+
+    <!-- Active Staff -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between"><h3 class="font-bold text-xs text-green-600 uppercase">Active Squad Members</h3><span id="clientLiveCount" class="text-xs font-bold">0</span></div>
+        <div id="clientLiveList" class="p-4 space-y-3"><p class="text-center text-xs text-gray-400 italic">No active staff currently.</p></div>
+    </div>
+
+    <!-- Request History -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Service Status</h3></div>
+        <div id="clientRequestList" class="p-4 space-y-3"></div>
+    </div>
+    
+    <!-- Work History -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Completed Work History</h3></div>
+        <div id="clientWorkHistory" class="p-4 space-y-3"></div>
+    </div>
+</div>
+
             <!-- ================= PERSONAL DASHBOARD (ALL STAFF) ================= -->
             <div id="memberDashboard" class="member-tab hidden p-4 space-y-5">
                 
@@ -284,6 +357,13 @@
                         <option value="all_time">All Time</option>
                     </select>
                 </div>
+
+
+<!-- Job Offers (Assignments) -->
+<div id="memberJobOffers" class="bg-yellow-50 border border-yellow-100 rounded-xl p-4 hidden mb-4">
+    <h3 class="font-bold text-yellow-800 text-xs uppercase mb-2"><i class="fas fa-bell mr-2"></i>New Job Assignments</h3>
+    <div id="memberOfferList" class="space-y-2"></div>
+</div>
 
                 <!-- Upcoming Approved Slots (Squad Only) -->
                 <div id="memberUpcomingSlotsBox" class="bg-blue-50 border border-blue-100 rounded-xl p-4 hidden">
@@ -496,7 +576,35 @@
                     </form>
                 </div>
             </div>
+<!-- Create Client Modal -->
+<div id="createClientModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-y-auto max-h-[90vh]">
+        <div class="p-4 border-b flex justify-between"><h3 class="font-bold text-sm">Register Client</h3><button onclick="document.getElementById('createClientModal').classList.add('hidden')"><i class="fas fa-times"></i></button></div>
+        <form id="createClientForm" class="p-5 space-y-3">
+            <input type="text" id="cliName" class="w-full p-2 border rounded text-sm" placeholder="Restaurant Name" required>
+            <input type="text" id="cliPhone" class="w-full p-2 border rounded text-sm" placeholder="Phone" required>
+            <input type="text" id="cliAddress" class="w-full p-2 border rounded text-sm" placeholder="Address" required>
+            <div class="flex gap-2">
+                <input type="number" step="any" id="cliLat" class="w-1/2 p-2 border rounded text-sm" placeholder="Latitude" required>
+                <input type="number" step="any" id="cliLng" class="w-1/2 p-2 border rounded text-sm" placeholder="Longitude" required>
+            </div>
+            <p onclick="navigator.geolocation.getCurrentPosition(p=>{document.getElementById('cliLat').value=p.coords.latitude;document.getElementById('cliLng').value=p.coords.longitude})" class="text-[10px] text-blue-600 underline cursor-pointer">Use Current Location</p>
+            <input type="email" id="cliEmail" class="w-full p-2 border rounded text-sm" placeholder="Login Email" required>
+            <input type="password" id="cliPass" class="w-full p-2 border rounded text-sm" placeholder="Login Password" required>
+            <button type="submit" class="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">Register Client</button>
+        </form>
+    </div>
+</div>
 
+<!-- Assign Staff Modal -->
+<div id="assignModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-5">
+        <h3 class="font-bold mb-3">Assign Squad Member</h3>
+        <input type="hidden" id="assignReqId">
+        <select id="assignStaffSelect" class="w-full p-3 border rounded mb-4 text-sm"></select>
+        <button onclick="window.confirmAssignment()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold">Assign</button>
+    </div>
+</div>
         </main>
 
         <!-- Bottom Navigation (Member/Personal) -->
@@ -572,35 +680,78 @@
 
         // --- ROUTER ---
         function renderRouter() {
-            const role = currentUserData.role;
-            const views = ['adminView', 'managerView', 'memberDashboard'];
-            const nav = document.getElementById('bottomNav');
-            
-            document.getElementById('headerRoleDisplay').innerText = role.replace('member', 'Squad').toUpperCase();
+    const role = currentUserData.role;
+    const views = ['adminView', 'managerView', 'memberDashboard', 'clientView']; // Added clientView
+    const nav = document.getElementById('bottomNav');
+    
+    document.getElementById('headerRoleDisplay').innerText = role.toUpperCase();
 
-            // Default State: Hide All
-            views.forEach(v => document.getElementById(v).classList.add('hidden'));
-            nav.classList.add('hidden');
+    views.forEach(v => document.getElementById(v).classList.add('hidden'));
+    nav.classList.add('hidden');
 
-            // Route Logic
-            if (role === 'admin') {
-                document.getElementById('adminView').classList.remove('hidden');
-                initAdmin();
-            } else if (role === 'manager') {
-                if (window.isMyZoneActive) {
-                    document.getElementById('memberDashboard').classList.remove('hidden');
-                    nav.classList.remove('hidden');
-                    initMember();
-                } else {
-                    document.getElementById('managerView').classList.remove('hidden');
-                    initManager();
-                }
-            } else {
-                document.getElementById('memberDashboard').classList.remove('hidden');
-                nav.classList.remove('hidden');
-                initMember();
-            }
+    if (role === 'admin') {
+        document.getElementById('adminView').classList.remove('hidden');
+        initAdmin();
+    } else if (role === 'client') {
+        document.getElementById('clientView').classList.remove('hidden');
+        initClient();
+    } else if (role === 'manager') {
+        if (window.isMyZoneActive) {
+            document.getElementById('memberDashboard').classList.remove('hidden');
+            nav.classList.remove('hidden');
+            initMember();
+        } else {
+            document.getElementById('managerView').classList.remove('hidden');
+            initManager();
         }
+    } else {
+        document.getElementById('memberDashboard').classList.remove('hidden');
+        nav.classList.remove('hidden');
+        initMember();
+    }
+}
+
+function initClient() {
+    const uid = currentUserData.uid;
+    document.getElementById('clientHeaderName').innerText = currentUserData.name;
+    document.getElementById('clientDueAmount').innerText = (currentUserData.dueAmount || 0).toFixed(2);
+
+    // Live Active Staff at this outlet
+    listeners.push(onSnapshot(query(collection(db, "shifts"), where("clientId", "==", uid), where("status", "==", "active")), (snap) => {
+        const l = document.getElementById('clientLiveList'); l.innerHTML = '';
+        document.getElementById('clientLiveCount').innerText = snap.size;
+        if(snap.empty) l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No active staff.</p>';
+        snap.forEach(d => {
+            const s = d.data();
+            const start = s.checkInTime.toDate();
+            l.innerHTML += `<div class="bg-green-50 p-3 rounded-lg border border-green-100 flex justify-between"><span class="font-bold text-sm">${s.userName}</span><span class="text-xs text-green-700">In: ${start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div>`;
+        });
+    }));
+
+    // Request History
+    listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("clientId", "==", uid)), (snap) => {
+        const l = document.getElementById('clientRequestList'); l.innerHTML = '';
+        snap.forEach(d => {
+            const r = d.data();
+            let statusBadge = r.status;
+            if(r.status === 'assigned') statusBadge = 'Waiting Acceptance';
+            const color = r.status === 'approved' ? 'green' : (r.status === 'pending' ? 'yellow' : 'gray');
+            l.innerHTML += `<div class="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
+                <div><div class="font-bold">${r.date}</div><div class="text-xs text-gray-500">${r.startTime}-${r.endTime}</div></div>
+                <div class="text-right"><div class="text-[10px] bg-${color}-100 text-${color}-800 px-2 rounded font-bold uppercase">${statusBadge}</div><div class="text-xs font-bold text-blue-600">${r.assignedName || 'Unassigned'}</div></div>
+            </div>`;
+        });
+    }));
+    
+    // Work History
+    listeners.push(onSnapshot(query(collection(db, "shifts"), where("clientId", "==", uid), where("status", "==", "completed"), orderBy("checkOutTime", "desc"), limit(10)), (snap) => {
+        const l = document.getElementById('clientWorkHistory'); l.innerHTML = '';
+        snap.forEach(d => {
+            const s = d.data();
+            l.innerHTML += `<div class="flex justify-between text-sm border-b border-gray-100 pb-2"><span>${s.checkInTime.toDate().toLocaleDateString()} - ${s.userName}</span><span class="font-bold">${s.hoursWorked.toFixed(2)} hrs</span></div>`;
+        });
+    }));
+}
 
         // --- ADMIN CONTROLLER ---
         function initAdmin() {
@@ -722,6 +873,50 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", 
         l.appendChild(el);
     });
 }));
+
+// Admin: Client List
+listeners.push(onSnapshot(query(collection(db, "users"), where("role", "==", "client")), (snap) => {
+    const l = document.getElementById('clientTableBody'); l.innerHTML = '';
+    snap.forEach(d => {
+        const u = d.data();
+        const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
+        tr.innerHTML = `
+            <td class="p-3"><div class="font-bold">${u.name}</div><div class="text-[10px] text-gray-400">${u.phone}</div></td>
+            <td class="p-3 text-xs">${u.address}</td>
+            <td class="p-3"><div class="text-xs font-bold text-red-600">Due: ₹${(u.dueAmount||0).toFixed(0)}</div></td>
+            <td class="p-3 text-right">
+                <button onclick="window.collectClientPayment('${d.id}', ${u.dueAmount||0})" class="bg-green-50 text-green-600 p-2 rounded hover:bg-green-100 text-xs font-bold">Collect</button>
+                <button onclick="window.deleteUser('${d.id}')" class="text-red-400 ml-2"><i class="fas fa-trash"></i></button>
+            </td>`;
+        l.appendChild(tr);
+    });
+}));
+
+// Admin: View Service Requests (Manager/Admin view)
+// Admin: View Service Requests & Assign Staff
+listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "service"), where("status", "==", "pending")), (snap) => {
+    const l = document.getElementById('adminServiceReqList'); 
+    l.innerHTML = '';
+    
+    if(snap.empty) {
+        l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No pending service requests.</p>';
+        return;
+    }
+
+    snap.forEach(d => {
+        const r = d.data();
+        const el = document.createElement('div'); 
+        el.className="bg-purple-50 p-3 rounded-lg flex justify-between items-center border border-purple-200 mb-2";
+        el.innerHTML = `
+            <div>
+                <p class="font-bold text-sm text-purple-900">${r.clientName}</p>
+                <p class="text-xs text-purple-600">${r.date} | ${r.startTime}-${r.endTime}</p>
+            </div>
+            <button onclick="window.openAssignModal('${d.id}')" class="bg-purple-600 text-white px-3 py-1 rounded text-xs font-bold shadow hover:bg-purple-700 transition">Assign Staff</button>
+        `;
+        l.appendChild(el);
+    });
+}));
         }
 
         // Shared Logic for Admin and Manager Schedule
@@ -791,6 +986,22 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", 
 
             // Manager Schedule View (New Feature)
             loadSharedSchedule('mgrScheduleList');
+
+// Manager: Service Requests (Client needs staff)
+listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "service"), where("status", "==", "pending")), (snap) => {
+    // You need to add a container <div id="serviceReqList"> in Manager View HTML if not there.
+    // For this guide, I assume you will add a container or reuse 'slotRequestsList' with a distinction.
+    const l = document.getElementById('slotRequestsList'); // Reusing list
+    snap.forEach(d => {
+        const r = d.data();
+        const el = document.createElement('div'); el.className="bg-purple-50 p-3 rounded-lg flex justify-between items-center border border-purple-200 mb-2";
+        el.innerHTML = `
+            <div><p class="font-bold text-sm text-purple-900">${r.clientName} (Client)</p><p class="text-xs text-purple-600">${r.date} | ${r.startTime}-${r.endTime}</p></div>
+            <button onclick="window.openAssignModal('${d.id}')" class="bg-purple-600 text-white px-3 py-1 rounded text-xs font-bold shadow">Assign</button>
+        `;
+        l.appendChild(el);
+    });
+}));
         }
 
         // --- MEMBER / PERSONAL CONTROLLER ---
@@ -930,6 +1141,29 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId"
                     <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Hours</p><p class="font-bold text-lg">${hours.toFixed(1)}</p></div>
                 `;
             }
+
+// Job Offers
+if(currentUserData.role === 'member') {
+    listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("assignedTo", "==", currentUserData.uid), where("status", "==", "assigned")), (snap) => {
+        const box = document.getElementById('memberJobOffers');
+        const l = document.getElementById('memberOfferList'); l.innerHTML = '';
+        if(snap.empty) { box.classList.add('hidden'); return; }
+        box.classList.remove('hidden');
+        snap.forEach(d => {
+            const r = d.data();
+            l.innerHTML += `<div class="bg-white p-2 rounded border flex justify-between items-center">
+                <div class="text-xs">
+                    <div class="font-bold">${r.clientName}</div>
+                    <div>${r.date} @ ${r.startTime}</div>
+                </div>
+                <div class="flex gap-1">
+                    <button onclick="window.respondJob('${d.id}', 'approved')" class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold">Accept</button>
+                    <button onclick="window.respondJob('${d.id}', 'pending')" class="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold">Deny</button>
+                </div>
+            </div>`;
+        });
+    }));
+}
         };
 
         async function loadHistory() {
@@ -1188,33 +1422,78 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId"
         };
 
         // Attendance Logic
-        document.getElementById('checkInBtn').onclick = () => {
-            if(!navigator.geolocation) return alert("Geolocation Access Required");
-            const btn = document.getElementById('checkInBtn'); btn.innerText = "Locating...";
-            navigator.geolocation.getCurrentPosition(pos => {
-                const dist = getDist(pos.coords.latitude, pos.coords.longitude, APP_CONFIG.outletLat, APP_CONFIG.outletLng);
-                if (dist*1000 <= APP_CONFIG.radius) {
-                    navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}}).then(stream => {
-                        const v = document.getElementById('videoElement'); v.srcObject = stream;
-                        document.getElementById('cameraModal').classList.remove('hidden');
-                        document.getElementById('captureBtn').onclick = async () => {
-                            const c = document.getElementById('canvasElement'); c.width=v.videoWidth; c.height=v.videoHeight;
-                            c.getContext('2d').drawImage(v,0,0);
-                            const photo = c.toDataURL('image/jpeg', 0.4);
-                            stream.getTracks().forEach(t=>t.stop());
-                            document.getElementById('cameraModal').classList.add('hidden');
-                            await addDoc(collection(db, "shifts"), { userId: currentUserData.uid, userName: currentUserData.name, checkInTime: serverTimestamp(), status: 'active', photo: photo });
-                            showToast("Check In Successful!");
-                        };
-                        document.getElementById('closeCameraBtn').onclick = () => { stream.getTracks().forEach(t=>t.stop()); document.getElementById('cameraModal').classList.add('hidden'); btn.innerText="CHECK IN"; };
-                    }).catch(e => { alert("Camera Error: " + e); btn.innerText="CHECK IN"; });
-                } else {
-                    btn.innerText="CHECK IN";
-                    document.getElementById('geoError').innerText = `You are ${(dist*1000).toFixed(0)}m away. Move closer.`;
-                    document.getElementById('geoError').classList.remove('hidden');
-                }
-            }, err => { alert("GPS Error"); btn.innerText="CHECK IN"; }, {enableHighAccuracy: true});
-        };
+        document.getElementById('checkInBtn').onclick = async () => {
+    if(!navigator.geolocation) return alert("Geolocation Access Required");
+    const btn = document.getElementById('checkInBtn'); btn.innerText = "Locating...";
+
+    // Check for approved client job TODAY
+    const todayStr = new Date().toISOString().split('T')[0];
+    const nowTime = new Date().toTimeString().split(' ')[0].substring(0,5); // HH:MM
+
+    // Find a slot that is approved, for me, today, and we are roughly within start time
+    const q = query(collection(db, "shift_requests"), 
+        where("assignedTo", "==", currentUserData.uid), 
+        where("status", "==", "approved"), 
+        where("date", "==", todayStr),
+        where("type", "==", "service")
+    );
+    const jobs = await getDocs(q);
+    let targetLat = APP_CONFIG.outletLat, targetLng = APP_CONFIG.outletLng;
+    let jobDetails = null;
+
+    if(!jobs.empty) {
+        // Use the first valid job found
+        const job = jobs.docs[0].data();
+        // Fetch client details for coordinates
+        const clientDoc = await getDoc(doc(db, "users", job.clientId));
+        if(clientDoc.exists()) {
+            const c = clientDoc.data();
+            targetLat = c.lat; targetLng = c.lng;
+            jobDetails = { clientId: job.clientId, clientName: c.name };
+        }
+    }
+
+    navigator.geolocation.getCurrentPosition(pos => {
+        const dist = getDist(pos.coords.latitude, pos.coords.longitude, targetLat, targetLng);
+        if (dist*1000 <= APP_CONFIG.radius) {
+            // ... (Existing Camera Logic) ...
+            navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}}).then(stream => {
+                const v = document.getElementById('videoElement'); v.srcObject = stream;
+                document.getElementById('cameraModal').classList.remove('hidden');
+                document.getElementById('captureBtn').onclick = async () => {
+                    const c = document.getElementById('canvasElement'); c.width=v.videoWidth; c.height=v.videoHeight;
+                    c.getContext('2d').drawImage(v,0,0);
+                    const photo = c.toDataURL('image/jpeg', 0.4);
+                    stream.getTracks().forEach(t=>t.stop());
+                    document.getElementById('cameraModal').classList.add('hidden');
+
+                    // Construct Shift Data
+                    let shiftData = { 
+                        userId: currentUserData.uid, 
+                        userName: currentUserData.name, 
+                        checkInTime: serverTimestamp(), 
+                        status: 'active', 
+                        photo: photo 
+                    };
+                    // Link Client if applicable
+                    if(jobDetails) {
+                        shiftData.clientId = jobDetails.clientId;
+                        shiftData.clientName = jobDetails.clientName;
+                    }
+
+                    await addDoc(collection(db, "shifts"), shiftData);
+                    showToast("Check In Successful!");
+                };
+                document.getElementById('closeCameraBtn').onclick = () => { stream.getTracks().forEach(t=>t.stop()); document.getElementById('cameraModal').classList.add('hidden'); btn.innerText="CHECK IN"; };
+            }).catch(e => { alert("Camera Error: " + e); btn.innerText="CHECK IN"; });
+            // ... (End Camera Logic) ...
+        } else {
+            btn.innerText="CHECK IN";
+            document.getElementById('geoError').innerText = `You are ${(dist*1000).toFixed(0)}m away from ${jobDetails ? jobDetails.clientName : 'Base'}.`;
+            document.getElementById('geoError').classList.remove('hidden');
+        }
+    }, err => { alert("GPS Error"); btn.innerText="CHECK IN"; }, {enableHighAccuracy: true});
+};
 
         // Shift End Logic (Minute Calculation)
         window.forceStop = async (id) => {
@@ -1258,7 +1537,15 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId"
                         
                         updates.bonusWallet = (u.bonusWallet||0) + pts;
                     }
-
+if(s.clientId) {
+    const clientRef = doc(db, "users", s.clientId);
+    const cDoc = await t.get(clientRef);
+    if(cDoc.exists()) {
+         // You can define a billing rate in settings or client profile. Using 50 as example.
+        const bill = hrs * 35; 
+        t.update(clientRef, { dueAmount: (cDoc.data().dueAmount||0) + bill });
+    }
+}
                     t.update(sRef, { status: 'completed', checkOutTime: serverTimestamp(), hoursWorked: hoursWorked, earnings: pay });
                     t.update(uRef, updates);
                 });
@@ -1376,6 +1663,101 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId"
                 document.getElementById('redeemModal').classList.add('hidden'); e.target.reset();
             } catch(err) { alert(err); }
         };
+
+
+// --- CLIENT & ASSIGNMENT ACTIONS ---
+
+// Create Client
+document.getElementById('createClientForm').onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+        const em = document.getElementById('cliEmail').value;
+        const ps = document.getElementById('cliPass').value;
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, em, ps);
+        
+        await setDoc(doc(db, "users", cred.user.uid), {
+            name: document.getElementById('cliName').value,
+            phone: document.getElementById('cliPhone').value,
+            address: document.getElementById('cliAddress').value,
+            lat: Number(document.getElementById('cliLat').value),
+            lng: Number(document.getElementById('cliLng').value),
+            email: em,
+            role: 'client',
+            dueAmount: 0,
+            joinedAt: serverTimestamp()
+        });
+        await signOut(secondaryAuth);
+        document.getElementById('createClientModal').classList.add('hidden'); e.target.reset(); showToast("Client Registered");
+    } catch(x) { alert(x.message); }
+};
+
+// Client Request Service
+window.requestService = async () => {
+    const d = document.getElementById('serviceDate').value;
+    const s = document.getElementById('serviceStart').value;
+    const e = document.getElementById('serviceEnd').value;
+    if(!d || !s || !e) return showToast("Fill all fields");
+    
+    await addDoc(collection(db, "shift_requests"), {
+        clientId: currentUserData.uid,
+        clientName: currentUserData.name,
+        type: 'service',
+        date: d, startTime: s, endTime: e,
+        status: 'pending',
+        createdAt: serverTimestamp()
+    });
+    showToast("Request Sent");
+};
+
+// Open Assignment Modal
+window.openAssignModal = async (reqId) => {
+    document.getElementById('assignReqId').value = reqId;
+    const s = document.getElementById('assignStaffSelect'); s.innerHTML = '';
+    const snap = await getDocs(query(collection(db,"users"), where("role","==","member")));
+    snap.forEach(d => {
+        const u = d.data();
+        const o = document.createElement('option');
+        o.value = d.id; o.innerText = u.name;
+        s.appendChild(o);
+    });
+    document.getElementById('assignModal').classList.remove('hidden');
+};
+
+// Confirm Assignment
+window.confirmAssignment = async () => {
+    const rid = document.getElementById('assignReqId').value;
+    const uid = document.getElementById('assignStaffSelect').value;
+    const uName = document.getElementById('assignStaffSelect').options[document.getElementById('assignStaffSelect').selectedIndex].text;
+    
+    await updateDoc(doc(db, "shift_requests", rid), {
+        status: 'assigned',
+        assignedTo: uid,
+        assignedName: uName
+    });
+    document.getElementById('assignModal').classList.add('hidden');
+    showToast("Staff Assigned");
+};
+
+// Squad Member Respond to Job
+window.respondJob = async (id, status) => {
+    await updateDoc(doc(db, "shift_requests", id), { status: status });
+    showToast(status === 'approved' ? "Job Accepted" : "Job Denied");
+};
+
+// Collect Client Payment
+window.collectClientPayment = async (uid, due) => {
+    const amt = prompt(`Collect Payment (Due: ₹${due})`, due);
+    if(amt && !isNaN(amt)) {
+        await runTransaction(db, async(t) => {
+            const ref = doc(db, "users", uid);
+            const c = (await t.get(ref)).data();
+            t.update(ref, { dueAmount: (c.dueAmount||0) - Number(amt) });
+            const pRef = doc(collection(db, "client_payments"));
+            t.set(pRef, { clientId: uid, amount: Number(amt), date: serverTimestamp() });
+        });
+        showToast("Payment Collected");
+    }
+};
 
         // Login Handler
         document.getElementById('loginForm').onsubmit = async (e) => {
