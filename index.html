@@ -611,6 +611,37 @@
         <button onclick="window.confirmAssignment()" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold">Assign</button>
     </div>
 </div>
+
+<!-- Manage Slot Modal (Admin/Manager) -->
+<div id="manageSlotModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-5">
+        <h3 class="font-bold text-gray-800 mb-4">Manage Slot</h3>
+        <input type="hidden" id="manageSlotId">
+        
+        <div class="space-y-3">
+            <div>
+                <label class="text-[10px] uppercase font-bold text-gray-400">Assigned Staff</label>
+                <select id="manageSlotStaff" class="w-full p-2 border rounded text-sm bg-white"></select>
+            </div>
+            <div class="flex gap-2">
+                <div class="w-1/2">
+                    <label class="text-[10px] uppercase font-bold text-gray-400">Start Time</label>
+                    <input type="time" id="manageSlotStart" class="w-full p-2 border rounded text-sm">
+                </div>
+                <div class="w-1/2">
+                    <label class="text-[10px] uppercase font-bold text-gray-400">End Time</label>
+                    <input type="time" id="manageSlotEnd" class="w-full p-2 border rounded text-sm">
+                </div>
+            </div>
+            
+            <div class="flex gap-2 pt-2">
+                <button onclick="window.deleteSlotRequest()" class="flex-1 py-3 bg-red-50 text-red-600 rounded-xl font-bold text-sm border border-red-100">Delete</button>
+                <button onclick="window.saveSlotChanges()" class="flex-[2] py-3 bg-blue-600 text-white rounded-xl font-bold text-sm">Save Changes</button>
+            </div>
+            <button onclick="document.getElementById('manageSlotModal').classList.add('hidden')" class="w-full text-center text-xs text-gray-400 mt-2">Cancel</button>
+        </div>
+    </div>
+</div>
         </main>
 
         <!-- Bottom Navigation (Member/Personal) -->
@@ -972,28 +1003,39 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", 
         if(events.length === 0) { l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No approved slots for today or tomorrow.</p>'; return; }
 
         events.forEach(r => {
-            let count = 0; // Local count logic moved to rendering
-            const isToday = r.date === todayStr;
-            const colorClass = isToday ? "bg-blue-50 border-blue-100" : "bg-gray-50 border-gray-100";
-            const badge = isToday ? '<span class="text-[10px] bg-blue-200 text-blue-800 px-1 rounded font-bold">TODAY</span>' : '<span class="text-[10px] bg-gray-200 text-gray-800 px-1 rounded font-bold">TOMORROW</span>';
-            
-            // Logic to display Client Name or "Regular Shift"
-            const title = r.type === 'service' ? `<span class="text-purple-700 font-bold">${r.clientName} (Service)</span>` : r.userName;
-            const sub = r.type === 'service' ? `<span class="text-[10px] text-gray-500">Assigned: ${r.assignedName||'Pending'}</span>` : `<span class="text-[10px] text-gray-500">Regular Shift</span>`;
+            // Check if the event date is today or in the future
+            if(r.date >= todayStr) {
+                const isToday = r.date === todayStr;
+                const colorClass = isToday ? "bg-blue-50 border-blue-100" : "bg-gray-50 border-gray-100";
+                const badge = isToday ? '<span class="text-[10px] bg-blue-200 text-blue-800 px-1 rounded font-bold ml-1">TODAY</span>' : '<span class="text-[10px] bg-gray-200 text-gray-800 px-1 rounded font-bold">TOMORROW</span>';
+                
+                // Determine Title and Subtitle based on Request Type ('service' vs 'shift')
+                const title = r.type === 'service' ? 
+                    `<span class="text-purple-700 font-bold">${r.clientName} (Service)</span>` : 
+                    r.userName; 
 
-            const el = document.createElement('div'); 
-            el.className=`flex justify-between items-center p-3 rounded-lg border ${colorClass} mb-2`;
-            el.innerHTML = `
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-xs text-gray-500">${r.date}</span>
-                        ${badge}
+                const sub = r.type === 'service' ? 
+                    `<span class="text-[10px] text-gray-500">Assigned: ${r.assignedName || 'Pending'}</span>` : 
+                    `<span class="text-[10px] text-gray-500">Regular Shift</span>`;
+
+                const el = document.createElement('div'); 
+                el.className = `flex justify-between items-center p-3 rounded-lg border ${colorClass} mb-2`;
+                el.innerHTML = `
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold text-xs text-gray-500">${r.date}</span>
+                            ${badge}
+                        </div>
+                        <div class="text-sm">${title}</div>
+                        ${sub}
                     </div>
-                    <div class="text-sm">${title}</div>
-                    ${sub}
-                </div>
-                <span class="text-xs font-mono font-bold text-gray-600 bg-white px-2 py-1 rounded border">${r.startTime} - ${r.endTime}</span>`;
-            l.appendChild(el);
+                    <div class="text-right">
+                        <div class="text-xs font-mono font-bold text-gray-600 bg-white px-2 py-1 rounded border mb-1">${r.startTime} - ${r.endTime}</div>
+                        <!-- EDIT BUTTON ADDED HERE -->
+                        <button onclick="window.openManageSlot('${r.id}')" class="text-[10px] text-blue-600 font-bold underline">Edit</button>
+                    </div>`;
+                l.appendChild(el);
+            }
         });
      }));
 }
@@ -1817,6 +1859,65 @@ window.collectClientPayment = async (uid, due) => {
     }
 };
 
+// --- MANAGE SLOTS (Admin/Manager) ---
+
+window.openManageSlot = async (id) => {
+    const docSnap = await getDoc(doc(db, "shift_requests", id));
+    if (!docSnap.exists()) return showToast("Error: Slot not found");
+    const r = docSnap.data();
+    
+    document.getElementById('manageSlotId').value = id;
+    document.getElementById('manageSlotStart').value = r.startTime;
+    document.getElementById('manageSlotEnd').value = r.endTime;
+    
+    // Populate Staff Dropdown
+    const s = document.getElementById('manageSlotStaff'); s.innerHTML = '<option value="">Unassigned</option>';
+    const usersSnap = await getDocs(query(collection(db,"users"), where("role","==","member")));
+    usersSnap.forEach(u => {
+        const ud = u.data();
+        const selected = (r.assignedTo === u.id || r.userId === u.id) ? 'selected' : '';
+        s.innerHTML += `<option value="${u.id}" ${selected}>${ud.name}</option>`;
+    });
+
+    document.getElementById('manageSlotModal').classList.remove('hidden');
+};
+
+window.saveSlotChanges = async () => {
+    const id = document.getElementById('manageSlotId').value;
+    const uid = document.getElementById('manageSlotStaff').value;
+    const start = document.getElementById('manageSlotStart').value;
+    const end = document.getElementById('manageSlotEnd').value;
+    const uName = document.getElementById('manageSlotStaff').options[document.getElementById('manageSlotStaff').selectedIndex].text;
+
+    let updates = { 
+        startTime: start, 
+        endTime: end 
+    };
+
+    if (uid) {
+        updates.assignedTo = uid;
+        updates.userId = uid; // Ensure assigned user sees it
+        updates.assignedName = uName;
+        updates.status = 'approved'; // Auto-approve if edited by admin/mgr
+    } else {
+        updates.assignedTo = null;
+        updates.userId = null;
+        updates.assignedName = null;
+        updates.status = 'pending'; // Revert to pending if unassigned
+    }
+
+    await updateDoc(doc(db, "shift_requests", id), updates);
+    document.getElementById('manageSlotModal').classList.add('hidden');
+    showToast("Slot Updated");
+};
+
+window.deleteSlotRequest = async () => {
+    if(!confirm("Permanently delete this slot? This cannot be undone.")) return;
+    const id = document.getElementById('manageSlotId').value;
+    await deleteDoc(doc(db, "shift_requests", id));
+    document.getElementById('manageSlotModal').classList.add('hidden');
+    showToast("Slot Deleted");
+};
         // Login Handler
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
