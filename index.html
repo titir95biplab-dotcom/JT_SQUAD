@@ -100,7 +100,7 @@
                     <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn" onclick="switchAdminTab('settings', event)"><i class="fas fa-cogs mb-1 block text-lg"></i>Config</button>
                 </div>
 
-                <div class="p-4 space-y-5">
+                <div class="p-4 space-y-5 pb-24">
                     <!-- Tab: Overview / Stats -->
                     <div id="adminTab-overview" class="space-y-4">
                         <div class="grid grid-cols-2 gap-3">
@@ -298,6 +298,12 @@
         <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between"><h3 class="font-bold text-xs text-green-600 uppercase">Active Squad Members</h3><span id="clientLiveCount" class="text-xs font-bold">0</span></div>
         <div id="clientLiveList" class="p-4 space-y-3"><p class="text-center text-xs text-gray-400 italic">No active staff currently.</p></div>
     </div>
+
+<!-- Upcoming Services -->
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-blue-600 uppercase">Upcoming Service Slots</h3></div>
+    <div id="clientUpcomingList" class="p-4 space-y-3"></div>
+</div>
 
     <!-- Request History -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
@@ -751,6 +757,30 @@ function initClient() {
             l.innerHTML += `<div class="flex justify-between text-sm border-b border-gray-100 pb-2"><span>${s.checkInTime.toDate().toLocaleDateString()} - ${s.userName}</span><span class="font-bold">${s.hoursWorked.toFixed(2)} hrs</span></div>`;
         });
     }));
+
+// Upcoming Approved Service Slots for Client
+listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("clientId", "==", uid), where("status", "==", "approved")), (snap) => {
+    // You need a container in HTML for this. Let's assume you add one or reuse 'clientRequestList'
+    // Ideally, add a new box <div id="clientUpcomingList"> in HTML first (Instruction B below)
+    const l = document.getElementById('clientUpcomingList');
+    if (l) {
+        l.innerHTML = '';
+        const todayStr = new Date().toISOString().split('T')[0];
+        let count = 0;
+
+        snap.forEach(d => {
+            const r = d.data();
+            if (r.date >= todayStr) {
+                count++;
+                l.innerHTML += `<div class="flex justify-between items-center border-b border-blue-100 py-2">
+                    <div><span class="font-bold text-sm text-blue-900">${r.date}</span><div class="text-xs text-blue-600">${r.assignedName}</div></div>
+                    <span class="font-mono text-xs font-bold text-blue-700">${r.startTime}-${r.endTime}</span>
+                </div>`;
+            }
+        });
+        if(count === 0) l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No upcoming services.</p>';
+    }
+}));
 }
 
         // --- ADMIN CONTROLLER ---
@@ -921,36 +951,52 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", 
 
         // Shared Logic for Admin and Manager Schedule
         function loadSharedSchedule(elementId) {
-             const today = new Date();
-             const todayStr = today.toISOString().split('T')[0];
-             const tmrw = new Date(); tmrw.setDate(tmrw.getDate()+1);
-             const tmrwStr = tmrw.toISOString().split('T')[0];
+     const today = new Date();
+     const todayStr = today.toISOString().split('T')[0];
+     const tmrw = new Date(); tmrw.setDate(tmrw.getDate()+1);
+     const tmrwStr = tmrw.toISOString().split('T')[0];
 
-             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "shift"), where("status", "==", "approved")), (snap) => {
-                const l = document.getElementById(elementId); 
-                if(!l) return;
-                l.innerHTML = '';
-                
-                let events = [];
-                snap.forEach(d => events.push(d.data()));
-                
-                // Filter only today and tomorrow and sort
-                events = events.filter(e => e.date === todayStr || e.date === tmrwStr);
-                events.sort((a,b) => (a.date > b.date) ? 1 : (a.date === b.date ? (a.startTime > b.startTime ? 1 : -1) : -1));
+     // REMOVE "type" filter to show both Shifts and Services
+     listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("status", "==", "approved")), (snap) => {
+        const l = document.getElementById(elementId); 
+        if(!l) return;
+        l.innerHTML = '';
+        
+        let events = [];
+        snap.forEach(d => events.push(d.data()));
+        
+        // Filter only today and tomorrow and sort
+        events = events.filter(e => e.date === todayStr || e.date === tmrwStr);
+        events.sort((a,b) => (a.date > b.date) ? 1 : (a.date === b.date ? (a.startTime > b.startTime ? 1 : -1) : -1));
 
-                if(events.length === 0) { l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No approved slots for today or tomorrow.</p>'; return; }
+        if(events.length === 0) { l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No approved slots for today or tomorrow.</p>'; return; }
 
-                events.forEach(r => {
-                    const isToday = r.date === todayStr;
-                    const colorClass = isToday ? "bg-blue-50 border-blue-100" : "bg-gray-50 border-gray-100";
-                    const badge = isToday ? '<span class="text-[10px] bg-blue-200 text-blue-800 px-1 rounded font-bold">TODAY</span>' : '<span class="text-[10px] bg-gray-200 text-gray-800 px-1 rounded font-bold">TOMORROW</span>';
-                    
-                    const el = document.createElement('div'); el.className=`flex justify-between items-center p-3 rounded-lg border ${colorClass}`;
-                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName} ${badge}</p><p class="text-xs text-gray-600">${r.startTime} - ${r.endTime}</p></div>`;
-                    l.appendChild(el);
-                });
-             }));
-        }
+        events.forEach(r => {
+            let count = 0; // Local count logic moved to rendering
+            const isToday = r.date === todayStr;
+            const colorClass = isToday ? "bg-blue-50 border-blue-100" : "bg-gray-50 border-gray-100";
+            const badge = isToday ? '<span class="text-[10px] bg-blue-200 text-blue-800 px-1 rounded font-bold">TODAY</span>' : '<span class="text-[10px] bg-gray-200 text-gray-800 px-1 rounded font-bold">TOMORROW</span>';
+            
+            // Logic to display Client Name or "Regular Shift"
+            const title = r.type === 'service' ? `<span class="text-purple-700 font-bold">${r.clientName} (Service)</span>` : r.userName;
+            const sub = r.type === 'service' ? `<span class="text-[10px] text-gray-500">Assigned: ${r.assignedName||'Pending'}</span>` : `<span class="text-[10px] text-gray-500">Regular Shift</span>`;
+
+            const el = document.createElement('div'); 
+            el.className=`flex justify-between items-center p-3 rounded-lg border ${colorClass} mb-2`;
+            el.innerHTML = `
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="font-bold text-xs text-gray-500">${r.date}</span>
+                        ${badge}
+                    </div>
+                    <div class="text-sm">${title}</div>
+                    ${sub}
+                </div>
+                <span class="text-xs font-mono font-bold text-gray-600 bg-white px-2 py-1 rounded border">${r.startTime} - ${r.endTime}</span>`;
+            l.appendChild(el);
+        });
+     }));
+}
 
         // --- MANAGER CONTROLLER ---
         function initManager() {
@@ -1075,25 +1121,35 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", 
             }));
 
             // Upcoming Approved Slots Monitor (Squad Only) (New Feature)
-            if(isSquad) {
-                const todayStr = new Date().toISOString().split('T')[0];
-                // EDITED BLOCK: Removed date query, added JS filtering
-listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("status", "==", "approved")), (snap) => {
-    const l = document.getElementById('memberUpcomingList'); l.innerHTML = '';
-    let count = 0;
-    
-    snap.forEach(doc => {
-        const r = doc.data();
-        // Manually check if date is today or future
-        if (r.date >= todayStr) {
-            count++;
-            l.innerHTML += `<div class="flex justify-between items-center border-b border-blue-100 py-1"><span class="font-bold text-blue-900">${r.date}</span><span class="text-blue-700">${r.startTime} - ${r.endTime}</span></div>`;
-        }
-    });
-
-    if(count === 0) l.innerHTML = '<p class="text-center italic opacity-50">No upcoming slots</p>';
-}));
+            // Upcoming Approved Slots Monitor (Squad Only)
+if(isSquad) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    // Listen for BOTH direct user requests AND assigned services
+    // Note: To simplify without complex OR queries, we rely on 'userId' being updated on assignment.
+    listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("status", "==", "approved")), (snap) => {
+        const l = document.getElementById('memberUpcomingList'); l.innerHTML = '';
+        let count = 0;
+        
+        snap.forEach(doc => {
+            const r = doc.data();
+            if (r.date >= todayStr) {
+                count++;
+                // Show Client Name if it exists
+                const clientInfo = r.clientName ? `<div class="text-[10px] text-purple-600 font-bold mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${r.clientName}</div>` : '';
+                
+                l.innerHTML += `<div class="flex justify-between items-center border-b border-blue-100 py-2 last:border-0">
+                    <div>
+                        <span class="font-bold text-blue-900 text-sm">${r.date}</span>
+                        ${clientInfo}
+                    </div>
+                    <span class="text-blue-700 text-xs font-bold bg-blue-50 px-2 py-1 rounded">${r.startTime} - ${r.endTime}</span>
+                </div>`;
             }
+        });
+
+        if(count === 0) l.innerHTML = '<p class="text-center italic opacity-50 text-xs">No upcoming slots</p>';
+    }));
+}
 
             loadHistory();
             loadPayouts();
@@ -1732,6 +1788,7 @@ window.confirmAssignment = async () => {
     await updateDoc(doc(db, "shift_requests", rid), {
         status: 'assigned',
         assignedTo: uid,
+        userId: uid, // CRITICAL: Updates userId so it appears in member's query
         assignedName: uName
     });
     document.getElementById('assignModal').classList.add('hidden');
