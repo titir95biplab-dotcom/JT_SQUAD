@@ -1780,6 +1780,7 @@ window.openAssignModal = async (reqId) => {
 };
 
 // Confirm Assignment
+// Confirm Assignment
 window.confirmAssignment = async () => {
     const rid = document.getElementById('assignReqId').value;
     const uid = document.getElementById('assignStaffSelect').value;
@@ -1788,7 +1789,7 @@ window.confirmAssignment = async () => {
     await updateDoc(doc(db, "shift_requests", rid), {
         status: 'assigned',
         assignedTo: uid,
-        userId: uid, // CRITICAL: Updates userId so it appears in member's query
+        userId: uid, // <--- THIS IS THE CRITICAL MISSING LINE
         assignedName: uName
     });
     document.getElementById('assignModal').classList.add('hidden');
