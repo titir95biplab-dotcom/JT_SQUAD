@@ -994,7 +994,7 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", 
         l.innerHTML = '';
         
         let events = [];
-        snap.forEach(d => events.push(d.data()));
+       snap.forEach(d => events.push({ id: d.id, ...d.data() }));
         
         // Filter only today and tomorrow and sort
         events = events.filter(e => e.date === todayStr || e.date === tmrwStr);
