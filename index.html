@@ -266,20 +266,48 @@
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Squad Slot Requests</h3></div>
                     <div id="slotRequestsList" class="p-4 space-y-3"></div>
                 </div>
+<!-- ================= NEW: CLIENT MANAGEMENT BLOCK ================= -->
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+        <h3 class="font-bold text-xs text-indigo-600 uppercase">Client Management</h3>
+        <!-- Opens the existing Create Client Modal -->
+        <button onclick="document.getElementById('createClientModal').classList.remove('hidden')" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow hover:bg-indigo-700 transition flex items-center">
+            <i class="fas fa-plus mr-1"></i> Register Client
+        </button>
+    </div>
+    
+    <!-- Client Search -->
+    <div class="p-3 border-b border-gray-50">
+        <div class="relative">
+            <i class="fas fa-search absolute left-3 top-2.5 text-gray-300 text-xs"></i>
+            <input type="text" id="mgrClientSearch" onkeyup="window.filterMgrClients()" placeholder="Search Name or Phone..." class="w-full pl-8 p-2 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:border-indigo-300 transition outline-none">
+        </div>
+    </div>
+
+    <!-- Client List Container -->
+    <div id="mgrClientList" class="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+        <p class="text-center text-xs text-gray-400 italic p-4">Loading Clients...</p>
+    </div>
+</div>
             </div>
 
 
 <!-- ================= CLIENT PORTAL ================= -->
 <div id="clientView" class="view-section hidden p-4 space-y-5">
     <div class="bg-white p-4 rounded-xl border-l-4 border-blue-600 shadow-sm flex justify-between items-center">
-        <div>
-            <h2 class="text-lg font-bold text-gray-800" id="clientHeaderName">Client Portal</h2>
-            <p class="text-xs text-gray-500">Manage Service Requests</p>
-        </div>
-        <div class="text-right">
-    <p class="text-[10px] uppercase font-bold text-gray-400">Wallet Balance</p>
-    <p class="text-xl font-bold text-green-600">₹<span id="clientWalletBalance">0</span></p>
-</div>
+    <div>
+        <h2 class="text-lg font-bold text-gray-800" id="clientHeaderName">Client Portal</h2>
+        <p class="text-xs text-gray-500">Manage Service Requests</p>
+    </div>
+    <div class="text-right flex flex-col items-end">
+        <p class="text-[10px] uppercase font-bold text-gray-400">Wallet Balance</p>
+        <p class="text-xl font-bold text-green-600 mb-1">₹<span id="clientWalletBalance">0</span></p>
+        
+        <!-- NEW BUTTON FOR CLIENT TO SEE HISTORY -->
+        <button onclick="window.viewClientHistory(currentUserData.uid)" class="text-[10px] bg-purple-50 text-purple-600 px-2 py-1 rounded font-bold hover:bg-purple-100 transition border border-purple-100">
+            <i class="fas fa-history mr-1"></i> View History
+        </button>
+    </div>
     </div>
 
     <!-- Actions -->
@@ -630,6 +658,25 @@
     </div>
 </div>
 
+
+<!-- Client History Modal -->
+<div id="clientHistoryModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
+            <h3 class="font-bold text-sm text-gray-700">Transaction History</h3>
+            <button onclick="document.getElementById('clientHistoryModal').classList.add('hidden')" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <!-- Scrollable Content List -->
+        <div id="clientHistoryContent" class="p-4 space-y-3 overflow-y-auto">
+            <!-- Javascript will inject list here -->
+        </div>
+    </div>
+</div>
+
+
 <!-- Manage Slot Modal (Admin/Manager) -->
 <div id="manageSlotModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-sm p-5">
@@ -783,37 +830,6 @@ function initClient() {
         });
     }));
 
-// Client Expense/Wallet History
-// Client Expense/Wallet History
-    listeners.push(onSnapshot(query(collection(db, "client_transactions"), where("clientId", "==", uid), orderBy("date", "desc"), limit(20)), (snap) => {
-        // Reuse 'clientRequestList' or 'clientWorkHistory' container? 
-        // Better: Let's reuse 'clientWorkHistory' container for now, OR add a new one.
-        // Let's target the 'clientWorkHistory' div but change the title dynamically or add a new section.
-        
-        // OPTION: We will create a new list inside the existing "Completed Work History" box for now, 
-        // effectively replacing it with "Transactions" or appending.
-        // BETTER: Let's find the div with id="clientWorkHistory" and use that to show transactions instead of just work hours.
-        
-        const l = document.getElementById('clientWorkHistory'); 
-        l.innerHTML = '';
-        if(snap.empty) l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No transactions.</p>';
-        
-        snap.forEach(d => {
-            const t = d.data();
-            const isCredit = t.type === 'recharge';
-            const color = isCredit ? 'green' : 'red';
-            const sign = isCredit ? '+' : '-';
-            
-            l.innerHTML += `
-                <div class="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
-                    <div>
-                        <div class="font-bold text-gray-700">${t.details || 'Transaction'}</div>
-                        <div class="text-[10px] text-gray-400">${t.date?.toDate().toLocaleDateString()}</div>
-                    </div>
-                    <div class="font-bold text-${color}-600">${sign}₹${t.amount}</div>
-                </div>`;
-        });
-    }));
     // Request History
     listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("clientId", "==", uid)), (snap) => {
         const l = document.getElementById('clientRequestList'); l.innerHTML = '';
@@ -829,12 +845,24 @@ function initClient() {
         });
     }));
     
-    // Work History
-    listeners.push(onSnapshot(query(collection(db, "shifts"), where("clientId", "==", uid), where("status", "==", "completed"), orderBy("checkOutTime", "desc"), limit(10)), (snap) => {
-        const l = document.getElementById('clientWorkHistory'); l.innerHTML = '';
-        snap.forEach(d => {
-            const s = d.data();
-            l.innerHTML += `<div class="flex justify-between text-sm border-b border-gray-100 pb-2"><span>${s.checkInTime.toDate().toLocaleDateString()} - ${s.userName}</span><span class="font-bold">${s.hoursWorked.toFixed(2)} hrs</span></div>`;
+   // Work History (SAFE VERSION - No Index Required)
+    listeners.push(onSnapshot(query(collection(db, "shifts"), where("clientId", "==", uid), where("status", "==", "completed"), limit(10)), (snap) => {
+        const l = document.getElementById('clientWorkHistory'); 
+        l.innerHTML = '';
+        
+        // 1. Get data and Sort in JS (Newest First)
+        let history = [];
+        snap.forEach(d => history.push(d.data()));
+        history.sort((a, b) => (b.checkOutTime?.seconds || 0) - (a.checkOutTime?.seconds || 0));
+
+        // 2. Render
+        if(history.length === 0) l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No work history yet.</p>';
+        
+        history.forEach(s => {
+            l.innerHTML += `<div class="flex justify-between text-sm border-b border-gray-100 pb-2">
+                <span>${s.checkInTime.toDate().toLocaleDateString()} - ${s.userName}</span>
+                <span class="font-bold text-gray-700">${(s.hoursWorked||0).toFixed(2)} hrs</span>
+            </div>`;
         });
     }));
 
@@ -985,22 +1013,31 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", 
 }));
 
 // Admin: Client List
+// Admin: Client List
 listeners.push(onSnapshot(query(collection(db, "users"), where("role", "==", "client")), (snap) => {
-    const l = document.getElementById('clientTableBody'); l.innerHTML = '';
+    const l = document.getElementById('clientTableBody'); 
+    l.innerHTML = '';
+    
     snap.forEach(d => {
         const u = d.data();
-        // REPLACE THE HTML GENERATION PART IN THE LOOP:
-    const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
-    tr.innerHTML = `
-        <td class="p-3"><div class="font-bold">${u.name}</div><div class="text-[10px] text-gray-400">${u.phone}</div></td>
-        <td class="p-3 text-xs">${u.address}</td>
-        <td class="p-3"><div class="text-xs font-bold text-green-600">₹${(u.walletBalance||0).toFixed(0)}</div></td>
-        <td class="p-3 text-right">
-            <button onclick="window.openRechargeModal('${d.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100 text-xs font-bold">Recharge</button>
-<button onclick="window.viewClientHistory('${d.id}')" class="bg-gray-100 text-gray-600 p-2 rounded hover:bg-gray-200 text-xs font-bold ml-1">History</button>
-            <button onclick="window.deleteUser('${d.id}')" class="text-red-400 ml-2"><i class="fas fa-trash"></i></button>
-        </td>`;
-    l.appendChild(tr);
+        const tr = document.createElement('tr'); 
+        tr.className = "border-b hover:bg-gray-50";
+        tr.innerHTML = `
+            <td class="p-3">
+                <div class="font-bold text-gray-800">${u.name}</div>
+                <div class="text-[10px] text-gray-400">${u.phone}</div>
+            </td>
+            <td class="p-3 text-xs text-gray-500">${u.address || '-'}</td>
+            <td class="p-3"><div class="text-xs font-bold text-green-600 bg-green-50 inline-block px-2 py-1 rounded">₹${(u.walletBalance||0).toFixed(0)}</div></td>
+            <td class="p-3 text-right flex justify-end gap-2">
+                <button onclick="window.openRechargeModal('${d.id}')" class="bg-blue-50 text-blue-600 px-2 py-1.5 rounded hover:bg-blue-100 text-[10px] font-bold border border-blue-100"><i class="fas fa-bolt mr-1"></i> Recharge</button>
+                
+                <!-- THIS BUTTON OPENS THE HISTORY MODAL -->
+                <button onclick="window.viewClientHistory('${d.id}')" class="bg-purple-50 text-purple-600 px-2 py-1.5 rounded hover:bg-purple-100 text-[10px] font-bold border border-purple-100"><i class="fas fa-history mr-1"></i> History</button>
+                
+                <button onclick="window.deleteUser('${d.id}')" class="text-red-400 hover:text-red-600 w-6 h-6"><i class="fas fa-trash"></i></button>
+            </td>`;
+        l.appendChild(tr);
     });
 }));
 
@@ -1148,6 +1185,54 @@ listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", 
         l.appendChild(el);
     });
 }));
+
+// --- NEW: Manager Client List Logic ---
+    listeners.push(onSnapshot(query(collection(db, "users"), where("role", "==", "client")), (snap) => {
+        const l = document.getElementById('mgrClientList'); 
+        if(!l) return; // Safety check
+        
+        l.innerHTML = '';
+        if(snap.empty) {
+            l.innerHTML = '<p class="text-center text-xs text-gray-400 italic p-4">No clients registered.</p>';
+            return;
+        }
+        
+        snap.forEach(d => {
+            const u = d.data();
+            const el = document.createElement('div'); 
+            el.className = "p-3 hover:bg-gray-50 transition mgr-client-item";
+            // Store data for search filtering
+            el.dataset.search = (u.name + " " + u.phone).toLowerCase();
+            
+            el.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <div class="font-bold text-sm text-gray-800">${u.name}</div>
+                        <div class="text-[10px] text-gray-500 font-mono"><i class="fas fa-phone-alt mr-1"></i>${u.phone}</div>
+                        <div class="text-[10px] text-gray-400 truncate max-w-[150px]"><i class="fas fa-map-marker-alt mr-1"></i>${u.address || 'No Address'}</div>
+                    </div>
+                    <div class="text-right">
+                         <div class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full mb-1 border border-green-100">₹${(u.walletBalance||0).toFixed(0)}</div>
+                    </div>
+                </div>
+             
+
+<div class="flex gap-2 mt-2">
+    <!-- RECHARGE ACTION -->
+    <button onclick="window.openRechargeModal('${d.id}')" class="flex-1 bg-indigo-50 text-indigo-600 py-1.5 rounded text-[10px] font-bold border border-indigo-100 hover:bg-indigo-100 transition">
+        <i class="fas fa-bolt mr-1"></i> Recharge
+    </button>
+    
+    <!-- HISTORY ACTION (UPDATED STYLE) -->
+    <!-- Changed bg-gray-50 to bg-purple-50 and text-gray-600 to text-purple-600 -->
+    <button onclick="window.viewClientHistory('${d.id}')" class="flex-1 bg-purple-50 text-purple-600 py-1.5 rounded text-[10px] font-bold border border-purple-100 hover:bg-purple-100 transition shadow-sm">
+        <i class="fas fa-history mr-1"></i> History
+    </button>
+</div>
+            `;
+            l.appendChild(el);
+        });
+    }));
         }
 
         // --- MEMBER / PERSONAL CONTROLLER ---
@@ -1394,6 +1479,15 @@ if(currentUserData.role === 'member') {
                 row.classList.toggle('hidden', !row.dataset.search.includes(term));
             });
         };
+
+// --- Manager Client Search Helper ---
+window.filterMgrClients = () => {
+    const term = document.getElementById('mgrClientSearch').value.toLowerCase();
+    document.querySelectorAll('.mgr-client-item').forEach(item => {
+        // Toggle visibility based on if the name/phone contains search term
+        item.classList.toggle('hidden', !item.dataset.search.includes(term));
+    });
+};
 
         // Manager Zones
         window.enterMyZone = () => { window.isMyZoneActive = true; renderRouter(); };
@@ -1851,6 +1945,7 @@ document.getElementById('createClientForm').onsubmit = async (e) => {
             email: em,
             role: 'client',
             dueAmount: 0,
+	    walletBalance: 0,
             joinedAt: serverTimestamp()
         });
         await signOut(secondaryAuth);
@@ -1998,6 +2093,7 @@ window.openRechargeModal = (uid) => {
     document.getElementById('rechargeModal').classList.remove('hidden');
 };
 
+
 // Live calc for fee
 document.getElementById('rechargeAmount').oninput = (e) => {
     const val = Number(e.target.value);
@@ -2050,19 +2146,64 @@ window.confirmRecharge = async () => {
     } catch(e) { alert(e); }
 };
 
+// --- REPLACEMENT FUNCTION ---
+// --- SAFE HISTORY FUNCTION (No Index Required) ---
 window.viewClientHistory = async (uid) => {
-    const q = query(collection(db, "client_transactions"), where("clientId", "==", uid), orderBy("date", "desc"), limit(10));
-    const snap = await getDocs(q);
-    let msg = "Recent Transactions:\n\n";
-    if(snap.empty) msg += "No history found.";
-    else {
-        snap.forEach(d => {
-            const t = d.data();
-            const sign = t.type === 'recharge' ? '+' : '-';
-            msg += `${t.date.toDate().toLocaleDateString()}: ${sign}₹${t.amount} (${t.details})\n`;
-        });
+    const contentDiv = document.getElementById('clientHistoryContent');
+    const modal = document.getElementById('clientHistoryModal');
+    
+    // 1. Show Loading UI
+    modal.classList.remove('hidden');
+    contentDiv.innerHTML = '<div class="flex flex-col items-center justify-center py-8 text-gray-400"><i class="fas fa-circle-notch fa-spin text-2xl mb-2 text-purple-300"></i><span class="text-xs font-bold">Loading transactions...</span></div>';
+
+    try {
+        // 2. Fetch Data WITHOUT 'orderBy' to prevent crash
+        const q = query(collection(db, "client_transactions"), where("clientId", "==", uid), limit(50));
+        const snap = await getDocs(q);
+        
+        // 3. Sort Data manually (Newest First)
+        let txns = [];
+        snap.forEach(d => txns.push(d.data()));
+        txns.sort((a, b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
+
+        // 4. Render Content
+        contentDiv.innerHTML = '';
+        if(txns.length === 0) {
+            contentDiv.innerHTML = '<div class="text-center py-8"><div class="bg-gray-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 text-gray-300"><i class="fas fa-receipt"></i></div><p class="text-gray-400 text-xs italic">No history found.</p></div>';
+        } else {
+            txns.forEach(t => {
+                const dateObj = t.date ? t.date.toDate() : new Date();
+                const dateStr = dateObj.toLocaleDateString();
+                const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                const isCredit = t.type === 'recharge';
+                // Styles
+                const color = isCredit ? 'text-green-600' : 'text-red-600';
+                const bg = isCredit ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100';
+                const icon = isCredit ? 'fa-plus' : 'fa-minus';
+                
+                contentDiv.innerHTML += `
+                    <div class="flex items-center gap-3 p-3 rounded-xl border ${bg} hover:shadow-sm transition">
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0 ${color}">
+                            <i class="fas ${icon} text-sm"></i>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <div class="flex justify-between items-start">
+                                <span class="font-bold text-xs text-gray-800 truncate pr-2">${t.details || 'Transaction'}</span>
+                                <span class="font-bold text-sm ${color} whitespace-nowrap">${isCredit ? '+' : '-'}₹${t.amount}</span>
+                            </div>
+                            <div class="text-[10px] text-gray-400 font-mono flex items-center mt-1">
+                                <i class="far fa-clock mr-1 text-[9px]"></i> ${dateStr} at ${timeStr}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        contentDiv.innerHTML = `<p class="text-center text-red-400 text-xs p-4 bg-red-50 rounded border border-red-100">Error: ${e.message}</p>`;
     }
-    alert(msg); // Simple alert for now to save space
 };
        // Login Handler
         document.getElementById('loginForm').onsubmit = async (e) => {
