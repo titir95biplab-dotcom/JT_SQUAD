@@ -104,6 +104,8 @@
                     <!-- Tab: Overview / Stats -->
                     <div id="adminTab-overview" class="space-y-4">
                         <div class="grid grid-cols-2 gap-3">
+			    
+<div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Fees Collected</p><p class="text-2xl font-bold text-blue-600">₹<span id="adminFeesCollected">0</span></p></div>
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Squad</p><p id="adminTotalSquad" class="text-2xl font-bold text-gray-800">0</p></div>
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Now</p><p id="adminActiveStaff" class="text-2xl font-bold text-green-600">0</p></div>
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm col-span-2"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Liability (Pending Wages)</p><p class="text-2xl font-bold text-gray-800">₹<span id="adminPendingPayout">0</span></p></div>
@@ -192,7 +194,7 @@
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"><tr><th class="p-3">Client Details</th><th class="p-3">Location</th><th class="p-3">Accounts</th><th class="p-3 text-right">Action</th></tr></thead>
+                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"><tr><th class="p-3">Client Details</th><th class="p-3">Location</th><th class="p-3">Wallet</th><th class="p-3 text-right">Action</th></tr></thead>
                 <tbody id="clientTableBody" class="divide-y divide-gray-100 text-gray-700"></tbody>
             </table>
         </div>
@@ -275,9 +277,9 @@
             <p class="text-xs text-gray-500">Manage Service Requests</p>
         </div>
         <div class="text-right">
-            <p class="text-[10px] uppercase font-bold text-gray-400">Due Amount</p>
-            <p class="text-xl font-bold text-red-600">₹<span id="clientDueAmount">0</span></p>
-        </div>
+    <p class="text-[10px] uppercase font-bold text-gray-400">Wallet Balance</p>
+    <p class="text-xl font-bold text-green-600">₹<span id="clientWalletBalance">0</span></p>
+</div>
     </div>
 
     <!-- Actions -->
@@ -566,7 +568,23 @@
                     </form>
                 </div>
             </div>
-
+<!-- Client Recharge Modal -->
+<div id="rechargeModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-6">
+        <h3 class="text-lg font-bold mb-1">Recharge Client Wallet</h3>
+        <p class="text-xs text-gray-500 mb-4">10% Service Charge will be deducted.</p>
+        <input type="hidden" id="rechargeUid">
+        <input type="number" id="rechargeAmount" class="w-full p-3 border rounded-lg text-lg font-bold text-center mb-4" placeholder="Amount (₹)" required>
+        <div class="flex justify-between text-xs text-gray-500 mb-4 px-2">
+            <span>Service Fee (10%): <span id="displayFee" class="font-bold">₹0</span></span>
+            <span>Net Credit: <span id="displayNet" class="font-bold text-green-600">₹0</span></span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="document.getElementById('rechargeModal').classList.add('hidden')" class="flex-1 py-3 border rounded-xl font-bold">Cancel</button>
+            <button onclick="window.confirmRecharge()" class="flex-1 py-3 bg-green-600 text-white rounded-xl font-bold">Recharge</button>
+        </div>
+    </div>
+</div>
             <!-- Redeem Modal -->
             <div id="redeemModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm p-6">
@@ -751,7 +769,7 @@
 function initClient() {
     const uid = currentUserData.uid;
     document.getElementById('clientHeaderName').innerText = currentUserData.name;
-    document.getElementById('clientDueAmount').innerText = (currentUserData.dueAmount || 0).toFixed(2);
+    document.getElementById('clientWalletBalance').innerText = (currentUserData.walletBalance || 0).toFixed(2);
 
     // Live Active Staff at this outlet
     listeners.push(onSnapshot(query(collection(db, "shifts"), where("clientId", "==", uid), where("status", "==", "active")), (snap) => {
@@ -765,6 +783,37 @@ function initClient() {
         });
     }));
 
+// Client Expense/Wallet History
+// Client Expense/Wallet History
+    listeners.push(onSnapshot(query(collection(db, "client_transactions"), where("clientId", "==", uid), orderBy("date", "desc"), limit(20)), (snap) => {
+        // Reuse 'clientRequestList' or 'clientWorkHistory' container? 
+        // Better: Let's reuse 'clientWorkHistory' container for now, OR add a new one.
+        // Let's target the 'clientWorkHistory' div but change the title dynamically or add a new section.
+        
+        // OPTION: We will create a new list inside the existing "Completed Work History" box for now, 
+        // effectively replacing it with "Transactions" or appending.
+        // BETTER: Let's find the div with id="clientWorkHistory" and use that to show transactions instead of just work hours.
+        
+        const l = document.getElementById('clientWorkHistory'); 
+        l.innerHTML = '';
+        if(snap.empty) l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No transactions.</p>';
+        
+        snap.forEach(d => {
+            const t = d.data();
+            const isCredit = t.type === 'recharge';
+            const color = isCredit ? 'green' : 'red';
+            const sign = isCredit ? '+' : '-';
+            
+            l.innerHTML += `
+                <div class="flex justify-between items-center text-sm border-b border-gray-100 pb-2">
+                    <div>
+                        <div class="font-bold text-gray-700">${t.details || 'Transaction'}</div>
+                        <div class="text-[10px] text-gray-400">${t.date?.toDate().toLocaleDateString()}</div>
+                    </div>
+                    <div class="font-bold text-${color}-600">${sign}₹${t.amount}</div>
+                </div>`;
+        });
+    }));
     // Request History
     listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("clientId", "==", uid)), (snap) => {
         const l = document.getElementById('clientRequestList'); l.innerHTML = '';
@@ -940,17 +989,26 @@ listeners.push(onSnapshot(query(collection(db, "users"), where("role", "==", "cl
     const l = document.getElementById('clientTableBody'); l.innerHTML = '';
     snap.forEach(d => {
         const u = d.data();
-        const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
-        tr.innerHTML = `
-            <td class="p-3"><div class="font-bold">${u.name}</div><div class="text-[10px] text-gray-400">${u.phone}</div></td>
-            <td class="p-3 text-xs">${u.address}</td>
-            <td class="p-3"><div class="text-xs font-bold text-red-600">Due: ₹${(u.dueAmount||0).toFixed(0)}</div></td>
-            <td class="p-3 text-right">
-                <button onclick="window.collectClientPayment('${d.id}', ${u.dueAmount||0})" class="bg-green-50 text-green-600 p-2 rounded hover:bg-green-100 text-xs font-bold">Collect</button>
-                <button onclick="window.deleteUser('${d.id}')" class="text-red-400 ml-2"><i class="fas fa-trash"></i></button>
-            </td>`;
-        l.appendChild(tr);
+        // REPLACE THE HTML GENERATION PART IN THE LOOP:
+    const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
+    tr.innerHTML = `
+        <td class="p-3"><div class="font-bold">${u.name}</div><div class="text-[10px] text-gray-400">${u.phone}</div></td>
+        <td class="p-3 text-xs">${u.address}</td>
+        <td class="p-3"><div class="text-xs font-bold text-green-600">₹${(u.walletBalance||0).toFixed(0)}</div></td>
+        <td class="p-3 text-right">
+            <button onclick="window.openRechargeModal('${d.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100 text-xs font-bold">Recharge</button>
+<button onclick="window.viewClientHistory('${d.id}')" class="bg-gray-100 text-gray-600 p-2 rounded hover:bg-gray-200 text-xs font-bold ml-1">History</button>
+            <button onclick="window.deleteUser('${d.id}')" class="text-red-400 ml-2"><i class="fas fa-trash"></i></button>
+        </td>`;
+    l.appendChild(tr);
     });
+}));
+
+// Admin: Total Fees Collected
+listeners.push(onSnapshot(query(collection(db, "client_transactions"), where("type", "==", "service_fee")), (snap) => {
+    let total = 0;
+    snap.forEach(d => total += d.data().amount);
+    document.getElementById('adminFeesCollected').innerText = total.toFixed(0);
 }));
 
 // Admin: View Service Requests (Manager/Admin view)
@@ -1635,13 +1693,24 @@ if(currentUserData.role === 'member') {
                         
                         updates.bonusWallet = (u.bonusWallet||0) + pts;
                     }
+// REPLACE THIS BLOCK
 if(s.clientId) {
     const clientRef = doc(db, "users", s.clientId);
     const cDoc = await t.get(clientRef);
     if(cDoc.exists()) {
-         // You can define a billing rate in settings or client profile. Using 50 as example.
-        const bill = hrs * 35; 
-        t.update(clientRef, { dueAmount: (cDoc.data().dueAmount||0) + bill });
+        const bill = hoursWorked * 35; // Example rate: ₹35/hr charged to client
+        // Deduct from Wallet
+        t.update(clientRef, { walletBalance: (cDoc.data().walletBalance||0) - bill });
+        
+        // Log Transaction
+        const transRef = doc(collection(db, "client_transactions"));
+        t.set(transRef, { 
+            clientId: s.clientId, 
+            amount: bill, 
+            type: 'service_deduction', 
+            date: serverTimestamp(), 
+            details: `Service: ${s.userName} (${hoursWorked.toFixed(2)}h)` 
+        });
     }
 }
                     t.update(sRef, { status: 'completed', checkOutTime: serverTimestamp(), hoursWorked: hoursWorked, earnings: pay });
@@ -1918,7 +1987,84 @@ window.deleteSlotRequest = async () => {
     document.getElementById('manageSlotModal').classList.add('hidden');
     showToast("Slot Deleted");
 };
-        // Login Handler
+ 
+// --- RECHARGE LOGIC ---
+
+window.openRechargeModal = (uid) => {
+    document.getElementById('rechargeUid').value = uid;
+    document.getElementById('rechargeAmount').value = '';
+    document.getElementById('displayFee').innerText = '₹0';
+    document.getElementById('displayNet').innerText = '₹0';
+    document.getElementById('rechargeModal').classList.remove('hidden');
+};
+
+// Live calc for fee
+document.getElementById('rechargeAmount').oninput = (e) => {
+    const val = Number(e.target.value);
+    const fee = val * 0.10; // 10%
+    const net = val - fee;
+    document.getElementById('displayFee').innerText = `₹${fee.toFixed(0)}`;
+    document.getElementById('displayNet').innerText = `₹${net.toFixed(0)}`;
+};
+
+window.confirmRecharge = async () => {
+    const uid = document.getElementById('rechargeUid').value;
+    const amount = Number(document.getElementById('rechargeAmount').value);
+    
+    if(!amount || amount <= 0) return alert("Invalid Amount");
+    
+    const fee = amount * 0.10;
+    const net = amount - fee;
+
+    try {
+        await runTransaction(db, async(t) => {
+            const ref = doc(db, "users", uid);
+            const u = (await t.get(ref)).data();
+            
+            // 1. Add Net to Wallet
+            t.update(ref, { walletBalance: (u.walletBalance||0) + net });
+            
+            // 2. Log Recharge Credit
+            const creditRef = doc(collection(db, "client_transactions"));
+            t.set(creditRef, { 
+                clientId: uid, 
+                amount: net, 
+                type: 'recharge', 
+                fullAmount: amount,
+                date: serverTimestamp(), 
+                details: "Wallet Recharge" 
+            });
+
+            // 3. Log Service Fee (Internal Record)
+            const feeRef = doc(collection(db, "client_transactions"));
+            t.set(feeRef, { 
+                clientId: uid, 
+                amount: fee, 
+                type: 'service_fee', 
+                date: serverTimestamp(), 
+                details: "10% Service Charge" 
+            });
+        });
+        showToast("Recharge Successful");
+        document.getElementById('rechargeModal').classList.add('hidden');
+    } catch(e) { alert(e); }
+};
+
+window.viewClientHistory = async (uid) => {
+    const q = query(collection(db, "client_transactions"), where("clientId", "==", uid), orderBy("date", "desc"), limit(10));
+    const snap = await getDocs(q);
+    let msg = "Recent Transactions:\n\n";
+    if(snap.empty) msg += "No history found.";
+    else {
+        snap.forEach(d => {
+            const t = d.data();
+            const sign = t.type === 'recharge' ? '+' : '-';
+            msg += `${t.date.toDate().toLocaleDateString()}: ${sign}₹${t.amount} (${t.details})\n`;
+        });
+    }
+    alert(msg); // Simple alert for now to save space
+};
+       // Login Handler
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); }
