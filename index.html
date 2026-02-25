@@ -135,8 +135,28 @@
 
                     <div id="adminTab-shifts" class="hidden space-y-4">
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
-                                <h3 class="font-bold text-xs text-gray-600 uppercase">Recent Activity</h3>
+                            <div class="p-3 border-b border-gray-50 bg-gray-50/50">
+                                <h3 class="font-bold text-xs text-gray-600 uppercase mb-3">Filter Shifts</h3>
+                                <div class="flex gap-2 items-end">
+                                    <div class="flex-1">
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">From Date</label>
+                                        <input type="date" id="shiftsStartDate" class="w-full p-2 border rounded text-sm">
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">To Date</label>
+                                        <input type="date" id="shiftsEndDate" class="w-full p-2 border rounded text-sm">
+                                    </div>
+                                    <button onclick="window.loadShiftsByDateRange()" class="bg-orange-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-orange-700 whitespace-nowrap">
+                                        <i class="fas fa-search mr-1"></i> Filter
+                                    </button>
+                                    <button onclick="window.resetShiftsFilter()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded text-sm font-bold hover:bg-gray-200">
+                                        <i class="fas fa-redo mr-1"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-3 border-b border-gray-50 bg-white flex justify-between items-center">
+                                <h3 class="font-bold text-xs text-gray-600 uppercase">Shift Records</h3>
+                                <span id="shiftsCountDisplay" class="text-xs text-gray-500">Showing recent shifts</span>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left">
@@ -405,7 +425,7 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-6 text-center shadow-sm">
                      <div class="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-gray-400 font-bold" id="profileInitials">JT</div>
                      <h2 class="text-lg font-bold text-gray-800" id="profileName">User</h2>
-                     <p class="text-xs text-gray-500 mb-1" id="profileEmail">email@example.com</p>
+                     <p class="text-xs text-gray-500 mb-1" id="profileEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a0c5cdc1c9cce0c5d8c1cdd0ccc58ec3cfcd">[email&#160;protected]</a></p>
                      <p class="text-xs font-bold text-blue-600 mb-3" id="profileSalaryDisplay"></p>
                      <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-3 py-1 rounded-full font-bold">Joined: <span id="profileJoined">-</span></span>
                 </div>
@@ -600,6 +620,55 @@
                 </div>
             </div>
 
+            <div id="staffDetailModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 overflow-y-auto">
+                <div class="bg-white rounded-2xl w-full max-w-2xl my-8 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-orange-500 to-red-600 flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-lg text-white" id="staffDetailName">Staff Details</h3>
+                            <p class="text-xs text-orange-100" id="staffDetailRole">Role</p>
+                        </div>
+                        <button onclick="document.getElementById('staffDetailModal').classList.add('hidden')" class="text-white hover:bg-white/20 w-8 h-8 flex items-center justify-center rounded-full transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+                        <!-- Quick Actions -->
+                        <div class="flex gap-2">
+                            <button id="staffDetailPayoutBtn" class="flex-1 py-2 bg-green-50 text-green-600 rounded-lg text-sm font-bold hover:bg-green-100 border border-green-200">
+                                <i class="fas fa-money-bill-wave mr-1"></i> Payout
+                            </button>
+                            <button id="staffDetailEditBtn" class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-100 border border-blue-200">
+                                <i class="fas fa-edit mr-1"></i> Edit Details
+                            </button>
+                            <button id="staffDetailDeleteBtn" class="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 border border-red-200">
+                                <i class="fas fa-trash mr-1"></i> Delete
+                            </button>
+                        </div>
+
+                        <!-- Payout History -->
+                        <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="p-3 border-b border-gray-200 bg-white">
+                                <h4 class="font-bold text-xs text-gray-600 uppercase">Payout History</h4>
+                            </div>
+                            <div id="staffDetailPayoutHistory" class="p-4 space-y-2 max-h-60 overflow-y-auto">
+                                <p class="text-center text-xs text-gray-400 italic">Loading...</p>
+                            </div>
+                        </div>
+
+                        <!-- Working Shifts History -->
+                        <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="p-3 border-b border-gray-200 bg-white">
+                                <h4 class="font-bold text-xs text-gray-600 uppercase">Working Shifts History</h4>
+                            </div>
+                            <div id="staffDetailShiftsHistory" class="p-4 space-y-2 max-h-80 overflow-y-auto">
+                                <p class="text-center text-xs text-gray-400 italic">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="manageSlotModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm p-5">
                     <h3 class="font-bold text-gray-800 mb-4">Manage Slot</h3>
@@ -638,7 +707,7 @@
         </nav>
     </div>
 
-    <script type="module">
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, deleteDoc, serverTimestamp, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -994,16 +1063,17 @@
                         `<span class="text-red-500 font-bold text-xs">${u.strikes||0} Strikes</span>` :
                         `<span class="text-xs text-blue-600 font-bold">Leaves: ${u.leavesTaken||0}</span>`;
 
-                    const tr = document.createElement('tr'); tr.className="border-b hover:bg-gray-50 search-item";
+                    const tr = document.createElement('tr'); tr.className="border-b hover:bg-gray-50 search-item cursor-pointer";
                     tr.dataset.search = u.name.toLowerCase();
+                    tr.onclick = () => window.openStaffDetail(d.id);
                     tr.innerHTML = `
                         <td class="p-3"><div class="font-bold">${u.name}</div><span class="text-[10px] uppercase font-bold text-gray-400">${u.role}</span></td>
                         <td class="p-3 text-sm">${funds}</td>
                         <td class="p-3 text-sm">${perf}</td>
                         <td class="p-3 text-right flex gap-1 justify-end">
-                            <button onclick="window.promptPay('${d.id}', ${u.mainWallet||0}, ${!isSquad})" class="bg-green-50 text-green-600 p-2 rounded hover:bg-green-100"><i class="fas fa-money-bill-wave"></i></button>
-                            <button onclick="window.editUser('${d.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100"><i class="fas fa-edit"></i></button>
-                            <button onclick="window.deleteUser('${d.id}')" class="bg-red-50 text-red-600 p-2 rounded hover:bg-red-100"><i class="fas fa-trash"></i></button>
+                            <button onclick="event.stopPropagation(); window.promptPay('${d.id}', ${u.mainWallet||0}, ${!isSquad})" class="bg-green-50 text-green-600 p-2 rounded hover:bg-green-100"><i class="fas fa-money-bill-wave"></i></button>
+                            <button onclick="event.stopPropagation(); window.editUser('${d.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100"><i class="fas fa-edit"></i></button>
+                            <button onclick="event.stopPropagation(); window.deleteUser('${d.id}')" class="bg-red-50 text-red-600 p-2 rounded hover:bg-red-100"><i class="fas fa-trash"></i></button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -1013,25 +1083,16 @@
             }));
 
             listeners.push(onSnapshot(query(collection(db, "shifts"), orderBy("checkInTime", "desc"), limit(20)), (snap) => {
-                const b = document.getElementById('shiftTableBody'); b.innerHTML='';
-                let active = 0;
-                snap.forEach(d => {
-                    const s = d.data();
-                    if(s.status === 'active') active++;
-                    const dur = s.status==='active' ? 'Active' : `${(s.hoursWorked||0).toFixed(2)} hrs`;
-                    const tr = document.createElement('tr'); tr.className="border-b";
-                    tr.innerHTML = `
-                        <td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td>
-                        <td class="p-3 font-bold">${s.userName}</td>
-                        <td class="p-3 text-xs text-gray-500">${dur}</td>
-                        <td class="p-3 text-right flex justify-end gap-2">
-                             <button onclick="window.openEditShiftModal('${d.id}')" class="text-blue-500 text-xs font-bold border px-1 rounded">Edit</button>
-                            <button onclick="window.delShift('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
-                        </td>`;
-                    b.appendChild(tr);
-                });
-                document.getElementById('adminActiveStaff').innerText = active;
+                window.currentShiftsSnapshot = snap; // Store for filtering
+                window.renderShiftsTable(snap);
             }));
+
+            // Set default date range to last 7 days
+            const today = new Date();
+            const weekAgo = new Date();
+            weekAgo.setDate(today.getDate() - 7);
+            document.getElementById('shiftsEndDate').valueAsDate = today;
+            document.getElementById('shiftsStartDate').valueAsDate = weekAgo;
 
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "leave"), where("status", "==", "pending")), (snap) => {
                 const l = document.getElementById('adminLeaveList'); l.innerHTML = '';
@@ -1758,13 +1819,85 @@
             const start = document.getElementById('manageSlotStart').value;
             const end = document.getElementById('manageSlotEnd').value;
             const uName = document.getElementById('manageSlotStaff').options[document.getElementById('manageSlotStaff').selectedIndex].text;
+            
+            // Get the old shift data to check if times changed
+            const oldShiftDoc = await getDoc(doc(db, "shift_requests", id));
+            const oldShift = oldShiftDoc.data();
+            
             let updates = { startTime: start, endTime: end };
             if (uid) {
                 updates.assignedTo = uid; updates.userId = uid; updates.assignedName = uName; updates.status = 'approved'; 
             } else {
                 updates.assignedTo = null; updates.userId = null; updates.assignedName = null; updates.status = 'pending';
             }
-            await updateDoc(doc(db, "shift_requests", id), updates);
+            
+            // If this was a completed shift and times changed, recalculate earnings
+            if (oldShift.status === 'completed' && (oldShift.startTime !== start || oldShift.endTime !== end)) {
+                try {
+                    await runTransaction(db, async(t) => {
+                        const shiftRef = doc(db, "shift_requests", id);
+                        const userRef = doc(db, "users", oldShift.userId);
+                        const userData = (await t.get(userRef)).data();
+                        
+                        // Calculate old duration
+                        const [oldStartH, oldStartM] = oldShift.startTime.split(':').map(Number);
+                        const [oldEndH, oldEndM] = oldShift.endTime.split(':').map(Number);
+                        const oldMins = (oldEndH * 60 + oldEndM) - (oldStartH * 60 + oldStartM);
+                        const oldHours = oldMins / 60;
+                        
+                        // Calculate new duration
+                        const [newStartH, newStartM] = start.split(':').map(Number);
+                        const [newEndH, newEndM] = end.split(':').map(Number);
+                        const newMins = (newEndH * 60 + newEndM) - (newStartH * 60 + newStartM);
+                        const newHours = newMins / 60;
+                        
+                        const hoursDiff = newHours - oldHours;
+                        
+                        if (userData.role === 'member') {
+                            const rate = userData.customRate || APP_CONFIG.hourlyRate;
+                            const bonusRate = userData.customBonus || APP_CONFIG.bonusRate;
+                            
+                            const oldPay = (rate / 60) * oldMins;
+                            const newPay = (rate / 60) * newMins;
+                            const payDiff = newPay - oldPay;
+                            
+                            const oldPts = Math.floor(oldHours * bonusRate);
+                            const newPts = Math.floor(newHours * bonusRate);
+                            const ptsDiff = newPts - oldPts;
+                            
+                            // Update user wallet and bonus
+                            let userUpdates = {
+                                totalHours: (userData.totalHours || 0) + hoursDiff
+                            };
+                            
+                            const joinDate = userData.joinedAt.toDate();
+                            const daysSinceJoin = Math.floor((new Date() - joinDate) / (1000 * 60 * 60 * 24));
+                            const isTraining = daysSinceJoin < APP_CONFIG.trainingDays;
+                            
+                            if (isTraining) {
+                                userUpdates.blockedWallet = (userData.blockedWallet || 0) + payDiff;
+                            } else {
+                                userUpdates.mainWallet = (userData.mainWallet || 0) + payDiff;
+                            }
+                            userUpdates.bonusWallet = (userData.bonusWallet || 0) + ptsDiff;
+                            
+                            t.update(userRef, userUpdates);
+                            
+                            // Update shift earnings
+                            updates.earnings = newPay;
+                            updates.hoursWorked = newHours;
+                        }
+                        
+                        t.update(shiftRef, updates);
+                    });
+                } catch(e) {
+                    alert("Error recalculating: " + e);
+                    return;
+                }
+            } else {
+                await updateDoc(doc(db, "shift_requests", id), updates);
+            }
+            
             document.getElementById('manageSlotModal').classList.add('hidden');
             showToast("Slot Updated");
         };
@@ -1843,13 +1976,191 @@
             } catch (e) { contentDiv.innerHTML = `<p class="text-center text-red-400 text-xs p-4 bg-red-50 rounded border border-red-100">Error: ${e.message}</p>`; }
         };
 
+        window.renderShiftsTable = (snap) => {
+            const b = document.getElementById('shiftTableBody'); 
+            b.innerHTML='';
+            let active = 0;
+            let count = 0;
+            
+            snap.forEach(d => {
+                const s = d.data();
+                if(s.status === 'active') active++;
+                count++;
+                const dur = s.status==='active' ? 'Active' : `${(s.hoursWorked||0).toFixed(2)} hrs`;
+                const tr = document.createElement('tr'); 
+                tr.className="border-b";
+                tr.innerHTML = `
+                    <td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td>
+                    <td class="p-3 font-bold">${s.userName}</td>
+                    <td class="p-3 text-xs text-gray-500">${dur}</td>
+                    <td class="p-3 text-right flex justify-end gap-2">
+                         <button onclick="window.openEditShiftModal('${d.id}')" class="text-blue-500 text-xs font-bold border px-1 rounded">Edit</button>
+                        <button onclick="window.delShift('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
+                    </td>`;
+                b.appendChild(tr);
+            });
+            
+            document.getElementById('adminActiveStaff').innerText = active;
+            document.getElementById('shiftsCountDisplay').innerText = `Showing ${count} shift${count !== 1 ? 's' : ''}`;
+        };
+
+        window.loadShiftsByDateRange = async () => {
+            const startDate = document.getElementById('shiftsStartDate').value;
+            const endDate = document.getElementById('shiftsEndDate').value;
+            
+            if(!startDate || !endDate) {
+                showToast("Please select both start and end dates");
+                return;
+            }
+            
+            const startTimestamp = new Date(startDate);
+            startTimestamp.setHours(0, 0, 0, 0);
+            
+            const endTimestamp = new Date(endDate);
+            endTimestamp.setHours(23, 59, 59, 999);
+            
+            try {
+                const b = document.getElementById('shiftTableBody');
+                b.innerHTML = '<tr><td colspan="4" class="p-8 text-center"><i class="fas fa-circle-notch fa-spin text-gray-400 text-2xl"></i><p class="text-xs text-gray-500 mt-2">Loading shifts...</p></td></tr>';
+                
+                const q = query(
+                    collection(db, "shifts"), 
+                    where("checkInTime", ">=", startTimestamp),
+                    where("checkInTime", "<=", endTimestamp),
+                    orderBy("checkInTime", "desc"),
+                    limit(500)
+                );
+                
+                const snap = await getDocs(q);
+                b.innerHTML = '';
+                
+                if(snap.empty) {
+                    b.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-400 text-sm italic">No shifts found in this date range</td></tr>';
+                    document.getElementById('shiftsCountDisplay').innerText = 'No shifts found';
+                    return;
+                }
+                
+                let active = 0;
+                let count = 0;
+                
+                snap.forEach(d => {
+                    const s = d.data();
+                    if(s.status === 'active') active++;
+                    count++;
+                    const dur = s.status==='active' ? 'Active' : `${(s.hoursWorked||0).toFixed(2)} hrs`;
+                    const checkInDate = s.checkInTime?.toDate();
+                    const dateStr = checkInDate ? checkInDate.toLocaleDateString() : 'N/A';
+                    const timeStr = checkInDate ? checkInDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+                    
+                    const tr = document.createElement('tr'); 
+                    tr.className="border-b hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td class="p-3"><div class="text-xs font-bold text-gray-700">${dateStr}</div><div class="text-[10px] text-gray-400">${timeStr}</div></td>
+                        <td class="p-3 font-bold">${s.userName}</td>
+                        <td class="p-3 text-xs text-gray-500">${dur}</td>
+                        <td class="p-3 text-right flex justify-end gap-2">
+                             <button onclick="window.openEditShiftModal('${d.id}')" class="text-blue-500 text-xs font-bold border px-1 rounded">Edit</button>
+                            <button onclick="window.delShift('${d.id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
+                        </td>`;
+                    b.appendChild(tr);
+                });
+                
+                document.getElementById('adminActiveStaff').innerText = active;
+                document.getElementById('shiftsCountDisplay').innerText = `Found ${count} shift${count !== 1 ? 's' : ''} (${startDate} to ${endDate})`;
+                showToast(`Loaded ${count} shifts`);
+                
+            } catch(e) {
+                alert("Error loading shifts: " + e.message);
+                const b = document.getElementById('shiftTableBody');
+                b.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-400 text-sm">Error loading shifts</td></tr>';
+            }
+        };
+
+        window.resetShiftsFilter = () => {
+            // Reset to default recent 20 shifts
+            if(window.currentShiftsSnapshot) {
+                window.renderShiftsTable(window.currentShiftsSnapshot);
+            }
+            
+            // Reset date inputs to last 7 days
+            const today = new Date();
+            const weekAgo = new Date();
+            weekAgo.setDate(today.getDate() - 7);
+            document.getElementById('shiftsEndDate').valueAsDate = today;
+            document.getElementById('shiftsStartDate').valueAsDate = weekAgo;
+            
+            showToast("Filter reset to recent shifts");
+        };
+
+        window.openStaffDetail = async (uid) => {
+            try {
+                const userDoc = await getDoc(doc(db, "users", uid));
+                const userData = userDoc.data();
+                const isSquad = userData.role === 'member';
+                
+                document.getElementById('staffDetailName').innerText = userData.name;
+                document.getElementById('staffDetailRole').innerText = userData.role.toUpperCase();
+                
+                // Set up action buttons
+                document.getElementById('staffDetailPayoutBtn').onclick = () => {
+                    document.getElementById('staffDetailModal').classList.add('hidden');
+                    window.promptPay(uid, userData.mainWallet||0, !isSquad);
+                };
+                document.getElementById('staffDetailEditBtn').onclick = () => {
+                    document.getElementById('staffDetailModal').classList.add('hidden');
+                    window.editUser(uid);
+                };
+                document.getElementById('staffDetailDeleteBtn').onclick = () => {
+                    if(confirm(`Delete ${userData.name}?`)) {
+                        window.deleteUser(uid);
+                        document.getElementById('staffDetailModal').classList.add('hidden');
+                    }
+                };
+                
+                // Load Payout History
+                const payoutDiv = document.getElementById('staffDetailPayoutHistory');
+                payoutDiv.innerHTML = '<div class="flex items-center justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-400"></i></div>';
+                const payoutSnap = await getDocs(query(collection(db, "payouts"), where("userId", "==", uid), orderBy("date", "desc"), limit(50)));
+                payoutDiv.innerHTML = '';
+                if(payoutSnap.empty) {
+                    payoutDiv.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">No payout history found.</p>';
+                } else {
+                    payoutSnap.forEach(d => {
+                        const p = d.data();
+                        const dateObj = p.date.toDate();
+                        const dateStr = dateObj.toLocaleDateString();
+                        const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        payoutDiv.innerHTML += `<div class="flex justify-between items-center border-b border-gray-200 pb-2"><div><div class="text-xs font-bold text-gray-700">${dateStr}</div><div class="text-[10px] text-gray-400">${timeStr} • By ${p.by || 'Admin'}</div></div><div class="font-bold text-green-600 text-sm">₹${p.amount.toFixed(2)}</div></div>`;
+                    });
+                }
+                
+                // Load Shifts History
+                const shiftsDiv = document.getElementById('staffDetailShiftsHistory');
+                shiftsDiv.innerHTML = '<div class="flex items-center justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-400"></i></div>';
+                const shiftsSnap = await getDocs(query(collection(db, "shifts"), where("userId", "==", uid), where("status", "==", "completed"), orderBy("checkInTime", "desc"), limit(100)));
+                shiftsDiv.innerHTML = '';
+                if(shiftsSnap.empty) {
+                    shiftsDiv.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">No shift history found.</p>';
+                } else {
+                    shiftsSnap.forEach(d => {
+                        const s = d.data();
+                        const start = s.checkInTime.toDate();
+                        const end = s.checkOutTime ? s.checkOutTime.toDate() : new Date();
+                        const dateStr = start.toLocaleDateString();
+                        const timeStr = `${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+                        const earnings = isSquad ? `<span class="font-bold text-green-600 text-xs">₹${(s.earnings||0).toFixed(2)}</span>` : '';
+                        const clientInfo = s.clientName ? `<div class="text-[10px] text-purple-600 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${s.clientName}</div>` : '';
+                        shiftsDiv.innerHTML += `<div class="flex justify-between items-center border-b border-gray-200 pb-2"><div><div class="text-xs font-bold text-gray-700">${dateStr}</div><div class="text-[10px] text-gray-400 font-mono">${timeStr}</div>${clientInfo}</div><div class="text-right"><div class="text-xs font-bold text-gray-600">${(s.hoursWorked||0).toFixed(2)}h</div>${earnings}</div></div>`;
+                    });
+                }
+                
+                document.getElementById('staffDetailModal').classList.remove('hidden');
+            } catch(e) {
+                alert("Error loading staff details: " + e.message);
+            }
+        };
+
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); }
-            catch(x) { document.getElementById('authError').innerText = "Invalid Credentials"; document.getElementById('authError').classList.remove('hidden'); }
-        };
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
-
-    </script>
-</body>
-</html>
+            catch(x) { document.getElementById('authError
