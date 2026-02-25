@@ -1082,10 +1082,18 @@
                 document.getElementById('adminPendingPayout').innerText = liab.toFixed(0);
             }));
 
-            listeners.push(onSnapshot(query(collection(db, "shifts"), orderBy("checkInTime", "desc"), limit(20)), (snap) => {
-                window.currentShiftsSnapshot = snap; // Store for filtering
-                window.renderShiftsTable(snap);
-            }));
+            try {
+                listeners.push(onSnapshot(query(collection(db, "shifts"), orderBy("checkInTime", "desc"), limit(20)), (snap) => {
+                    window.currentShiftsSnapshot = snap; // Store for filtering
+                    window.renderShiftsTable(snap);
+                }, (error) => {
+                    console.error("Shifts listener error:", error);
+                    const b = document.getElementById('shiftTableBody');
+                    if(b) b.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-xs text-gray-500">Unable to load shifts. Please create a Firestore index for "shifts" collection on "checkInTime" field (descending).</td></tr>';
+                }));
+            } catch(e) {
+                console.error("Error setting up shifts listener:", e);
+            }
 
             // Set default date range to last 7 days
             const today = new Date();
@@ -2120,38 +2128,48 @@
                 // Load Payout History
                 const payoutDiv = document.getElementById('staffDetailPayoutHistory');
                 payoutDiv.innerHTML = '<div class="flex items-center justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-400"></i></div>';
-                const payoutSnap = await getDocs(query(collection(db, "payouts"), where("userId", "==", uid), orderBy("date", "desc"), limit(50)));
-                payoutDiv.innerHTML = '';
-                if(payoutSnap.empty) {
-                    payoutDiv.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">No payout history found.</p>';
-                } else {
-                    payoutSnap.forEach(d => {
-                        const p = d.data();
-                        const dateObj = p.date.toDate();
-                        const dateStr = dateObj.toLocaleDateString();
-                        const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        payoutDiv.innerHTML += `<div class="flex justify-between items-center border-b border-gray-200 pb-2"><div><div class="text-xs font-bold text-gray-700">${dateStr}</div><div class="text-[10px] text-gray-400">${timeStr} • By ${p.by || 'Admin'}</div></div><div class="font-bold text-green-600 text-sm">₹${p.amount.toFixed(2)}</div></div>`;
-                    });
+                try {
+                    const payoutSnap = await getDocs(query(collection(db, "payouts"), where("userId", "==", uid), orderBy("date", "desc"), limit(50)));
+                    payoutDiv.innerHTML = '';
+                    if(payoutSnap.empty) {
+                        payoutDiv.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">No payout history found.</p>';
+                    } else {
+                        payoutSnap.forEach(d => {
+                            const p = d.data();
+                            const dateObj = p.date.toDate();
+                            const dateStr = dateObj.toLocaleDateString();
+                            const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            payoutDiv.innerHTML += `<div class="flex justify-between items-center border-b border-gray-200 pb-2"><div><div class="text-xs font-bold text-gray-700">${dateStr}</div><div class="text-[10px] text-gray-400">${timeStr} • By ${p.by || 'Admin'}</div></div><div class="font-bold text-green-600 text-sm">₹${p.amount.toFixed(2)}</div></div>`;
+                        });
+                    }
+                } catch(e) {
+                    console.error("Payout history error:", e);
+                    payoutDiv.innerHTML = '<p class="text-center text-xs text-orange-600 italic py-4 bg-orange-50 rounded border border-orange-100">Index required: Create Firestore composite index on "payouts" collection for userId (asc) + date (desc)</p>';
                 }
                 
                 // Load Shifts History
                 const shiftsDiv = document.getElementById('staffDetailShiftsHistory');
                 shiftsDiv.innerHTML = '<div class="flex items-center justify-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-400"></i></div>';
-                const shiftsSnap = await getDocs(query(collection(db, "shifts"), where("userId", "==", uid), where("status", "==", "completed"), orderBy("checkInTime", "desc"), limit(100)));
-                shiftsDiv.innerHTML = '';
-                if(shiftsSnap.empty) {
-                    shiftsDiv.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">No shift history found.</p>';
-                } else {
-                    shiftsSnap.forEach(d => {
-                        const s = d.data();
-                        const start = s.checkInTime.toDate();
-                        const end = s.checkOutTime ? s.checkOutTime.toDate() : new Date();
-                        const dateStr = start.toLocaleDateString();
-                        const timeStr = `${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-                        const earnings = isSquad ? `<span class="font-bold text-green-600 text-xs">₹${(s.earnings||0).toFixed(2)}</span>` : '';
-                        const clientInfo = s.clientName ? `<div class="text-[10px] text-purple-600 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${s.clientName}</div>` : '';
-                        shiftsDiv.innerHTML += `<div class="flex justify-between items-center border-b border-gray-200 pb-2"><div><div class="text-xs font-bold text-gray-700">${dateStr}</div><div class="text-[10px] text-gray-400 font-mono">${timeStr}</div>${clientInfo}</div><div class="text-right"><div class="text-xs font-bold text-gray-600">${(s.hoursWorked||0).toFixed(2)}h</div>${earnings}</div></div>`;
-                    });
+                try {
+                    const shiftsSnap = await getDocs(query(collection(db, "shifts"), where("userId", "==", uid), where("status", "==", "completed"), orderBy("checkInTime", "desc"), limit(100)));
+                    shiftsDiv.innerHTML = '';
+                    if(shiftsSnap.empty) {
+                        shiftsDiv.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4">No shift history found.</p>';
+                    } else {
+                        shiftsSnap.forEach(d => {
+                            const s = d.data();
+                            const start = s.checkInTime.toDate();
+                            const end = s.checkOutTime ? s.checkOutTime.toDate() : new Date();
+                            const dateStr = start.toLocaleDateString();
+                            const timeStr = `${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+                            const earnings = isSquad ? `<span class="font-bold text-green-600 text-xs">₹${(s.earnings||0).toFixed(2)}</span>` : '';
+                            const clientInfo = s.clientName ? `<div class="text-[10px] text-purple-600 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${s.clientName}</div>` : '';
+                            shiftsDiv.innerHTML += `<div class="flex justify-between items-center border-b border-gray-200 pb-2"><div><div class="text-xs font-bold text-gray-700">${dateStr}</div><div class="text-[10px] text-gray-400 font-mono">${timeStr}</div>${clientInfo}</div><div class="text-right"><div class="text-xs font-bold text-gray-600">${(s.hoursWorked||0).toFixed(2)}h</div>${earnings}</div></div>`;
+                        });
+                    }
+                } catch(e) {
+                    console.error("Shifts history error:", e);
+                    shiftsDiv.innerHTML = '<p class="text-center text-xs text-orange-600 italic py-4 bg-orange-50 rounded border border-orange-100">Index required: Create Firestore composite index on "shifts" collection for userId (asc) + status (asc) + checkInTime (desc)</p>';
                 }
                 
                 document.getElementById('staffDetailModal').classList.remove('hidden');
