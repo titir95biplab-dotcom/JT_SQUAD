@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JT Squad Manager v2.2</title>
-    
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkp1aWNlIFRoZXJhcHkgU3F1YWQiLAogICJzaG9ydF9uYW1lIjogIkpUIFNxdWFkIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciIjogIiNmOTczMTYiCn0=">
-    
+    <title>JT Squad Manager v2.3</title>
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkp1aWNlIFRoZXJhcHkgU3F1YWQiLAogICJzaG9ydF9uYW1lIjogIkpUIFNxdWFkIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciI6ICIjZjk3MzE2Igp9">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; background-color: #f8fafc; overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; }
         .hidden { display: none !important; }
@@ -20,8 +17,9 @@
         .nav-btn.active i { transform: translateY(-2px); }
         .admin-tab-btn { transition: all 0.2s; border-bottom: 2px solid transparent; color: #6b7280; }
         .admin-tab-btn.active { border-bottom-color: #ea580c; color: #ea580c; font-weight: 700; background-color: #fff7ed; }
-        /* Mobile Optimization */
         input, select, button { touch-action: manipulation; }
+        .staff-card { cursor: pointer; transition: all 0.15s; }
+        .staff-card:hover { background-color: #f8fafc; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col text-gray-800">
@@ -30,6 +28,7 @@
         <i class="fas fa-info-circle text-orange-400 text-lg"></i> <span id="toastMsg">Notification</span>
     </div>
 
+    <!-- AUTH -->
     <div id="authSection" class="flex-grow flex flex-col items-center justify-center p-6 bg-orange-50 overflow-y-auto">
         <div class="bg-white p-4 rounded-full shadow-lg mb-6"><div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">JT</div></div>
         <div class="bg-white p-8 rounded-2xl shadow-sm w-full max-w-md border border-gray-100">
@@ -50,8 +49,8 @@
         </div>
     </div>
 
+    <!-- APP LAYOUT -->
     <div id="appLayout" class="flex-grow flex flex-col hidden h-full">
-        
         <header class="bg-white p-4 shadow-sm flex justify-between items-center z-20 border-b border-gray-100 h-16 shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">JT</div>
@@ -70,7 +69,6 @@
         </header>
 
         <main id="mainContent" class="flex-grow overflow-y-auto bg-gray-50 relative pb-24">
-            
             <div id="pageLoader" class="absolute inset-0 flex items-center justify-center bg-white/90 z-50 hidden">
                 <div class="flex flex-col items-center">
                     <div class="loader w-10 h-10 rounded-full border-4 border-gray-200 mb-2"></div>
@@ -78,6 +76,7 @@
                 </div>
             </div>
 
+            <!-- ADMIN VIEW -->
             <div id="adminView" class="view-section hidden flex flex-col h-full">
                 <div class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30 overflow-x-auto flex shrink-0">
                     <button class="flex-1 py-3 text-xs font-bold uppercase tracking-wide admin-tab-btn active" onclick="switchAdminTab('overview', event)"><i class="fas fa-chart-pie mb-1 block text-lg"></i>Stats</button>
@@ -89,6 +88,7 @@
                 </div>
 
                 <div class="p-4 space-y-5 pb-24">
+                    <!-- OVERVIEW TAB -->
                     <div id="adminTab-overview" class="space-y-4">
                         <div class="grid grid-cols-2 gap-3">
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Fees Collected</p><p class="text-2xl font-bold text-blue-600">₹<span id="adminFeesCollected">0</span></p></div>
@@ -96,14 +96,9 @@
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Now</p><p id="adminActiveStaff" class="text-2xl font-bold text-green-600">0</p></div>
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm col-span-2"><p class="text-gray-400 text-[10px] font-bold uppercase">Total Liability (Pending Wages)</p><p class="text-2xl font-bold text-gray-800">₹<span id="adminPendingPayout">0</span></p></div>
                         </div>
-                        
                         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                            <div class="p-3 border-b border-gray-50 bg-gray-50/50">
-                                <h3 class="font-bold text-xs text-gray-600 uppercase">Squad Schedule (Today & Next Day)</h3>
-                            </div>
-                            <div id="adminScheduleList" class="p-4 space-y-3">
-                                <p class="text-center text-xs text-gray-400 italic">Loading Schedule...</p>
-                            </div>
+                            <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Squad Schedule (Today & Next Day)</h3></div>
+                            <div id="adminScheduleList" class="p-4 space-y-3"><p class="text-center text-xs text-gray-400 italic">Loading Schedule...</p></div>
                         </div>
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mt-4">
                             <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-blue-600 uppercase">Pending Squad Slot Requests</h3></div>
@@ -115,6 +110,7 @@
                         </div>
                     </div>
 
+                    <!-- USERS TAB -->
                     <div id="adminTab-users" class="hidden space-y-4">
                         <div class="flex gap-2">
                             <div class="relative flex-grow">
@@ -123,32 +119,33 @@
                             </div>
                             <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="bg-gray-800 text-white px-3 rounded-lg shadow"><i class="fas fa-plus"></i></button>
                         </div>
-                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left">
-                                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold"><tr><th class="p-3">Staff Details</th><th class="p-3">Financials</th><th class="p-3">Stats</th><th class="p-3 text-right">Actions</th></tr></thead>
-                                    <tbody id="userTableBody" class="divide-y divide-gray-100 text-gray-700"></tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <p class="text-[10px] text-gray-400 italic px-1"><i class="fas fa-hand-pointer mr-1"></i>Tap any staff card to view full details, history & payouts</p>
+                        <div id="staffCardsList" class="space-y-3"></div>
                     </div>
 
+                    <!-- SHIFTS TAB -->
                     <div id="adminTab-shifts" class="hidden space-y-4">
-                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden p-3 space-y-2">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase">Filter by Date Range</p>
-                            <div class="flex gap-2 items-center">
-                                <input type="date" id="shiftFilterFrom" class="flex-1 p-2 border border-gray-200 rounded-lg text-xs bg-gray-50 focus:bg-white focus:border-orange-400 outline-none">
-                                <span class="text-gray-400 text-xs font-bold">to</span>
-                                <input type="date" id="shiftFilterTo" class="flex-1 p-2 border border-gray-200 rounded-lg text-xs bg-gray-50 focus:bg-white focus:border-orange-400 outline-none">
-                                <button onclick="window.applyShiftFilter()" class="bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-orange-600 transition whitespace-nowrap"><i class="fas fa-search"></i></button>
-                                <button onclick="window.clearShiftFilter()" class="bg-gray-100 text-gray-500 px-2 py-2 rounded-lg text-xs font-bold hover:bg-gray-200 transition" title="Clear"><i class="fas fa-times"></i></button>
+                        <!-- Date Range Filter -->
+                        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <h3 class="font-bold text-xs text-gray-500 uppercase mb-3">Filter by Date Range</h3>
+                            <div class="flex gap-2 items-end">
+                                <div class="flex-1">
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase">From</label>
+                                    <input type="date" id="shiftFilterFrom" class="w-full p-2 border rounded text-xs font-mono">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase">To</label>
+                                    <input type="date" id="shiftFilterTo" class="w-full p-2 border rounded text-xs font-mono">
+                                </div>
+                                <button onclick="window.applyShiftDateFilter()" class="bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow hover:bg-orange-700 transition">Filter</button>
+                                <button onclick="window.clearShiftDateFilter()" class="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-gray-200 transition">Clear</button>
                             </div>
-                            <p id="shiftFilterLabel" class="text-[10px] text-orange-600 font-bold hidden"></p>
+                            <div id="shiftFilterInfo" class="mt-2 text-[10px] text-gray-400 italic"></div>
                         </div>
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                             <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
                                 <h3 class="font-bold text-xs text-gray-600 uppercase">Shift Records</h3>
-                                <span id="shiftCountBadge" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold"></span>
+                                <span id="shiftCountBadge" class="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded font-bold">Recent 20</span>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm text-left">
@@ -159,6 +156,7 @@
                         </div>
                     </div>
 
+                    <!-- LEAVE REQUESTS TAB -->
                     <div id="adminTab-requests" class="hidden space-y-4">
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                             <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Pending Leave Requests</h3></div>
@@ -170,6 +168,7 @@
                         </div>
                     </div>
 
+                    <!-- CLIENTS TAB -->
                     <div id="adminTab-clients" class="hidden space-y-4">
                         <div class="flex gap-2">
                             <div class="relative flex-grow">
@@ -188,6 +187,7 @@
                         </div>
                     </div>
 
+                    <!-- SETTINGS TAB -->
                     <div id="adminTab-settings" class="hidden space-y-4">
                         <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
                             <h3 class="font-bold text-gray-800 text-sm uppercase mb-4 border-b pb-2">System Configuration</h3>
@@ -215,6 +215,7 @@
                 </div>
             </div>
 
+            <!-- MANAGER VIEW -->
             <div id="managerView" class="view-section hidden p-4 space-y-5">
                 <div class="bg-white p-4 rounded-xl border-l-4 border-orange-500 shadow-sm flex justify-between items-center">
                     <div>
@@ -226,7 +227,6 @@
                         <button onclick="window.openRedeemModal()" class="bg-orange-100 text-orange-700 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-orange-200"><i class="fas fa-gift"></i></button>
                     </div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
                         <h3 class="font-bold text-xs text-gray-600 uppercase">Live Floor (Squad)</h3>
@@ -234,58 +234,39 @@
                     </div>
                     <div id="liveWorkersList" class="p-4 space-y-3"><p class="text-center text-gray-400 text-xs italic">Floor is clear.</p></div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div class="p-3 border-b border-gray-50 bg-gray-50/50">
-                        <h3 class="font-bold text-xs text-gray-600 uppercase">Squad Schedule (Today & Next Day)</h3>
-                    </div>
-                    <div id="mgrScheduleList" class="p-4 space-y-3">
-                        <p class="text-center text-xs text-gray-400 italic">Loading Schedule...</p>
-                    </div>
+                    <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Squad Schedule (Today & Next Day)</h3></div>
+                    <div id="mgrScheduleList" class="p-4 space-y-3"><p class="text-center text-xs text-gray-400 italic">Loading Schedule...</p></div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Squad Slot Requests</h3></div>
                     <div id="slotRequestsList" class="p-4 space-y-3"></div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
                         <h3 class="font-bold text-xs text-indigo-600 uppercase">Client Management</h3>
-                        <button onclick="document.getElementById('createClientModal').classList.remove('hidden')" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow hover:bg-indigo-700 transition flex items-center">
-                            <i class="fas fa-plus mr-1"></i> Register Client
-                        </button>
+                        <button onclick="document.getElementById('createClientModal').classList.remove('hidden')" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow hover:bg-indigo-700 transition flex items-center"><i class="fas fa-plus mr-1"></i> Register Client</button>
                     </div>
-                    
                     <div class="p-3 border-b border-gray-50">
                         <div class="relative">
                             <i class="fas fa-search absolute left-3 top-2.5 text-gray-300 text-xs"></i>
                             <input type="text" id="mgrClientSearch" onkeyup="window.filterMgrClients()" placeholder="Search Name or Phone..." class="w-full pl-8 p-2 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:border-indigo-300 transition outline-none">
                         </div>
                     </div>
-
-                    <div id="mgrClientList" class="divide-y divide-gray-100 max-h-80 overflow-y-auto">
-                        <p class="text-center text-xs text-gray-400 italic p-4">Loading Clients...</p>
-                    </div>
+                    <div id="mgrClientList" class="divide-y divide-gray-100 max-h-80 overflow-y-auto"><p class="text-center text-xs text-gray-400 italic p-4">Loading Clients...</p></div>
                 </div>
             </div>
 
+            <!-- CLIENT VIEW -->
             <div id="clientView" class="view-section hidden p-4 space-y-5">
                 <div class="bg-white p-4 rounded-xl border-l-4 border-blue-600 shadow-sm flex justify-between items-center">
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800" id="clientHeaderName">Client Portal</h2>
-                    <p class="text-xs text-gray-500">Manage Service Requests</p>
+                    <div><h2 class="text-lg font-bold text-gray-800" id="clientHeaderName">Client Portal</h2><p class="text-xs text-gray-500">Manage Service Requests</p></div>
+                    <div class="text-right flex flex-col items-end">
+                        <p class="text-[10px] uppercase font-bold text-gray-400">Wallet Balance</p>
+                        <p class="text-xl font-bold text-green-600 mb-1">₹<span id="clientWalletBalance">0</span></p>
+                        <button onclick="window.viewClientHistory(currentUserData.uid)" class="text-[10px] bg-purple-50 text-purple-600 px-2 py-1 rounded font-bold hover:bg-purple-100 transition border border-purple-100"><i class="fas fa-history mr-1"></i> View History</button>
+                    </div>
                 </div>
-                <div class="text-right flex flex-col items-end">
-                    <p class="text-[10px] uppercase font-bold text-gray-400">Wallet Balance</p>
-                    <p class="text-xl font-bold text-green-600 mb-1">₹<span id="clientWalletBalance">0</span></p>
-                    
-                    <button onclick="window.viewClientHistory(currentUserData.uid)" class="text-[10px] bg-purple-50 text-purple-600 px-2 py-1 rounded font-bold hover:bg-purple-100 transition border border-purple-100">
-                        <i class="fas fa-history mr-1"></i> View History
-                    </button>
-                </div>
-                </div>
-
                 <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
                     <h3 class="font-bold text-xs text-gray-400 uppercase mb-3">Request Service</h3>
                     <div class="space-y-3">
@@ -297,34 +278,27 @@
                         <button onclick="window.requestService()" class="w-full py-3 bg-blue-600 text-white rounded-lg font-bold text-sm">Submit Request</button>
                     </div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between"><h3 class="font-bold text-xs text-green-600 uppercase">Active Squad Members</h3><span id="clientLiveCount" class="text-xs font-bold">0</span></div>
                     <div id="clientLiveList" class="p-4 space-y-3"><p class="text-center text-xs text-gray-400 italic">No active staff currently.</p></div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-blue-600 uppercase">Upcoming Service Slots</h3></div>
                     <div id="clientUpcomingList" class="p-4 space-y-3"></div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Service Status</h3></div>
                     <div id="clientRequestList" class="p-4 space-y-3"></div>
                 </div>
-                
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Completed Work History</h3></div>
                     <div id="clientWorkHistory" class="p-4 space-y-3"></div>
                 </div>
             </div>
 
+            <!-- MEMBER VIEWS -->
             <div id="memberDashboard" class="member-tab hidden p-4 space-y-5">
-                
-                <button id="mgrBackBtn" class="hidden w-full bg-gray-800 text-white py-3 rounded-xl font-bold text-sm shadow-lg mb-2" onclick="window.exitMyZone()">
-                    <i class="fas fa-arrow-left mr-2"></i> Return to Ops Console
-                </button>
-
+                <button id="mgrBackBtn" class="hidden w-full bg-gray-800 text-white py-3 rounded-xl font-bold text-sm shadow-lg mb-2" onclick="window.exitMyZone()"><i class="fas fa-arrow-left mr-2"></i> Return to Ops Console</button>
                 <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-id-card fa-6x"></i></div>
                     <div class="relative z-10">
@@ -336,19 +310,13 @@
                                 <span class="bg-orange-600 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded" id="memberRoleBadge">Role</span>
                             </div>
                         </div>
-                        
                         <div class="grid grid-cols-3 gap-2 border-t border-gray-700 pt-4" id="statsGrid"></div>
                     </div>
                 </div>
-
                 <div id="blockedFundsAlert" class="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 hidden">
                     <div class="bg-orange-100 text-orange-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fas fa-lock text-xs"></i></div>
-                    <div>
-                        <p class="text-xs font-bold text-gray-700">Training Wallet Locked</p>
-                        <p class="text-[10px] text-gray-500">Held Funds: <span class="font-bold text-gray-800">₹<span id="memberBlockedWallet">0</span></span></p>
-                    </div>
+                    <div><p class="text-xs font-bold text-gray-700">Training Wallet Locked</p><p class="text-[10px] text-gray-500">Held Funds: <span class="font-bold text-gray-800">₹<span id="memberBlockedWallet">0</span></span></p></div>
                 </div>
-
                 <div id="fullTimeFilter" class="hidden">
                     <select id="statsDateFilter" onchange="window.renderFullTimeStats()" class="w-full p-2 bg-white border rounded text-xs font-bold text-gray-600">
                         <option value="this_month">This Month</option>
@@ -356,54 +324,42 @@
                         <option value="all_time">All Time</option>
                     </select>
                 </div>
-
                 <div id="memberJobOffers" class="bg-yellow-50 border border-yellow-100 rounded-xl p-4 hidden mb-4">
                     <h3 class="font-bold text-yellow-800 text-xs uppercase mb-2"><i class="fas fa-bell mr-2"></i>New Job Assignments</h3>
                     <div id="memberOfferList" class="space-y-2"></div>
                 </div>
-
                 <div id="memberUpcomingSlotsBox" class="bg-blue-50 border border-blue-100 rounded-xl p-4 hidden">
                     <h3 class="font-bold text-blue-800 text-xs uppercase mb-2"><i class="fas fa-calendar-check mr-2"></i>My Upcoming Slots</h3>
                     <div id="memberUpcomingList" class="space-y-2 text-sm text-blue-700"></div>
                 </div>
-
                 <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm text-center">
                     <h3 class="font-bold text-xs text-gray-400 uppercase mb-4 tracking-wider">Attendance</h3>
-                    
                     <div id="checkInBtnArea">
-                        <button id="checkInBtn" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-green-100 transition active:scale-95 flex items-center justify-center gap-2">
-                            <i class="fas fa-camera"></i> CHECK IN
-                        </button>
+                        <button id="checkInBtn" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-green-100 transition active:scale-95 flex items-center justify-center gap-2"><i class="fas fa-camera"></i> CHECK IN</button>
                         <p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-map-marker-alt mr-1"></i> Location & Face Verified</p>
                     </div>
-
                     <div id="checkOutBtnArea" class="hidden">
                         <div class="inline-block px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-bold mb-3 animate-pulse">ON DUTY</div>
                         <div class="text-4xl font-mono font-bold text-gray-800 mb-4 tracking-tight" id="workTimer">00:00:00</div>
                         <button id="checkOutBtn" class="w-full py-4 bg-gray-900 hover:bg-black text-white rounded-xl font-bold text-lg shadow-lg transition active:scale-95">END SHIFT</button>
                     </div>
-                    
                     <p id="geoError" class="text-red-500 text-xs mt-3 hidden bg-red-50 p-2 rounded border border-red-100 font-bold"></p>
                 </div>
-
                 <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
                     <h3 class="font-bold text-xs text-gray-400 uppercase mb-4 tracking-wider" id="bookingTitle">Book Slot</h3>
-                    
                     <div id="squadBookingUI" class="hidden space-y-3">
-                         <div class="text-xs text-gray-500 text-center mb-2">Bookings allow for <span class="font-bold text-gray-700">Next Day Only</span></div>
+                        <div class="text-xs text-gray-500 text-center mb-2">Bookings allow for <span class="font-bold text-gray-700">Next Day Only</span></div>
                         <div class="flex gap-2">
                             <input type="time" id="bookStartTime" class="w-1/2 p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
                             <input type="time" id="bookEndTime" class="w-1/2 p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
                         </div>
                         <button id="bookSlotBtn" class="w-full py-3 bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-100 rounded-lg font-bold text-sm transition">Request Slot</button>
                     </div>
-
                     <div id="ftLeaveUI" class="hidden space-y-3">
                         <input type="date" id="leaveDate" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
                         <textarea id="leaveReason" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm" placeholder="Reason for leave..."></textarea>
                         <button id="requestLeaveBtn" class="w-full py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 rounded-lg font-bold text-sm transition">Submit Leave Request</button>
                     </div>
-                    
                     <div id="requestStatusDisplay" class="mt-4 pt-4 border-t border-gray-100 text-sm hidden"></div>
                 </div>
             </div>
@@ -415,87 +371,21 @@
 
             <div id="memberProfile" class="member-tab hidden p-4 pb-24 space-y-4">
                 <div class="bg-white rounded-xl border border-gray-200 p-6 text-center shadow-sm">
-                     <div class="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-gray-400 font-bold" id="profileInitials">JT</div>
-                     <h2 class="text-lg font-bold text-gray-800" id="profileName">User</h2>
-                     <p class="text-xs text-gray-500 mb-1" id="profileEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="70151d11191c301508111d001c155e131f1d">[email&#160;protected]</a></p>
-                     <p class="text-xs font-bold text-blue-600 mb-3" id="profileSalaryDisplay"></p>
-                     <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-3 py-1 rounded-full font-bold">Joined: <span id="profileJoined">-</span></span>
+                    <div class="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-gray-400 font-bold" id="profileInitials">JT</div>
+                    <h2 class="text-lg font-bold text-gray-800" id="profileName">User</h2>
+                    <p class="text-xs text-gray-500 mb-1" id="profileEmail">email@example.com</p>
+                    <p class="text-xs font-bold text-blue-600 mb-3" id="profileSalaryDisplay"></p>
+                    <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-3 py-1 rounded-full font-bold">Joined: <span id="profileJoined">-</span></span>
                 </div>
-                
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Financials</h3></div>
                     <div id="payoutHistoryList" class="p-4 space-y-2 text-xs text-gray-500"><p class="text-center italic">No records found.</p></div>
                 </div>
             </div>
 
+            <!-- ======= MODALS ======= -->
 
-            <!-- STAFF DETAIL PANEL -->
-            <div id="staffDetailPanel" class="fixed inset-0 bg-white z-[70] hidden flex flex-col">
-                <div class="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 shrink-0 shadow-sm">
-                    <button onclick="window.closeStaffDetail()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 transition">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <div class="flex-grow">
-                        <h2 id="staffDetailName" class="font-bold text-gray-800 text-sm leading-tight">Staff Name</h2>
-                        <p id="staffDetailRole" class="text-[10px] font-bold text-gray-400 uppercase">Role</p>
-                    </div>
-                    <button onclick="window.editUser(window._staffDetailUid)" class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition"><i class="fas fa-edit text-xs"></i></button>
-                    <button onclick="window.deleteStaffFromDetail()" class="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition"><i class="fas fa-trash text-xs"></i></button>
-                </div>
-
-                <div class="flex-grow overflow-y-auto p-4 space-y-4 bg-gray-50 pb-24">
-                    <!-- Stats Card -->
-                    <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 text-white shadow-lg">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div id="staffDetailInitials" class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-bold text-lg shrink-0">JT</div>
-                            <div>
-                                <p id="staffDetailNameBig" class="font-bold text-base leading-tight">Staff Name</p>
-                                <p id="staffDetailEmail" class="text-[10px] text-gray-400">email</p>
-                                <p id="staffDetailJoined" class="text-[10px] text-gray-500 mt-0.5">Joined: -</p>
-                            </div>
-                        </div>
-                        <div id="staffDetailStats" class="grid grid-cols-3 gap-2 border-t border-gray-700 pt-3"></div>
-                    </div>
-
-                    <!-- Payout Action -->
-                    <div id="staffDetailPayoutArea" class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                        <h3 class="font-bold text-xs text-gray-500 uppercase mb-3">Quick Payout</h3>
-                        <div class="flex items-center gap-3">
-                            <input type="number" id="staffDetailPayAmt" class="flex-grow p-2 border rounded-lg text-sm text-center font-bold" placeholder="Amount (₹)">
-                            <button onclick="window.processStaffDetailPayout()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition shadow flex items-center gap-2">
-                                <i class="fas fa-money-bill-wave"></i> Pay
-                            </button>
-                        </div>
-                        <p id="staffDetailWalletInfo" class="text-[10px] text-gray-400 mt-2"></p>
-                    </div>
-
-                    <!-- Payout History -->
-                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                        <div class="p-3 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-                            <i class="fas fa-wallet text-green-500 text-xs"></i>
-                            <h3 class="font-bold text-xs text-gray-600 uppercase">Payout History</h3>
-                        </div>
-                        <div id="staffDetailPayouts" class="p-4 space-y-2 text-sm max-h-64 overflow-y-auto">
-                            <p class="text-center text-xs text-gray-400 italic">Loading...</p>
-                        </div>
-                    </div>
-
-                    <!-- Shift History -->
-                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                        <div class="p-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-clock text-blue-500 text-xs"></i>
-                                <h3 class="font-bold text-xs text-gray-600 uppercase">Shift History</h3>
-                            </div>
-                            <span id="staffDetailShiftCount" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold"></span>
-                        </div>
-                        <div id="staffDetailShifts" class="divide-y divide-gray-50 max-h-80 overflow-y-auto">
-                            <p class="text-center text-xs text-gray-400 italic p-4">Loading...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            <!-- Camera Modal -->
             <div id="cameraModal" class="fixed inset-0 bg-black z-[100] hidden flex flex-col">
                 <div class="relative flex-grow bg-black">
                     <video id="videoElement" autoplay playsinline class="w-full h-full object-cover"></video>
@@ -509,9 +399,11 @@
                 </div>
             </div>
 
+            <!-- Edit Shift Modal (FIX 1: recalculates earnings on save) -->
             <div id="editShiftModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm p-5">
-                    <h3 class="font-bold text-gray-800 mb-4">Edit Session Time</h3>
+                    <h3 class="font-bold text-gray-800 mb-1">Edit Session Time</h3>
+                    <p class="text-[10px] text-orange-600 bg-orange-50 border border-orange-100 rounded p-2 mb-4"><i class="fas fa-info-circle mr-1"></i> Earnings & bonuses will be automatically recalculated on save.</p>
                     <input type="hidden" id="editShiftId">
                     <div class="space-y-3">
                         <div>
@@ -524,12 +416,57 @@
                         </div>
                         <div class="flex gap-2 pt-2">
                             <button onclick="document.getElementById('editShiftModal').classList.add('hidden')" class="flex-1 py-2 border rounded-lg text-sm">Cancel</button>
-                            <button id="saveShiftTimeBtn" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm">Update</button>
+                            <button id="saveShiftTimeBtn" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm">Update & Recalculate</button>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Staff Detail Modal (FIX 2) -->
+            <div id="staffDetailModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-end justify-center">
+                <div class="bg-white rounded-t-3xl w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]">
+                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center shrink-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold" id="detailInitials">JT</div>
+                            <div>
+                                <h3 class="font-bold text-gray-800" id="detailName">Staff Name</h3>
+                                <span class="text-[10px] uppercase font-bold text-gray-400" id="detailRole">Role</span>
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('staffDetailModal').classList.add('hidden')" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-2 p-3 border-b bg-white shrink-0">
+                        <button id="detailPayBtn" onclick="window.openDetailPay()" class="flex-1 py-2 bg-green-600 text-white rounded-lg text-xs font-bold shadow hover:bg-green-700 transition"><i class="fas fa-money-bill-wave mr-1"></i> Pay</button>
+                        <button id="detailEditBtn" onclick="window.openDetailEdit()" class="flex-1 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg text-xs font-bold hover:bg-blue-100 transition"><i class="fas fa-edit mr-1"></i> Edit</button>
+                        <button id="detailDeleteBtn" onclick="window.openDetailDelete()" class="flex-1 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 transition"><i class="fas fa-trash mr-1"></i> Delete</button>
+                    </div>
+
+                    <!-- Stats Bar -->
+                    <div class="grid grid-cols-3 gap-2 p-3 bg-gray-900 shrink-0" id="detailStatsBar">
+                        <!-- filled by JS -->
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="flex border-b bg-white shrink-0">
+                        <button class="flex-1 py-2.5 text-xs font-bold detail-tab-btn active-detail-tab" onclick="switchDetailTab('payouts', event)"><i class="fas fa-receipt mr-1"></i>Payouts</button>
+                        <button class="flex-1 py-2.5 text-xs font-bold detail-tab-btn" onclick="switchDetailTab('shifts', event)"><i class="fas fa-clock mr-1"></i>Shifts</button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="overflow-y-auto flex-grow p-4">
+                        <div id="detailTab-payouts" class="space-y-3">
+                            <div id="detailPayoutList"><p class="text-center text-xs text-gray-400 italic py-4">Loading payouts...</p></div>
+                        </div>
+                        <div id="detailTab-shifts" class="hidden space-y-3">
+                            <div id="detailShiftList"><p class="text-center text-xs text-gray-400 italic py-4">Loading shifts...</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create User Modal -->
             <div id="createUserModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
                     <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
@@ -549,41 +486,30 @@
                             </select>
                             <input type="number" id="newUserSalary" class="w-full p-3 border rounded-lg text-sm hidden" placeholder="Monthly Salary (₹)">
                         </div>
-                        <div id="squadRateOverride" class="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                            Standard Rate: ₹<span id="displayStdRate">30</span>/hr. Can edit in profile later.
-                        </div>
+                        <div id="squadRateOverride" class="text-xs text-gray-500 bg-gray-50 p-2 rounded">Standard Rate: ₹<span id="displayStdRate">30</span>/hr. Can edit in profile later.</div>
                         <button type="submit" class="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">Create Account</button>
                     </form>
                 </div>
             </div>
 
+            <!-- Edit User Modal -->
             <div id="editUserModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden">
                     <div class="p-4 border-b border-gray-100 bg-gray-50"><h3 class="font-bold text-sm text-gray-700">Edit Staff Details</h3></div>
                     <div class="p-5 space-y-3">
                         <input type="hidden" id="editUserId">
-                        <div class="space-y-1">
-                            <label class="text-[10px] uppercase font-bold text-gray-400">Name</label>
-                            <input type="text" id="editUserName" class="w-full border p-2 rounded text-sm">
-                        </div>
-                        
-                        <div id="editSalaryField" class="space-y-1 hidden">
-                            <label class="text-[10px] uppercase font-bold text-gray-400">Salary (₹)</label>
-                            <input type="number" id="editUserSalary" class="w-full border p-2 rounded text-sm">
-                        </div>
-                        
+                        <div class="space-y-1"><label class="text-[10px] uppercase font-bold text-gray-400">Name</label><input type="text" id="editUserName" class="w-full border p-2 rounded text-sm"></div>
+                        <div id="editSalaryField" class="space-y-1 hidden"><label class="text-[10px] uppercase font-bold text-gray-400">Salary (₹)</label><input type="number" id="editUserSalary" class="w-full border p-2 rounded text-sm"></div>
                         <div id="squadFields" class="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
-                             <div><label class="text-[10px] font-bold text-gray-400">Rate (₹/hr)</label><input type="number" id="editUserRate" class="w-full border p-2 rounded text-sm bg-yellow-50"></div>
-                             <div><label class="text-[10px] font-bold text-gray-400">Bonus (Pts/hr)</label><input type="number" id="editUserBonusRate" class="w-full border p-2 rounded text-sm bg-yellow-50"></div>
-                            
+                            <div><label class="text-[10px] font-bold text-gray-400">Rate (₹/hr)</label><input type="number" id="editUserRate" class="w-full border p-2 rounded text-sm bg-yellow-50"></div>
+                            <div><label class="text-[10px] font-bold text-gray-400">Bonus (Pts/hr)</label><input type="number" id="editUserBonusRate" class="w-full border p-2 rounded text-sm bg-yellow-50"></div>
                             <div><label class="text-[10px] font-bold text-gray-400">Wallet (₹)</label><input type="number" id="editUserWallet" class="w-full border p-2 rounded text-sm"></div>
                             <div><label class="text-[10px] font-bold text-gray-400">Bonus Bal</label><input type="number" id="editUserBonus" class="w-full border p-2 rounded text-sm"></div>
                             <div><label class="text-[10px] font-bold text-red-400">Blocked (₹)</label><input type="number" id="editUserBlocked" class="w-full border p-2 rounded text-sm bg-red-50"></div>
                             <div><label class="text-[10px] font-bold text-red-400">Strikes</label><input type="number" id="editUserStrikes" class="w-full border p-2 rounded text-sm bg-red-50"></div>
                         </div>
-                        
                         <div class="flex gap-2 mt-4 pt-2">
-                             <button id="addStrikeBtn" class="hidden flex-1 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold">+1 Strike</button>
+                            <button id="addStrikeBtn" class="hidden flex-1 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold">+1 Strike</button>
                             <button id="saveUserChangesBtn" class="flex-[2] py-2 bg-blue-600 text-white rounded-lg text-xs font-bold">Save Changes</button>
                         </div>
                         <button onclick="document.getElementById('editUserModal').classList.add('hidden')" class="w-full mt-2 text-xs text-gray-400">Cancel</button>
@@ -591,7 +517,8 @@
                 </div>
             </div>
 
-            <div id="payoutModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+            <!-- Payout Modal -->
+            <div id="payoutModal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm p-6">
                     <h3 class="text-lg font-bold mb-1">Process Payment</h3>
                     <p class="text-xs text-gray-500 mb-4" id="payoutSubtitle">Record transaction</p>
@@ -606,7 +533,8 @@
                     </form>
                 </div>
             </div>
-            
+
+            <!-- Recharge Modal -->
             <div id="rechargeModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm p-6">
                     <h3 class="text-lg font-bold mb-1">Recharge Client Wallet</h3>
@@ -624,6 +552,7 @@
                 </div>
             </div>
 
+            <!-- Redeem Modal -->
             <div id="redeemModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm p-6">
                     <h3 class="text-lg font-bold mb-4">Redeem Food Points</h3>
@@ -639,6 +568,7 @@
                 </div>
             </div>
 
+            <!-- Create Client Modal -->
             <div id="createClientModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-md overflow-y-auto max-h-[90vh]">
                     <div class="p-4 border-b flex justify-between"><h3 class="font-bold text-sm">Register Client</h3><button onclick="document.getElementById('createClientModal').classList.add('hidden')"><i class="fas fa-times"></i></button></div>
@@ -658,6 +588,7 @@
                 </div>
             </div>
 
+            <!-- Assign Modal -->
             <div id="assignModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm p-5">
                     <h3 class="font-bold mb-3">Assign Squad Member</h3>
@@ -667,40 +598,28 @@
                 </div>
             </div>
 
+            <!-- Client History Modal -->
             <div id="clientHistoryModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
                     <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
                         <h3 class="font-bold text-sm text-gray-700">Transaction History</h3>
-                        <button onclick="document.getElementById('clientHistoryModal').classList.add('hidden')" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <button onclick="document.getElementById('clientHistoryModal').classList.add('hidden')" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition"><i class="fas fa-times"></i></button>
                     </div>
-                    <div id="clientHistoryContent" class="p-4 space-y-3 overflow-y-auto">
-                        </div>
+                    <div id="clientHistoryContent" class="p-4 space-y-3 overflow-y-auto"></div>
                 </div>
             </div>
 
+            <!-- Manage Slot Modal -->
             <div id="manageSlotModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
                 <div class="bg-white rounded-2xl w-full max-w-sm p-5">
                     <h3 class="font-bold text-gray-800 mb-4">Manage Slot</h3>
                     <input type="hidden" id="manageSlotId">
-                    
                     <div class="space-y-3">
-                        <div>
-                            <label class="text-[10px] uppercase font-bold text-gray-400">Assigned Staff</label>
-                            <select id="manageSlotStaff" class="w-full p-2 border rounded text-sm bg-white"></select>
-                        </div>
+                        <div><label class="text-[10px] uppercase font-bold text-gray-400">Assigned Staff</label><select id="manageSlotStaff" class="w-full p-2 border rounded text-sm bg-white"></select></div>
                         <div class="flex gap-2">
-                            <div class="w-1/2">
-                                <label class="text-[10px] uppercase font-bold text-gray-400">Start Time</label>
-                                <input type="time" id="manageSlotStart" class="w-full p-2 border rounded text-sm">
-                            </div>
-                            <div class="w-1/2">
-                                <label class="text-[10px] uppercase font-bold text-gray-400">End Time</label>
-                                <input type="time" id="manageSlotEnd" class="w-full p-2 border rounded text-sm">
-                            </div>
+                            <div class="w-1/2"><label class="text-[10px] uppercase font-bold text-gray-400">Start Time</label><input type="time" id="manageSlotStart" class="w-full p-2 border rounded text-sm"></div>
+                            <div class="w-1/2"><label class="text-[10px] uppercase font-bold text-gray-400">End Time</label><input type="time" id="manageSlotEnd" class="w-full p-2 border rounded text-sm"></div>
                         </div>
-                        
                         <div class="flex gap-2 pt-2">
                             <button onclick="window.deleteSlotRequest()" class="flex-1 py-3 bg-red-50 text-red-600 rounded-xl font-bold text-sm border border-red-100">Delete</button>
                             <button onclick="window.saveSlotChanges()" class="flex-[2] py-3 bg-blue-600 text-white rounded-xl font-bold text-sm">Save Changes</button>
@@ -718,12 +637,16 @@
         </nav>
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
+    <style>
+        .detail-tab-btn { color: #6b7280; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .active-detail-tab { color: #ea580c; border-bottom-color: #ea580c; font-weight: 700; background-color: #fff7ed; }
+    </style>
+
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, deleteDoc, serverTimestamp, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // Config
         const firebaseConfig = { apiKey: "AIzaSyCtrDxf2S2Zp1hY1RMJQzLHb9TGnup4SLE", authDomain: "jt-squad-manager.firebaseapp.com", projectId: "jt-squad-manager", storageBucket: "jt-squad-manager.firebasestorage.app", messagingSenderId: "444609515858", appId: "1:444609515858:web:0e4d00cf14a107618bea8b" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -733,7 +656,13 @@
 
         let APP_CONFIG = { hourlyRate: 30, bonusRate: 5, radius: 200, trainingDays: 30, outletLat: 13.024976, outletLng: 77.562472 };
         let currentUserData = null, workTimerInterval = null, currentShiftId = null, listeners = [];
-        let isCheckoutMode = false; // Mode Tracker
+        let isCheckoutMode = false;
+
+        // Store for current detail modal user
+        let detailModalUserId = null;
+        let detailModalUserData = null;
+        // Store all shifts in admin view for date filtering
+        let allAdminShifts = [];
 
         // --- AUTH & INIT ---
         onAuthStateChanged(auth, async (user) => {
@@ -741,15 +670,12 @@
                 document.getElementById('authSection').classList.add('hidden');
                 document.getElementById('appLayout').classList.remove('hidden');
                 await loadSettings();
-                
                 listeners.push(onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                     if (docSnap.exists()) {
                         currentUserData = { uid: user.uid, ...docSnap.data() };
                         checkAndUnlockTrainingFunds(currentUserData);
                         renderRouter();
-                    } else {
-                        signOut(auth);
-                    }
+                    } else { signOut(auth); }
                 }));
             } else {
                 listeners.forEach(u => u()); listeners = [];
@@ -769,10 +695,7 @@
             const joinDate = user.joinedAt.toDate();
             const daysDiff = Math.floor((new Date() - joinDate) / (1000 * 60 * 60 * 24));
             if (daysDiff >= APP_CONFIG.trainingDays) {
-                await updateDoc(doc(db, "users", user.uid), {
-                    mainWallet: (user.mainWallet || 0) + user.blockedWallet,
-                    blockedWallet: 0
-                });
+                await updateDoc(doc(db, "users", user.uid), { mainWallet: (user.mainWallet || 0) + user.blockedWallet, blockedWallet: 0 });
                 showToast(`Training complete! ₹${user.blockedWallet} unlocked.`);
             }
         }
@@ -782,88 +705,42 @@
             const role = currentUserData.role;
             const views = ['adminView', 'managerView', 'memberDashboard', 'clientView'];
             const nav = document.getElementById('bottomNav');
-            
             document.getElementById('headerRoleDisplay').innerText = role.toUpperCase();
             views.forEach(v => document.getElementById(v).classList.add('hidden'));
             nav.classList.add('hidden');
-
-            if (role === 'admin') {
-                document.getElementById('adminView').classList.remove('hidden');
-                initAdmin();
-            } else if (role === 'client') {
-                document.getElementById('clientView').classList.remove('hidden');
-                initClient();
-            } else if (role === 'manager') {
-                if (window.isMyZoneActive) {
-                    document.getElementById('memberDashboard').classList.remove('hidden');
-                    nav.classList.remove('hidden');
-                    initMember();
-                } else {
-                    document.getElementById('managerView').classList.remove('hidden');
-                    initManager();
-                }
-            } else {
-                document.getElementById('memberDashboard').classList.remove('hidden');
-                nav.classList.remove('hidden');
-                initMember();
-            }
+            if (role === 'admin') { document.getElementById('adminView').classList.remove('hidden'); initAdmin(); }
+            else if (role === 'client') { document.getElementById('clientView').classList.remove('hidden'); initClient(); }
+            else if (role === 'manager') {
+                if (window.isMyZoneActive) { document.getElementById('memberDashboard').classList.remove('hidden'); nav.classList.remove('hidden'); initMember(); }
+                else { document.getElementById('managerView').classList.remove('hidden'); initManager(); }
+            } else { document.getElementById('memberDashboard').classList.remove('hidden'); nav.classList.remove('hidden'); initMember(); }
         }
 
-        // --- ATTENDANCE & CAPTURE LOGIC (UPDATED) ---
-
-        // 1. Check In Button Handler
+        // --- ATTENDANCE ---
         document.getElementById('checkInBtn').onclick = async () => {
-            isCheckoutMode = false; // Set mode to Check In
-            const btn = document.getElementById('checkInBtn'); 
-            
+            isCheckoutMode = false;
+            const btn = document.getElementById('checkInBtn');
             if(!navigator.geolocation) return alert("Geolocation Access Required");
-            
-            // Check for assigned job
             const todayStr = new Date().toISOString().split('T')[0];
-            const q = query(collection(db, "shift_requests"), 
-                where("assignedTo", "==", currentUserData.uid), 
-                where("status", "==", "approved"), 
-                where("date", "==", todayStr),
-                where("type", "==", "service")
-            );
+            const q = query(collection(db, "shift_requests"), where("assignedTo", "==", currentUserData.uid), where("status", "==", "approved"), where("date", "==", todayStr), where("type", "==", "service"));
             const jobs = await getDocs(q);
             let targetLat = APP_CONFIG.outletLat, targetLng = APP_CONFIG.outletLng;
             let jobDetails = null;
-
             if(!jobs.empty) {
                 const job = jobs.docs[0].data();
                 const clientDoc = await getDoc(doc(db, "users", job.clientId));
-                if(clientDoc.exists()) {
-                    const c = clientDoc.data();
-                    targetLat = c.lat; targetLng = c.lng;
-                    jobDetails = { clientId: job.clientId, clientName: c.name };
-                }
+                if(clientDoc.exists()) { const c = clientDoc.data(); targetLat = c.lat; targetLng = c.lng; jobDetails = { clientId: job.clientId, clientName: c.name }; }
             }
-            
             btn.innerText = "Locating...";
-
             navigator.geolocation.getCurrentPosition(pos => {
                 const dist = getDist(pos.coords.latitude, pos.coords.longitude, targetLat, targetLng);
-                
                 if (dist * 1000 <= APP_CONFIG.radius) {
-                    // Open Camera
                     navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}}).then(stream => {
                         const v = document.getElementById('videoElement'); v.srcObject = stream;
-                        
-                        // Update Modal Title
                         const titleEl = document.querySelector('#cameraModal div.absolute');
                         if(titleEl) titleEl.innerText = "Check In Verification";
-                        
                         document.getElementById('cameraModal').classList.remove('hidden');
-                        
-                        // Handle Close
-                        document.getElementById('closeCameraBtn').onclick = () => { 
-                            stream.getTracks().forEach(t=>t.stop()); 
-                            document.getElementById('cameraModal').classList.add('hidden'); 
-                            btn.innerText="CHECK IN"; 
-                        };
-
-                        // NOTE: Capture logic is handled by the unified handler below
+                        document.getElementById('closeCameraBtn').onclick = () => { stream.getTracks().forEach(t=>t.stop()); document.getElementById('cameraModal').classList.add('hidden'); btn.innerText="CHECK IN"; };
                     }).catch(e => { alert("Camera Error: " + e); btn.innerText="CHECK IN"; });
                 } else {
                     btn.innerText="CHECK IN";
@@ -873,103 +750,53 @@
             }, err => { alert("GPS Error"); btn.innerText="CHECK IN"; }, {enableHighAccuracy: true});
         };
 
-        // 2. Check Out Button Handler (UPDATED)
         document.getElementById('checkOutBtn').onclick = () => {
             const btn = document.getElementById('checkOutBtn');
             btn.innerText = "Verifying Location...";
-
             if(!navigator.geolocation) return alert("Geolocation Access Required");
-
             navigator.geolocation.getCurrentPosition(async (pos) => {
-                // Verify Location
                 const dist = getDist(pos.coords.latitude, pos.coords.longitude, APP_CONFIG.outletLat, APP_CONFIG.outletLng);
-                
                 if (dist * 1000 > APP_CONFIG.radius) {
                     btn.innerText = "END SHIFT";
                     document.getElementById('geoError').innerText = `Too far to checkout! You are ${(dist*1000).toFixed(0)}m away.`;
                     document.getElementById('geoError').classList.remove('hidden');
-                    return; 
+                    return;
                 }
-
-                // Location Good -> Set Mode & Open Camera
-                isCheckoutMode = true; 
-
+                isCheckoutMode = true;
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                    const v = document.getElementById('videoElement');
-                    v.srcObject = stream;
-                    
-                    // Update Modal Text
+                    const v = document.getElementById('videoElement'); v.srcObject = stream;
                     const titleEl = document.querySelector('#cameraModal div.absolute');
                     if(titleEl) titleEl.innerText = "Checkout Verification";
-                    
                     document.getElementById('cameraModal').classList.remove('hidden');
-
-                    document.getElementById('closeCameraBtn').onclick = () => {
-                        stream.getTracks().forEach(t => t.stop());
-                        document.getElementById('cameraModal').classList.add('hidden');
-                        btn.innerText = "END SHIFT";
-                    };
-
-                } catch (e) {
-                    alert("Camera Error: " + e);
-                    btn.innerText = "END SHIFT";
-                }
-
-            }, (err) => {
-                alert("GPS Error: " + err.message);
-                btn.innerText = "END SHIFT";
-            }, { enableHighAccuracy: true });
+                    document.getElementById('closeCameraBtn').onclick = () => { stream.getTracks().forEach(t => t.stop()); document.getElementById('cameraModal').classList.add('hidden'); btn.innerText = "END SHIFT"; };
+                } catch (e) { alert("Camera Error: " + e); btn.innerText = "END SHIFT"; }
+            }, (err) => { alert("GPS Error: " + err.message); btn.innerText = "END SHIFT"; }, { enableHighAccuracy: true });
         };
 
-        // 3. Unified Capture Handler
         document.getElementById('captureBtn').onclick = async () => {
             const v = document.getElementById('videoElement');
             const c = document.getElementById('canvasElement');
             const modal = document.getElementById('cameraModal');
-
-            // Capture
-            c.width = v.videoWidth;
-            c.height = v.videoHeight;
+            c.width = v.videoWidth; c.height = v.videoHeight;
             c.getContext('2d').drawImage(v, 0, 0);
-            const photo = c.toDataURL('image/jpeg', 0.5); 
-
-            // Stop Stream
+            const photo = c.toDataURL('image/jpeg', 0.5);
             const stream = v.srcObject;
             if (stream) stream.getTracks().forEach(t => t.stop());
             modal.classList.add('hidden');
-
-            // Route Logic
             if (isCheckoutMode) {
-                // CHECK OUT FLOW
                 if (!currentShiftId) return alert("No active shift found to end!");
-                await window.forceStop(currentShiftId, photo); 
-
+                await window.forceStop(currentShiftId, photo);
             } else {
-                // CHECK IN FLOW
-                let shiftData = {
-                    userId: currentUserData.uid,
-                    userName: currentUserData.name,
-                    checkInTime: serverTimestamp(),
-                    status: 'active',
-                    checkInPhoto: photo
-                };
-
-                // Add clientId if checking in for job (need to retrieve jobDetails again or store it)
-                // For simplicity, we assume generic checkin or rely on backend correlation, 
-                // but ideally, we'd pass jobDetails here.
-                
+                let shiftData = { userId: currentUserData.uid, userName: currentUserData.name, checkInTime: serverTimestamp(), status: 'active', checkInPhoto: photo };
                 try {
                     await addDoc(collection(db, "shifts"), shiftData);
                     showToast("Check In Successful!");
                     document.getElementById('checkInBtn').innerText = "CHECK IN";
-                } catch (e) {
-                    alert("Error checking in: " + e.message);
-                }
+                } catch (e) { alert("Error checking in: " + e.message); }
             }
         };
 
-        // 4. Force Stop (Updated with Photo)
         window.forceStop = async (id, checkoutPhoto = null) => {
             try {
                 await runTransaction(db, async (t) => {
@@ -977,78 +804,44 @@
                     const s = (await t.get(sRef)).data();
                     const uRef = doc(db, "users", s.userId);
                     const u = (await t.get(uRef)).data();
-
                     const end = new Date();
                     const start = s.checkInTime.toDate();
                     const msWorked = (end - start);
                     const minsWorked = msWorked / (1000 * 60);
                     const hoursWorked = minsWorked / 60;
-
                     if (minsWorked < 1) throw "Shift too short (< 1 min)";
-
-                    let updates = {
-                        totalHours: (u.totalHours || 0) + hoursWorked,
-                        totalDays: (u.totalDays || 0) + 1
-                    };
+                    let updates = { totalHours: (u.totalHours || 0) + hoursWorked, totalDays: (u.totalDays || 0) + 1 };
                     let pay = 0;
-
                     if (u.role === 'member') {
                         const rate = u.customRate || APP_CONFIG.hourlyRate;
                         const bonusRate = u.customBonus || APP_CONFIG.bonusRate;
-
                         pay = (rate / 60) * minsWorked;
                         const pts = Math.floor(hoursWorked * bonusRate);
-
                         const joinDate = u.joinedAt.toDate();
                         const daysSinceJoin = Math.floor((new Date() - joinDate) / (1000 * 60 * 60 * 24));
                         const isTraining = daysSinceJoin < APP_CONFIG.trainingDays;
-
-                        if (isTraining) {
-                            updates.blockedWallet = (u.blockedWallet || 0) + pay;
-                        } else {
-                            updates.mainWallet = (u.mainWallet || 0) + pay;
-                        }
+                        if (isTraining) { updates.blockedWallet = (u.blockedWallet || 0) + pay; }
+                        else { updates.mainWallet = (u.mainWallet || 0) + pay; }
                         updates.bonusWallet = (u.bonusWallet || 0) + pts;
                     }
-
                     if (s.clientId) {
                         const clientRef = doc(db, "users", s.clientId);
                         const cDoc = await t.get(clientRef);
                         if (cDoc.exists()) {
-                            const bill = hoursWorked * 35; 
-                            t.update(clientRef, {
-                                walletBalance: (cDoc.data().walletBalance || 0) - bill
-                            });
+                            const bill = hoursWorked * 35;
+                            t.update(clientRef, { walletBalance: (cDoc.data().walletBalance || 0) - bill });
                             const transRef = doc(collection(db, "client_transactions"));
-                            t.set(transRef, {
-                                clientId: s.clientId,
-                                amount: bill,
-                                type: 'service_deduction',
-                                date: serverTimestamp(),
-                                details: `Service: ${s.userName} (${hoursWorked.toFixed(2)}h)`
-                            });
+                            t.set(transRef, { clientId: s.clientId, amount: bill, type: 'service_deduction', date: serverTimestamp(), details: `Service: ${s.userName} (${hoursWorked.toFixed(2)}h)` });
                         }
                     }
-
-                    t.update(sRef, {
-                        status: 'completed',
-                        checkOutTime: serverTimestamp(),
-                        hoursWorked: hoursWorked,
-                        earnings: pay,
-                        checkOutPhoto: checkoutPhoto 
-                    });
-
+                    t.update(sRef, { status: 'completed', checkOutTime: serverTimestamp(), hoursWorked: hoursWorked, earnings: pay, checkOutPhoto: checkoutPhoto });
                     t.update(uRef, updates);
                 });
-
                 showToast("Shift Ended & Verified!");
-                
-                // UI Reset
                 document.getElementById('checkInBtnArea').classList.remove('hidden');
                 document.getElementById('checkOutBtnArea').classList.add('hidden');
                 if (workTimerInterval) clearInterval(workTimerInterval);
                 currentShiftId = null;
-
             } catch (e) {
                 alert("Error ending shift: " + e);
                 document.getElementById('checkOutBtn').innerText = "END SHIFT";
@@ -1058,102 +851,51 @@
         // --- ADMIN CONTROLLER ---
         function initAdmin() {
             listeners.push(onSnapshot(query(collection(db, "users")), (snap) => {
-                const tbody = document.getElementById('userTableBody'); tbody.innerHTML = '';
+                const cardsContainer = document.getElementById('staffCardsList');
+                cardsContainer.innerHTML = '';
                 let totSquad = 0, liab = 0;
-                
                 snap.forEach(d => {
                     const u = d.data();
                     const isSquad = u.role === 'member';
                     if(isSquad) { totSquad++; liab += (u.mainWallet||0); }
-
-                    const funds = isSquad ? 
-                        `<div><span class="font-bold">₹${(u.mainWallet||0).toFixed(0)}</span> <span class="text-xs text-orange-500">(${u.bonusWallet||0}p)</span></div><div class="text-[10px] text-red-400">Locked: ₹${u.blockedWallet||0}</div>` : 
-                        `<div class="text-xs text-gray-500">Salary: ₹${u.salary||0}</div>`;
-                    
-                    const perf = isSquad ? 
-                        `<span class="text-red-500 font-bold text-xs">${u.strikes||0} Strikes</span>` :
-                        `<span class="text-xs text-blue-600 font-bold">Leaves: ${u.leavesTaken||0}</span>`;
-
-                    const tr = document.createElement('tr'); tr.className="border-b hover:bg-orange-50 search-item cursor-pointer";
-                    tr.dataset.search = u.name.toLowerCase();
-                    tr.onclick = (e) => { if(!e.target.closest('button')) window.openStaffDetail(d.id); };
-                    tr.innerHTML = `
-                        <td class="p-3"><div class="font-bold">${u.name}</div><span class="text-[10px] uppercase font-bold text-gray-400">${u.role}</span><div class="text-[9px] text-orange-400 font-bold mt-0.5"><i class="fas fa-arrow-right mr-1"></i>View Details</div></td>
-                        <td class="p-3 text-sm">${funds}</td>
-                        <td class="p-3 text-sm">${perf}</td>
-                        <td class="p-3 text-right flex gap-1 justify-end">
-                            <button onclick="window.promptPay('${d.id}', ${u.mainWallet||0}, ${!isSquad})" class="bg-green-50 text-green-600 p-2 rounded hover:bg-green-100"><i class="fas fa-money-bill-wave"></i></button>
-                            <button onclick="window.editUser('${d.id}')" class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100"><i class="fas fa-edit"></i></button>
-                            <button onclick="window.deleteUser('${d.id}')" class="bg-red-50 text-red-600 p-2 rounded hover:bg-red-100"><i class="fas fa-trash"></i></button>
-                        </td>
+                    // Card UI
+                    const card = document.createElement('div');
+                    card.className = "staff-card bg-white rounded-xl border border-gray-200 p-4 shadow-sm search-item";
+                    card.dataset.search = u.name.toLowerCase();
+                    const initials = u.name.substring(0,2).toUpperCase();
+                    const roleColor = {'admin':'bg-red-600','manager':'bg-blue-600','fulltime':'bg-purple-600','member':'bg-orange-500','client':'bg-gray-400'}[u.role] || 'bg-gray-400';
+                    const financials = isSquad
+                        ? `<div class="flex gap-3 mt-2"><span class="text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100">₹${(u.mainWallet||0).toFixed(0)} wallet</span><span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100">${u.bonusWallet||0} pts</span>${(u.blockedWallet||0) > 0 ? `<span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100">₹${u.blockedWallet||0} locked</span>` : ''}</div>`
+                        : `<div class="mt-2"><span class="text-xs text-gray-500">Salary: ₹${u.salary||0}</span></div>`;
+                    const badge = isSquad ? `<span class="text-[10px] text-red-500 font-bold">${u.strikes||0} ⚡ strikes</span>` : `<span class="text-[10px] text-blue-500 font-bold">${u.leavesTaken||0} leaves</span>`;
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full ${roleColor} flex items-center justify-center text-white font-bold text-sm shrink-0">${initials}</div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <div><p class="font-bold text-gray-800">${u.name}</p><p class="text-[10px] uppercase font-bold text-gray-400">${u.role}</p></div>
+                                    <div class="text-right">${badge}</div>
+                                </div>
+                                ${financials}
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-50 text-[10px] text-gray-400 flex items-center justify-between">
+                            <span><i class="fas fa-clock mr-1"></i>${(u.totalHours||0).toFixed(1)}h total · ${u.totalDays||0} days</span>
+                            <span class="text-orange-500 font-bold"><i class="fas fa-chevron-right mr-1"></i>Tap to view details</span>
+                        </div>
                     `;
-                    tbody.appendChild(tr);
+                    card.onclick = () => window.openStaffDetail(d.id);
+                    cardsContainer.appendChild(card);
                 });
-                document.getElementById('adminTotalSquad').innerText = totSquad; 
+                document.getElementById('adminTotalSquad').innerText = totSquad;
                 document.getElementById('adminPendingPayout').innerText = liab.toFixed(0);
             }));
 
-            // Shifts — store all for filtering
-            let _allShiftsData = [];
-            window._renderShiftTable = (shiftsArr) => {
-                const b = document.getElementById('shiftTableBody'); b.innerHTML = '';
-                const badge = document.getElementById('shiftCountBadge');
-                if(badge) badge.innerText = shiftsArr.length + ' records';
-                if(shiftsArr.length === 0) {
-                    b.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-xs text-gray-400 italic">No shifts found for selected range.</td></tr>';
-                    return;
-                }
-                shiftsArr.forEach(({id, data: s}) => {
-                    const dur = s.status === 'active' ? '<span class="text-green-600 font-bold">Active</span>' : `${(s.hoursWorked||0).toFixed(2)} hrs`;
-                    const earn = s.status === 'completed' ? `<span class="text-green-600 font-bold text-xs">₹${(s.earnings||0).toFixed(0)}</span>` : '<span class="text-gray-300 text-xs">—</span>';
-                    const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
-                    tr.innerHTML = `
-                        <td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td>
-                        <td class="p-3 font-bold text-xs">${s.userName}</td>
-                        <td class="p-3 text-xs text-gray-500">${dur}</td>
-                        <td class="p-3">${earn}</td>
-                        <td class="p-3 text-right flex justify-end gap-2">
-                            <button onclick="window.openEditShiftModal('${id}')" class="text-blue-500 text-xs font-bold border px-1 rounded">Edit</button>
-                            <button onclick="window.delShift('${id}')" class="text-red-400"><i class="fas fa-trash"></i></button>
-                        </td>`;
-                    b.appendChild(tr);
-                });
-            };
-            window.applyShiftFilter = () => {
-                const from = document.getElementById('shiftFilterFrom').value;
-                const to = document.getElementById('shiftFilterTo').value;
-                if (!from && !to) { window._renderShiftTable(_allShiftsData); return; }
-                const label = document.getElementById('shiftFilterLabel');
-                label.classList.remove('hidden');
-                label.innerText = `Showing: ${from||'start'} → ${to||'today'}`;
-                const filtered = _allShiftsData.filter(({data: s}) => {
-                    const dateStr = s.checkInTime?.toDate().toISOString().split('T')[0];
-                    if (!dateStr) return false;
-                    if (from && dateStr < from) return false;
-                    if (to && dateStr > to) return false;
-                    return true;
-                });
-                window._renderShiftTable(filtered);
-            };
-            window.clearShiftFilter = () => {
-                document.getElementById('shiftFilterFrom').value = '';
-                document.getElementById('shiftFilterTo').value = '';
-                document.getElementById('shiftFilterLabel').classList.add('hidden');
-                window._renderShiftTable(_allShiftsData);
-            };
-            listeners.push(onSnapshot(query(collection(db, "shifts"), orderBy("checkInTime", "desc"), limit(200)), (snap) => {
-                _allShiftsData = [];
-                let active = 0;
-                snap.forEach(d => {
-                    const s = d.data();
-                    if(s.status === 'active') active++;
-                    _allShiftsData.push({ id: d.id, data: s });
-                });
-                document.getElementById('adminActiveStaff').innerText = active;
-                // Re-apply filter if one is active, else show all
-                const from = document.getElementById('shiftFilterFrom')?.value;
-                const to = document.getElementById('shiftFilterTo')?.value;
-                if (from || to) { window.applyShiftFilter(); } else { window._renderShiftTable(_allShiftsData); }
+            // Shifts with date range (load recent 20 by default)
+            loadAdminShifts();
+
+            listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
+                document.getElementById('adminActiveStaff').innerText = snap.size;
             }));
 
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "leave"), where("status", "==", "pending")), (snap) => {
@@ -1178,7 +920,7 @@
                     l.appendChild(el);
                 });
             }));
-            
+
             loadSharedSchedule('adminScheduleList');
 
             document.getElementById('settingRate').value = APP_CONFIG.hourlyRate;
@@ -1189,25 +931,21 @@
             document.getElementById('settingLng').value = APP_CONFIG.outletLng;
 
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "shift"), where("status", "==", "pending")), (snap) => {
-                const l = document.getElementById('adminSquadRequestList'); 
-                l.innerHTML = '';
+                const l = document.getElementById('adminSquadRequestList'); l.innerHTML = '';
                 if(snap.empty) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No pending squad requests.</p>';
                 snap.forEach(d => {
                     const r = d.data();
-                    const el = document.createElement('div'); 
-                    el.className="bg-blue-50 p-3 rounded-lg flex justify-between items-center border border-blue-100";
+                    const el = document.createElement('div'); el.className="bg-blue-50 p-3 rounded-lg flex justify-between items-center border border-blue-100";
                     el.innerHTML = `<div><p class="font-bold text-sm">${r.userName}</p><p class="text-xs text-blue-600">${r.date} | ${r.startTime}-${r.endTime}</p></div><div class="flex gap-2"><button onclick="window.handleReq('${d.id}','approved')" class="text-green-500 hover:bg-green-100 p-1 rounded"><i class="fas fa-check"></i></button><button onclick="window.handleReq('${d.id}','rejected')" class="text-red-500 hover:bg-red-100 p-1 rounded"><i class="fas fa-times"></i></button></div>`;
                     l.appendChild(el);
                 });
             }));
 
             listeners.push(onSnapshot(query(collection(db, "users"), where("role", "==", "client")), (snap) => {
-                const l = document.getElementById('clientTableBody'); 
-                l.innerHTML = '';
+                const l = document.getElementById('clientTableBody'); l.innerHTML = '';
                 snap.forEach(d => {
                     const u = d.data();
-                    const tr = document.createElement('tr'); 
-                    tr.className = "border-b hover:bg-gray-50";
+                    const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
                     tr.innerHTML = `<td class="p-3"><div class="font-bold text-gray-800">${u.name}</div><div class="text-[10px] text-gray-400">${u.phone}</div></td><td class="p-3 text-xs text-gray-500">${u.address || '-'}</td><td class="p-3"><div class="text-xs font-bold text-green-600 bg-green-50 inline-block px-2 py-1 rounded">₹${(u.walletBalance||0).toFixed(0)}</div></td><td class="p-3 text-right flex justify-end gap-2"><button onclick="window.openRechargeModal('${d.id}')" class="bg-blue-50 text-blue-600 px-2 py-1.5 rounded hover:bg-blue-100 text-[10px] font-bold border border-blue-100"><i class="fas fa-bolt mr-1"></i> Recharge</button><button onclick="window.viewClientHistory('${d.id}')" class="bg-purple-50 text-purple-600 px-2 py-1.5 rounded hover:bg-purple-100 text-[10px] font-bold border border-purple-100"><i class="fas fa-history mr-1"></i> History</button><button onclick="window.deleteUser('${d.id}')" class="text-red-400 hover:text-red-600 w-6 h-6"><i class="fas fa-trash"></i></button></td>`;
                     l.appendChild(tr);
                 });
@@ -1220,65 +958,380 @@
             }));
 
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "service"), where("status", "==", "pending")), (snap) => {
-                const l = document.getElementById('adminServiceReqList'); 
-                l.innerHTML = '';
+                const l = document.getElementById('adminServiceReqList'); l.innerHTML = '';
                 if(snap.empty) { l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No pending service requests.</p>'; return; }
                 snap.forEach(d => {
                     const r = d.data();
-                    const el = document.createElement('div'); 
-                    el.className="bg-purple-50 p-3 rounded-lg flex justify-between items-center border border-purple-200 mb-2";
+                    const el = document.createElement('div'); el.className="bg-purple-50 p-3 rounded-lg flex justify-between items-center border border-purple-200 mb-2";
                     el.innerHTML = `<div><p class="font-bold text-sm text-purple-900">${r.clientName}</p><p class="text-xs text-purple-600">${r.date} | ${r.startTime}-${r.endTime}</p></div><button onclick="window.openAssignModal('${d.id}')" class="bg-purple-600 text-white px-3 py-1 rounded text-xs font-bold shadow hover:bg-purple-700 transition">Assign Staff</button>`;
                     l.appendChild(el);
                 });
             }));
         }
 
-        // Shared Logic for Schedule
-        function loadSharedSchedule(elementId) {
-             const today = new Date();
-             const todayStr = today.toISOString().split('T')[0];
-             const tmrw = new Date(); tmrw.setDate(tmrw.getDate()+1);
-             const tmrwStr = tmrw.toISOString().split('T')[0];
+        // ===================== FIX 3: DATE RANGE SHIFT LOADING =====================
+        async function loadAdminShifts(fromDate = null, toDate = null) {
+            const tbody = document.getElementById('shiftTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-xs text-gray-400">Loading...</td></tr>';
+            try {
+                let q;
+                if (fromDate && toDate) {
+                    const from = Timestamp.fromDate(new Date(fromDate + 'T00:00:00'));
+                    const to = Timestamp.fromDate(new Date(toDate + 'T23:59:59'));
+                    q = query(collection(db, "shifts"), orderBy("checkInTime", "desc"), where("checkInTime", ">=", from), where("checkInTime", "<=", to));
+                    document.getElementById('shiftFilterInfo').innerText = `Showing results from ${fromDate} to ${toDate}`;
+                    document.getElementById('shiftCountBadge').innerText = 'Filtered';
+                } else {
+                    q = query(collection(db, "shifts"), orderBy("checkInTime", "desc"), limit(20));
+                    document.getElementById('shiftFilterInfo').innerText = '';
+                    document.getElementById('shiftCountBadge').innerText = 'Recent 20';
+                }
+                const snap = await getDocs(q);
+                tbody.innerHTML = '';
+                if (snap.empty) { tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-xs text-gray-400 italic">No shifts found.</td></tr>'; return; }
+                let count = 0;
+                snap.forEach(d => {
+                    count++;
+                    const s = d.data();
+                    const dur = s.status === 'active' ? '<span class="text-green-600 font-bold text-xs">Active</span>' : `${(s.hoursWorked||0).toFixed(2)} hrs`;
+                    const earn = s.status === 'completed' && s.earnings != null ? `<span class="text-green-600 font-bold text-xs">₹${s.earnings.toFixed(2)}</span>` : '<span class="text-gray-400 text-xs">-</span>';
+                    const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td>
+                        <td class="p-3 font-bold text-sm">${s.userName}</td>
+                        <td class="p-3 text-xs text-gray-500">${dur}</td>
+                        <td class="p-3">${earn}</td>
+                        <td class="p-3 text-right flex justify-end gap-2">
+                            <button onclick="window.openEditShiftModal('${d.id}')" class="text-blue-500 text-xs font-bold border px-2 py-1 rounded hover:bg-blue-50">Edit</button>
+                            <button onclick="window.delShift('${d.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fas fa-trash"></i></button>
+                        </td>`;
+                    tbody.appendChild(tr);
+                });
+                if (fromDate && toDate) document.getElementById('shiftCountBadge').innerText = `${count} results`;
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-red-400">Error: ${e.message}</td></tr>`;
+            }
+        }
 
-             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("status", "==", "approved")), (snap) => {
-                const l = document.getElementById(elementId); 
-                if(!l) return;
+        window.applyShiftDateFilter = () => {
+            const from = document.getElementById('shiftFilterFrom').value;
+            const to = document.getElementById('shiftFilterTo').value;
+            if (!from || !to) return showToast("Please select both From and To dates");
+            if (from > to) return showToast("From date must be before To date");
+            loadAdminShifts(from, to);
+        };
+
+        window.clearShiftDateFilter = () => {
+            document.getElementById('shiftFilterFrom').value = '';
+            document.getElementById('shiftFilterTo').value = '';
+            loadAdminShifts();
+        };
+
+        // ===================== FIX 2: STAFF DETAIL MODAL =====================
+        window.openStaffDetail = async (uid) => {
+            detailModalUserId = uid;
+            const docSnap = await getDoc(doc(db, "users", uid));
+            if (!docSnap.exists()) return showToast("User not found");
+            detailModalUserData = { uid, ...docSnap.data() };
+            const u = detailModalUserData;
+            const initials = u.name.substring(0,2).toUpperCase();
+            document.getElementById('detailInitials').innerText = initials;
+            document.getElementById('detailName').innerText = u.name;
+            document.getElementById('detailRole').innerText = u.role.toUpperCase();
+
+            // Stats bar
+            const statsBar = document.getElementById('detailStatsBar');
+            const isSquad = u.role === 'member';
+            if (isSquad) {
+                statsBar.innerHTML = `
+                    <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Wallet</p><p class="font-bold text-white text-sm">₹${(u.mainWallet||0).toFixed(0)}</p></div>
+                    <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Points</p><p class="font-bold text-orange-400 text-sm">${u.bonusWallet||0}</p></div>
+                    <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Strikes</p><p class="font-bold text-red-400 text-sm">${u.strikes||0}</p></div>`;
+            } else {
+                statsBar.innerHTML = `
+                    <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Days</p><p class="font-bold text-white text-sm">${u.totalDays||0}</p></div>
+                    <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Hours</p><p class="font-bold text-white text-sm">${(u.totalHours||0).toFixed(1)}</p></div>
+                    <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Leaves</p><p class="font-bold text-red-400 text-sm">${u.leavesTaken||0}</p></div>`;
+            }
+
+            document.getElementById('staffDetailModal').classList.remove('hidden');
+            // Default to payouts tab
+            switchDetailTab('payouts', null, true);
+            loadDetailPayouts(uid);
+        };
+
+        function switchDetailTab(tab, event, skipButtonToggle = false) {
+            if (!skipButtonToggle && event) {
+                document.querySelectorAll('.detail-tab-btn').forEach(b => b.classList.remove('active-detail-tab'));
+                event.currentTarget.classList.add('active-detail-tab');
+            } else if (!skipButtonToggle) {
+                document.querySelectorAll('.detail-tab-btn').forEach((b, i) => {
+                    b.classList.toggle('active-detail-tab', (tab === 'payouts' && i === 0) || (tab === 'shifts' && i === 1));
+                });
+            } else {
+                document.querySelectorAll('.detail-tab-btn').forEach((b, i) => {
+                    b.classList.toggle('active-detail-tab', i === 0);
+                });
+            }
+            document.getElementById('detailTab-payouts').classList.toggle('hidden', tab !== 'payouts');
+            document.getElementById('detailTab-shifts').classList.toggle('hidden', tab !== 'shifts');
+            if (tab === 'shifts' && detailModalUserId) loadDetailShifts(detailModalUserId);
+        }
+        window.switchDetailTab = switchDetailTab;
+
+        async function loadDetailPayouts(uid) {
+            const container = document.getElementById('detailPayoutList');
+            container.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4"><i class="fas fa-circle-notch fa-spin mr-2"></i>Loading...</p>';
+            try {
+                const snap = await getDocs(query(collection(db, "payouts"), where("userId", "==", uid), orderBy("date", "desc"), limit(50)));
+                container.innerHTML = '';
+                if (snap.empty) { container.innerHTML = '<div class="text-center py-8"><i class="fas fa-receipt text-gray-200 text-3xl mb-2"></i><p class="text-xs text-gray-400 italic">No payouts yet.</p></div>'; return; }
+                let total = 0;
+                snap.forEach(d => {
+                    const p = d.data();
+                    total += p.amount;
+                    const dateStr = p.date?.toDate().toLocaleDateString();
+                    const timeStr = p.date?.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    container.innerHTML += `
+                        <div class="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
+                            <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-green-600 shadow-sm shrink-0"><i class="fas fa-money-bill-wave text-sm"></i></div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between"><span class="text-xs text-gray-500">${dateStr} at ${timeStr}</span><span class="font-bold text-green-700">+₹${p.amount}</span></div>
+                                <div class="text-[10px] text-gray-400">By: ${p.by || 'Admin'}</div>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = `<div class="bg-gray-800 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-gray-400">Total Paid Out</span><span class="font-bold text-green-400">₹${total.toFixed(0)}</span></div>` + container.innerHTML;
+            } catch(e) { container.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`; }
+        }
+
+        async function loadDetailShifts(uid) {
+            const container = document.getElementById('detailShiftList');
+            container.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4"><i class="fas fa-circle-notch fa-spin mr-2"></i>Loading...</p>';
+            try {
+                const snap = await getDocs(query(collection(db, "shifts"), where("userId", "==", uid), orderBy("checkInTime", "desc"), limit(50)));
+                container.innerHTML = '';
+                if (snap.empty) { container.innerHTML = '<div class="text-center py-8"><i class="fas fa-clock text-gray-200 text-3xl mb-2"></i><p class="text-xs text-gray-400 italic">No shifts found.</p></div>'; return; }
+                let totalHours = 0, totalEarnings = 0;
+                snap.forEach(d => {
+                    const s = d.data();
+                    if (s.status === 'completed') { totalHours += s.hoursWorked || 0; totalEarnings += s.earnings || 0; }
+                    const start = s.checkInTime?.toDate();
+                    const end = s.checkOutTime?.toDate();
+                    const dateStr = start?.toLocaleDateString();
+                    const timeIn = start?.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    const timeOut = end ? end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '—';
+                    const statusColor = s.status === 'active' ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100';
+                    const statusBadge = s.status === 'active' ? '<span class="text-[10px] bg-green-200 text-green-800 px-1.5 py-0.5 rounded font-bold animate-pulse">ACTIVE</span>' : `<span class="text-[10px] font-bold text-green-700">₹${(s.earnings||0).toFixed(2)}</span>`;
+                    container.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded-xl border ${statusColor}">
+                            <div>
+                                <div class="font-bold text-sm text-gray-800">${dateStr}</div>
+                                <div class="text-[10px] font-mono text-gray-500">${timeIn} → ${timeOut}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs font-bold text-gray-700">${s.status === 'active' ? '...' : (s.hoursWorked||0).toFixed(2)} hrs</div>
+                                <div>${statusBadge}</div>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = `<div class="bg-gray-800 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-gray-400">${totalHours.toFixed(1)}h · ${snap.size} shifts</span><span class="font-bold text-green-400">₹${totalEarnings.toFixed(0)} earned</span></div>` + container.innerHTML;
+            } catch(e) { container.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`; }
+        }
+
+        window.openDetailPay = () => {
+            if (!detailModalUserData) return;
+            const u = detailModalUserData;
+            const isFullTime = u.role !== 'member';
+            document.getElementById('payoutUid').value = u.uid;
+            document.getElementById('payoutMax').value = isFullTime ? -1 : (u.mainWallet || 0);
+            document.getElementById('payoutSubtitle').innerText = isFullTime ? `Salary Payment for ${u.name}` : `Deduct from Wallet (Max: ₹${(u.mainWallet||0).toFixed(0)}) — ${u.name}`;
+            document.getElementById('payoutAmount').value = '';
+            document.getElementById('payoutModal').classList.remove('hidden');
+        };
+
+        window.openDetailEdit = () => {
+            if (!detailModalUserId) return;
+            window.editUser(detailModalUserId);
+        };
+
+        window.openDetailDelete = () => {
+            if (!detailModalUserId) return;
+            if (confirm(`Delete ${detailModalUserData?.name}? This cannot be undone.`)) {
+                deleteDoc(doc(db, "users", detailModalUserId)).then(() => {
+                    document.getElementById('staffDetailModal').classList.add('hidden');
+                    showToast("Staff Deleted");
+                });
+            }
+        };
+
+        // ===================== FIX 1: EDIT SHIFT WITH EARNINGS RECALCULATION =====================
+        window.openEditShiftModal = async (id) => {
+            const s = (await getDoc(doc(db, "shifts", id))).data();
+            document.getElementById('editShiftId').value = id;
+            const toLocal = (ts) => {
+                if(!ts) return "";
+                const d = ts.toDate();
+                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                return d.toISOString().slice(0,16);
+            };
+            document.getElementById('editShiftIn').value = toLocal(s.checkInTime);
+            document.getElementById('editShiftOut').value = toLocal(s.checkOutTime);
+            document.getElementById('editShiftModal').classList.remove('hidden');
+        };
+
+        document.getElementById('saveShiftTimeBtn').onclick = async () => {
+            const id = document.getElementById('editShiftId').value;
+            const inTimeStr = document.getElementById('editShiftIn').value;
+            const outTimeStr = document.getElementById('editShiftOut').value;
+            if(!inTimeStr) return alert("Check-in time is required");
+
+            try {
+                await runTransaction(db, async(t) => {
+                    const sRef = doc(db, "shifts", id);
+                    const sDoc = await t.get(sRef);
+                    const s = sDoc.data();
+                    const uRef = doc(db, "users", s.userId);
+                    const uDoc = await t.get(uRef);
+                    const u = uDoc.data();
+
+                    const newIn = new Date(inTimeStr);
+                    const newOut = outTimeStr ? new Date(outTimeStr) : null;
+
+                    let shiftUpdates = { checkInTime: Timestamp.fromDate(newIn) };
+
+                    if (newOut) {
+                        const msWorked = newOut - newIn;
+                        const minsWorked = msWorked / (1000 * 60);
+                        const hoursWorked = minsWorked / 60;
+                        if (hoursWorked <= 0) throw "Invalid Duration: checkout must be after checkin";
+
+                        // === RECALCULATE EARNINGS ===
+                        let newEarnings = 0;
+                        let userWalletUpdates = {};
+
+                        if (u && u.role === 'member') {
+                            const rate = u.customRate || APP_CONFIG.hourlyRate;
+                            const bonusRate = u.customBonus || APP_CONFIG.bonusRate;
+                            newEarnings = (rate / 60) * minsWorked;
+                            const newPts = Math.floor(hoursWorked * bonusRate);
+
+                            // Reverse old earnings
+                            const oldHours = s.hoursWorked || 0;
+                            const oldEarnings = s.earnings || 0;
+                            const oldPts = s.status === 'completed' ? Math.floor(oldHours * bonusRate) : 0;
+
+                            // Determine if training period
+                            const joinDate = u.joinedAt.toDate();
+                            const checkInDate = newIn;
+                            const daysSinceJoin = Math.floor((checkInDate - joinDate) / (1000 * 60 * 60 * 24));
+                            const wasTraining = daysSinceJoin < APP_CONFIG.trainingDays;
+
+                            if (s.status === 'completed') {
+                                // Reverse old earnings from correct wallet
+                                if (wasTraining) {
+                                    userWalletUpdates.blockedWallet = Math.max(0, (u.blockedWallet || 0) - oldEarnings + newEarnings);
+                                } else {
+                                    userWalletUpdates.mainWallet = Math.max(0, (u.mainWallet || 0) - oldEarnings + newEarnings);
+                                }
+                                // Adjust bonus points
+                                userWalletUpdates.bonusWallet = Math.max(0, (u.bonusWallet || 0) - oldPts + newPts);
+                                userWalletUpdates.totalHours = Math.max(0, (u.totalHours || 0) - oldHours + hoursWorked);
+                            } else {
+                                // First time setting checkout (was active)
+                                if (wasTraining) {
+                                    userWalletUpdates.blockedWallet = (u.blockedWallet || 0) + newEarnings;
+                                } else {
+                                    userWalletUpdates.mainWallet = (u.mainWallet || 0) + newEarnings;
+                                }
+                                userWalletUpdates.bonusWallet = (u.bonusWallet || 0) + newPts;
+                                userWalletUpdates.totalHours = (u.totalHours || 0) + hoursWorked;
+                                if (s.status === 'active') userWalletUpdates.totalDays = (u.totalDays || 0) + 1;
+                            }
+
+                            if (Object.keys(userWalletUpdates).length > 0) {
+                                t.update(uRef, userWalletUpdates);
+                            }
+                        }
+
+                        shiftUpdates.checkOutTime = Timestamp.fromDate(newOut);
+                        shiftUpdates.hoursWorked = hoursWorked;
+                        shiftUpdates.earnings = newEarnings;
+                        shiftUpdates.status = 'completed';
+
+                    } else {
+                        // Removing checkout (reverting to active)
+                        if (s.checkOutTime && s.status === 'completed' && u && u.role === 'member') {
+                            const oldEarnings = s.earnings || 0;
+                            const oldHours = s.hoursWorked || 0;
+                            const bonusRate = u.customBonus || APP_CONFIG.bonusRate;
+                            const oldPts = Math.floor(oldHours * bonusRate);
+                            const joinDate = u.joinedAt.toDate();
+                            const daysSinceJoin = Math.floor((s.checkInTime.toDate() - joinDate) / (1000 * 60 * 60 * 24));
+                            const wasTraining = daysSinceJoin < APP_CONFIG.trainingDays;
+                            const walletField = wasTraining ? 'blockedWallet' : 'mainWallet';
+                            t.update(uRef, {
+                                [walletField]: Math.max(0, (u[walletField] || 0) - oldEarnings),
+                                bonusWallet: Math.max(0, (u.bonusWallet || 0) - oldPts),
+                                totalHours: Math.max(0, (u.totalHours || 0) - oldHours),
+                                totalDays: Math.max(0, (u.totalDays || 0) - 1)
+                            });
+                        }
+                        shiftUpdates.checkOutTime = null;
+                        shiftUpdates.status = 'active';
+                        shiftUpdates.hoursWorked = 0;
+                        shiftUpdates.earnings = 0;
+                    }
+
+                    t.update(sRef, shiftUpdates);
+                });
+                showToast("Shift Updated & Earnings Recalculated!");
+                document.getElementById('editShiftModal').classList.add('hidden');
+                // Reload the shift table
+                const from = document.getElementById('shiftFilterFrom').value;
+                const to = document.getElementById('shiftFilterTo').value;
+                if (from && to) loadAdminShifts(from, to); else loadAdminShifts();
+            } catch(e) { alert("Error: " + e); }
+        };
+
+        // Shared Schedule
+        function loadSharedSchedule(elementId) {
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            const tmrw = new Date(); tmrw.setDate(tmrw.getDate()+1);
+            const tmrwStr = tmrw.toISOString().split('T')[0];
+            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("status", "==", "approved")), (snap) => {
+                const l = document.getElementById(elementId); if(!l) return;
                 l.innerHTML = '';
-                
                 let events = [];
                 snap.forEach(d => events.push({ id: d.id, ...d.data() }));
                 events = events.filter(e => e.date === todayStr || e.date === tmrwStr);
                 events.sort((a,b) => (a.date > b.date) ? 1 : (a.date === b.date ? (a.startTime > b.startTime ? 1 : -1) : -1));
-
                 if(events.length === 0) { l.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No approved slots for today or tomorrow.</p>'; return; }
-
                 events.forEach(r => {
                     if(r.date >= todayStr) {
                         const isToday = r.date === todayStr;
                         const colorClass = isToday ? "bg-blue-50 border-blue-100" : "bg-gray-50 border-gray-100";
                         const badge = isToday ? '<span class="text-[10px] bg-blue-200 text-blue-800 px-1 rounded font-bold ml-1">TODAY</span>' : '<span class="text-[10px] bg-gray-200 text-gray-800 px-1 rounded font-bold">TOMORROW</span>';
-                        const title = r.type === 'service' ? `<span class="text-purple-700 font-bold">${r.clientName} (Service)</span>` : r.userName; 
+                        const title = r.type === 'service' ? `<span class="text-purple-700 font-bold">${r.clientName} (Service)</span>` : r.userName;
                         const sub = r.type === 'service' ? `<span class="text-[10px] text-gray-500">Assigned: ${r.assignedName || 'Pending'}</span>` : `<span class="text-[10px] text-gray-500">Regular Shift</span>`;
-
-                        const el = document.createElement('div'); 
+                        const el = document.createElement('div');
                         el.className = `flex justify-between items-center p-3 rounded-lg border ${colorClass} mb-2`;
                         el.innerHTML = `<div class="flex-grow"><div class="flex items-center gap-2 mb-1"><span class="font-bold text-xs text-gray-500">${r.date}</span>${badge}</div><div class="text-sm">${title}</div>${sub}</div><div class="text-right"><div class="text-xs font-mono font-bold text-gray-600 bg-white px-2 py-1 rounded border mb-1">${r.startTime} - ${r.endTime}</div><button onclick="window.openManageSlot('${r.id}')" class="text-[10px] text-blue-600 font-bold underline">Edit</button></div>`;
                         l.appendChild(el);
                     }
                 });
-             }));
+            }));
         }
 
         // --- MANAGER CONTROLLER ---
         function initManager() {
             const today = new Date(); document.getElementById('mgrDateDisplay').innerText = today.toDateString();
-            
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
                 const l = document.getElementById('liveWorkersList'); l.innerHTML = '';
                 let count = 0;
                 snap.forEach(d => {
-                    const s = d.data();
-                    count++;
+                    const s = d.data(); count++;
                     const start = s.checkInTime.toDate();
                     const el = document.createElement('div'); el.className="flex justify-between items-center bg-green-50 p-3 rounded-lg border border-green-100";
                     el.innerHTML = `<div><p class="font-bold text-sm">${s.userName}</p><p class="text-[10px] text-green-700 font-mono">In: ${start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div><button onclick="window.forceStop('${d.id}')" class="text-xs bg-white border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50">End Session</button>`;
@@ -1287,7 +1340,6 @@
                 document.getElementById('mgrLiveCount').innerText = count + " Active";
                 if(count === 0) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic py-4">Floor Clear</p>';
             }));
-
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("type", "==", "shift"), where("status", "==", "pending")), (snap) => {
                 const l = document.getElementById('slotRequestsList'); l.innerHTML = '';
                 if(snap.empty) l.innerHTML = '<p class="text-center text-gray-400 text-xs italic">No pending requests.</p>';
@@ -1298,22 +1350,16 @@
                     l.appendChild(el);
                 });
             }));
-
             loadSharedSchedule('mgrScheduleList');
-
             listeners.push(onSnapshot(query(collection(db, "users"), where("role", "==", "client")), (snap) => {
-                const l = document.getElementById('mgrClientList'); 
-                if(!l) return;
+                const l = document.getElementById('mgrClientList'); if(!l) return;
                 l.innerHTML = '';
                 if(snap.empty) { l.innerHTML = '<p class="text-center text-xs text-gray-400 italic p-4">No clients registered.</p>'; return; }
                 snap.forEach(d => {
                     const u = d.data();
-                    const el = document.createElement('div'); 
-                    el.className = "p-3 hover:bg-gray-50 transition mgr-client-item";
+                    const el = document.createElement('div'); el.className = "p-3 hover:bg-gray-50 transition mgr-client-item";
                     el.dataset.search = (u.name + " " + u.phone).toLowerCase();
-                    el.innerHTML = `
-                        <div class="flex justify-between items-start mb-2"><div><div class="font-bold text-sm text-gray-800">${u.name}</div><div class="text-[10px] text-gray-500 font-mono"><i class="fas fa-phone-alt mr-1"></i>${u.phone}</div><div class="text-[10px] text-gray-400 truncate max-w-[150px]"><i class="fas fa-map-marker-alt mr-1"></i>${u.address || 'No Address'}</div></div><div class="text-right"><div class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full mb-1 border border-green-100">₹${(u.walletBalance||0).toFixed(0)}</div></div></div>
-                        <div class="flex gap-2 mt-2"><button onclick="window.openRechargeModal('${d.id}')" class="flex-1 bg-indigo-50 text-indigo-600 py-1.5 rounded text-[10px] font-bold border border-indigo-100 hover:bg-indigo-100 transition"><i class="fas fa-bolt mr-1"></i> Recharge</button><button onclick="window.viewClientHistory('${d.id}')" class="flex-1 bg-purple-50 text-purple-600 py-1.5 rounded text-[10px] font-bold border border-purple-100 hover:bg-purple-100 transition shadow-sm"><i class="fas fa-history mr-1"></i> History</button></div>`;
+                    el.innerHTML = `<div class="flex justify-between items-start mb-2"><div><div class="font-bold text-sm text-gray-800">${u.name}</div><div class="text-[10px] text-gray-500 font-mono"><i class="fas fa-phone-alt mr-1"></i>${u.phone}</div><div class="text-[10px] text-gray-400 truncate max-w-[150px]"><i class="fas fa-map-marker-alt mr-1"></i>${u.address || 'No Address'}</div></div><div class="text-right"><div class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full mb-1 border border-green-100">₹${(u.walletBalance||0).toFixed(0)}</div></div></div><div class="flex gap-2 mt-2"><button onclick="window.openRechargeModal('${d.id}')" class="flex-1 bg-indigo-50 text-indigo-600 py-1.5 rounded text-[10px] font-bold border border-indigo-100 hover:bg-indigo-100 transition"><i class="fas fa-bolt mr-1"></i> Recharge</button><button onclick="window.viewClientHistory('${d.id}')" class="flex-1 bg-purple-50 text-purple-600 py-1.5 rounded text-[10px] font-bold border border-purple-100 hover:bg-purple-100 transition shadow-sm"><i class="fas fa-history mr-1"></i> History</button></div>`;
                     l.appendChild(el);
                 });
             }));
@@ -1323,7 +1369,6 @@
         function initMember() {
             const d = currentUserData;
             const isSquad = d.role === 'member';
-            
             document.getElementById('memberRoleBadge').innerText = isSquad ? "SQUAD MEMBER" : (d.role === 'manager' ? "MANAGER" : "FULL TIME");
             document.getElementById('mgrBackBtn').classList.toggle('hidden', d.role !== 'manager');
             document.getElementById('memberId').innerText = d.uid.substring(0,6).toUpperCase();
@@ -1332,7 +1377,6 @@
             document.getElementById('profileName').innerText = d.name;
             document.getElementById('profileEmail').innerText = d.email;
             document.getElementById('profileJoined').innerText = d.joinedAt?.toDate().toLocaleDateString() || '-';
-            
             const trainingAlert = document.getElementById('blockedFundsAlert');
             if(!isSquad) {
                 trainingAlert.classList.add('hidden');
@@ -1344,12 +1388,8 @@
                 document.getElementById('memberUpcomingSlotsBox').classList.add('hidden');
             } else {
                 const days = Math.floor((new Date() - (d.joinedAt?.toDate()||new Date()))/(1000*60*60*24));
-                if (days < APP_CONFIG.trainingDays) {
-                    trainingAlert.classList.remove('hidden');
-                    document.getElementById('memberBlockedWallet').innerText = (d.blockedWallet||0).toFixed(0);
-                } else {
-                    trainingAlert.classList.add('hidden');
-                }
+                if (days < APP_CONFIG.trainingDays) { trainingAlert.classList.remove('hidden'); document.getElementById('memberBlockedWallet').innerText = (d.blockedWallet||0).toFixed(0); }
+                else { trainingAlert.classList.add('hidden'); }
                 document.getElementById('profileSalaryDisplay').innerText = '';
                 document.getElementById('fullTimeFilter').classList.add('hidden');
                 document.getElementById('squadBookingUI').classList.remove('hidden');
@@ -1357,31 +1397,24 @@
                 document.getElementById('bookingTitle').innerText = "Book Slot (Next Day)";
                 document.getElementById('memberUpcomingSlotsBox').classList.remove('hidden');
             }
-
-            window.renderFullTimeStats(); 
-
+            window.renderFullTimeStats();
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("userId", "==", d.uid), where("status", "==", "active")), (snap) => {
                 const inBtn = document.getElementById('checkInBtnArea');
                 const outBtn = document.getElementById('checkOutBtnArea');
-                
                 if(!snap.empty) {
                     currentShiftId = snap.docs[0].id;
                     const start = snap.docs[0].data().checkInTime.toDate();
-                    inBtn.classList.add('hidden');
-                    outBtn.classList.remove('hidden');
+                    inBtn.classList.add('hidden'); outBtn.classList.remove('hidden');
                     if(workTimerInterval) clearInterval(workTimerInterval);
                     workTimerInterval = setInterval(() => {
                         const diff = new Date() - start;
                         document.getElementById('workTimer').innerText = new Date(diff).toISOString().substr(11, 8);
                     }, 1000);
                 } else {
-                    currentShiftId = null;
-                    inBtn.classList.remove('hidden');
-                    outBtn.classList.add('hidden');
+                    currentShiftId = null; inBtn.classList.remove('hidden'); outBtn.classList.add('hidden');
                     if(workTimerInterval) clearInterval(workTimerInterval);
                 }
             }));
-
             if(isSquad) {
                 const todayStr = new Date().toISOString().split('T')[0];
                 listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", d.uid), where("status", "==", "approved")), (snap) => {
@@ -1407,7 +1440,6 @@
             const uid = currentUserData.uid;
             document.getElementById('clientHeaderName').innerText = currentUserData.name;
             document.getElementById('clientWalletBalance').innerText = (currentUserData.walletBalance || 0).toFixed(2);
-
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("clientId", "==", uid), where("status", "==", "active")), (snap) => {
                 const l = document.getElementById('clientLiveList'); l.innerHTML = '';
                 document.getElementById('clientLiveCount').innerText = snap.size;
@@ -1418,7 +1450,6 @@
                     l.innerHTML += `<div class="bg-green-50 p-3 rounded-lg border border-green-100 flex justify-between"><span class="font-bold text-sm">${s.userName}</span><span class="text-xs text-green-700">In: ${start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div>`;
                 });
             }));
-
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("clientId", "==", uid)), (snap) => {
                 const l = document.getElementById('clientRequestList'); l.innerHTML = '';
                 snap.forEach(d => {
@@ -1428,7 +1459,6 @@
                     l.innerHTML += `<div class="flex justify-between items-center text-sm border-b border-gray-100 pb-2"><div><div class="font-bold">${r.date}</div><div class="text-xs text-gray-500">${r.startTime}-${r.endTime}</div></div><div class="text-right"><div class="text-[10px] bg-${color}-100 text-${color}-800 px-2 rounded font-bold uppercase">${statusBadge}</div><div class="text-xs font-bold text-blue-600">${r.assignedName || 'Unassigned'}</div></div></div>`;
                 });
             }));
-            
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("clientId", "==", uid), where("status", "==", "completed"), limit(10)), (snap) => {
                 const l = document.getElementById('clientWorkHistory'); l.innerHTML = '';
                 let history = [];
@@ -1439,7 +1469,6 @@
                     l.innerHTML += `<div class="flex justify-between text-sm border-b border-gray-100 pb-2"><span>${s.checkInTime.toDate().toLocaleDateString()} - ${s.userName}</span><span class="font-bold text-gray-700">${(s.hoursWorked||0).toFixed(2)} hrs</span></div>`;
                 });
             }));
-
             listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("clientId", "==", uid), where("status", "==", "approved")), (snap) => {
                 const l = document.getElementById('clientUpcomingList');
                 if (l) {
@@ -1458,12 +1487,11 @@
             }));
         }
 
-        // --- HELPERS & MODALS ---
+        // --- HELPERS ---
         window.renderFullTimeStats = async () => {
             if (!currentUserData) return;
             const isSquad = currentUserData.role === 'member';
             const grid = document.getElementById('statsGrid');
-            
             if (isSquad) {
                 grid.innerHTML = `<div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Wallet</p><p class="font-bold text-lg">₹${(currentUserData.mainWallet||0).toFixed(0)}</p></div><div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Points</p><p class="font-bold text-lg text-orange-400">${currentUserData.bonusWallet||0}</p></div><div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Strikes</p><p class="font-bold text-lg text-red-400">${currentUserData.strikes||0}</p></div>`;
             } else {
@@ -1474,7 +1502,6 @@
                 const now = new Date();
                 const currentMonth = now.getMonth();
                 const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-
                 snap.forEach(d => {
                     const s = d.data();
                     const date = s.checkInTime.toDate();
@@ -1484,7 +1511,6 @@
                     else if (filter === 'last_month' && date.getMonth() === lastMonth) include = true;
                     if (include) { hours += s.hoursWorked || 0; days++; }
                 });
-
                 grid.innerHTML = `<div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Days</p><p class="font-bold text-lg">${days}</p></div><div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Leaves</p><p class="font-bold text-lg text-red-400">${currentUserData.leavesTaken||0}</p></div><div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Hours</p><p class="font-bold text-lg">${hours.toFixed(1)}</p></div>`;
             }
         };
@@ -1493,13 +1519,10 @@
             const q = query(collection(db, "shifts"), where("userId", "==", currentUserData.uid), where("status", "==", "completed"), limit(50));
             const snap = await getDocs(q);
             const l = document.getElementById('historyList'); l.innerHTML = '';
-            
             let shifts = [];
             snap.forEach(d => shifts.push(d.data()));
             shifts.sort((a,b) => b.checkInTime.seconds - a.checkInTime.seconds);
-
             if(shifts.length === 0) { l.innerHTML = '<p class="text-center text-xs text-gray-400 italic mt-4">No work history found.</p>'; return; }
-
             shifts.forEach(s => {
                 const start = s.checkInTime.toDate();
                 const end = s.checkOutTime.toDate();
@@ -1514,8 +1537,7 @@
 
         async function loadPayouts() {
             const snap = await getDocs(query(collection(db, "payouts"), where("userId", "==", currentUserData.uid), limit(20)));
-            const l = document.getElementById('payoutHistoryList'); 
-            l.innerHTML = '';
+            const l = document.getElementById('payoutHistoryList'); l.innerHTML = '';
             let payouts = [];
             snap.forEach(d => payouts.push(d.data()));
             payouts.sort((a,b) => b.date.seconds - a.date.seconds);
@@ -1530,7 +1552,7 @@
         };
 
         window.switchMemberTab = (t) => {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); 
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
             ['Dashboard','History','Profile'].forEach(k => document.getElementById('member'+k).classList.add('hidden'));
             document.getElementById('member'+t.charAt(0).toUpperCase()+t.slice(1)).classList.remove('hidden');
@@ -1539,6 +1561,13 @@
         window.filterStaffTable = () => {
             const term = document.getElementById('staffSearch').value.toLowerCase();
             document.querySelectorAll('.search-item').forEach(row => { row.classList.toggle('hidden', !row.dataset.search.includes(term)); });
+        };
+
+        window.filterClientTable = () => {
+            const term = document.getElementById('clientSearch').value.toLowerCase();
+            document.querySelectorAll('#clientTableBody tr').forEach(row => {
+                row.classList.toggle('hidden', !row.innerText.toLowerCase().includes(term));
+            });
         };
 
         window.filterMgrClients = () => {
@@ -1570,88 +1599,6 @@
             } catch(e) { alert("Save Failed: " + e); }
         };
 
-        window.openEditShiftModal = async (id) => {
-            const s = (await getDoc(doc(db, "shifts", id))).data();
-            document.getElementById('editShiftId').value = id;
-            const toLocal = (ts) => {
-                if(!ts) return "";
-                const d = ts.toDate();
-                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-                return d.toISOString().slice(0,16);
-            };
-            document.getElementById('editShiftIn').value = toLocal(s.checkInTime);
-            document.getElementById('editShiftOut').value = toLocal(s.checkOutTime);
-            document.getElementById('editShiftModal').classList.remove('hidden');
-        };
-
-        document.getElementById('saveShiftTimeBtn').onclick = async () => {
-            const id = document.getElementById('editShiftId').value;
-            const inTimeStr = document.getElementById('editShiftIn').value;
-            const outTimeStr = document.getElementById('editShiftOut').value;
-            if(!inTimeStr) return alert("Check-in time is required");
-
-            try {
-                await runTransaction(db, async(t) => {
-                    const sRef = doc(db, "shifts", id);
-                    const s = (await t.get(sRef)).data();
-                    const uRef = doc(db, "users", s.userId);
-                    const u = (await t.get(uRef)).data();
-
-                    const newIn = new Date(inTimeStr);
-                    const newOut = outTimeStr ? new Date(outTimeStr) : null;
-                    let updates = { checkInTime: Timestamp.fromDate(newIn) };
-
-                    if (newOut) {
-                        const msWorked = newOut - newIn;
-                        const mins = msWorked / (1000 * 60);
-                        const hours = mins / 60;
-                        if (hours <= 0) throw "Invalid Duration";
-                        updates.checkOutTime = Timestamp.fromDate(newOut);
-                        updates.hoursWorked = hours;
-                        if(s.status === 'active') updates.status = 'completed';
-
-                        // Recalculate earnings & bonus for squad members
-                        if (u.role === 'member') {
-                            const rate = u.customRate || APP_CONFIG.hourlyRate;
-                            const bonusRate = u.customBonus || APP_CONFIG.bonusRate;
-                            const newPay = (rate / 60) * mins;
-                            const newBonus = Math.floor(hours * bonusRate);
-                            const oldPay = s.earnings || 0;
-                            const oldBonus = s.bonusEarned || 0;
-                            const payDiff = newPay - oldPay;
-                            const bonusDiff = newBonus - oldBonus;
-
-                            updates.earnings = newPay;
-                            updates.bonusEarned = newBonus;
-
-                            // Determine if user was in training when shift occurred
-                            const joinDate = u.joinedAt.toDate();
-                            const shiftDate = newIn;
-                            const daysAtShift = Math.floor((shiftDate - joinDate) / (1000 * 60 * 60 * 24));
-                            const wasTraining = daysAtShift < APP_CONFIG.trainingDays;
-
-                            // Only adjust wallets if shift was already completed (had old earnings)
-                            if (s.status === 'completed' || (s.status === 'active' && newOut)) {
-                                const userUpdates = {};
-                                if (wasTraining) {
-                                    userUpdates.blockedWallet = Math.max(0, (u.blockedWallet || 0) + payDiff);
-                                } else {
-                                    userUpdates.mainWallet = (u.mainWallet || 0) + payDiff;
-                                }
-                                userUpdates.bonusWallet = Math.max(0, (u.bonusWallet || 0) + bonusDiff);
-                                t.update(uRef, userUpdates);
-                            }
-                        }
-                    } else {
-                        if(s.checkOutTime) { updates.checkOutTime = null; updates.status = 'active'; updates.hoursWorked = 0; updates.earnings = 0; updates.bonusEarned = 0; }
-                    }
-                    t.update(sRef, updates);
-                });
-                showToast("Shift Updated — Earnings Recalculated");
-                document.getElementById('editShiftModal').classList.add('hidden');
-            } catch(e) { alert(e); }
-        };
-
         window.promptPay = (uid, bal, isFullTime) => {
             document.getElementById('payoutUid').value = uid;
             document.getElementById('payoutMax').value = isFullTime ? -1 : bal;
@@ -1679,6 +1626,8 @@
                 });
                 showToast("Payment Recorded Successfully");
                 document.getElementById('payoutModal').classList.add('hidden'); e.target.reset();
+                // Refresh detail modal if open
+                if (detailModalUserId === uid) loadDetailPayouts(uid);
             } catch(err) { alert(err); }
         };
 
@@ -1698,9 +1647,7 @@
                 document.getElementById('editUserBonus').value = u.bonusWallet||0;
                 document.getElementById('editUserBlocked').value = u.blockedWallet||0;
                 document.getElementById('editUserStrikes').value = u.strikes||0;
-            } else if (isFt) {
-                document.getElementById('editUserSalary').value = u.salary || 0;
-            }
+            } else if (isFt) { document.getElementById('editUserSalary').value = u.salary || 0; }
             document.getElementById('editUserModal').classList.remove('hidden');
             document.getElementById('addStrikeBtn').onclick = async () => {
                 if(!confirm("Add 1 Strike to this user?")) return;
@@ -1721,9 +1668,7 @@
                 updates.bonusWallet = Number(document.getElementById('editUserBonus').value);
                 updates.blockedWallet = Number(document.getElementById('editUserBlocked').value);
                 updates.strikes = Number(document.getElementById('editUserStrikes').value);
-            } else {
-                updates.salary = Number(document.getElementById('editUserSalary').value);
-            }
+            } else { updates.salary = Number(document.getElementById('editUserSalary').value); }
             await updateDoc(doc(db,"users",uid), updates);
             document.getElementById('editUserModal').classList.add('hidden');
             showToast("Profile Updated");
@@ -1736,11 +1681,7 @@
             if((currentUserData.strikes||0) >= 3) return alert("Account blocked due to strikes.");
             const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
             const dStr = tomorrow.toISOString().split('T')[0];
-            await addDoc(collection(db,"shift_requests"), { 
-                userId: currentUserData.uid, userName: currentUserData.name, 
-                date: dStr, startTime: s, endTime: e, 
-                status: 'pending', type: 'shift'
-            });
+            await addDoc(collection(db,"shift_requests"), { userId: currentUserData.uid, userName: currentUserData.name, date: dStr, startTime: s, endTime: e, status: 'pending', type: 'shift' });
             showToast("Slot Requested");
         };
 
@@ -1748,11 +1689,7 @@
             const date = document.getElementById('leaveDate').value;
             const reason = document.getElementById('leaveReason').value;
             if(!date) return showToast("Select Date");
-            await addDoc(collection(db,"shift_requests"), { 
-                userId: currentUserData.uid, userName: currentUserData.name, 
-                date: date, reason: reason,
-                status: 'pending', type: 'leave'
-            });
+            await addDoc(collection(db,"shift_requests"), { userId: currentUserData.uid, userName: currentUserData.name, date: date, reason: reason, status: 'pending', type: 'leave' });
             showToast("Leave Requested");
         };
 
@@ -1763,29 +1700,29 @@
         }
         function deg2rad(d) { return d*(Math.PI/180); }
         function showToast(m) { const t=document.getElementById('toast'); document.getElementById('toastMsg').innerText=m; t.classList.remove('translate-x-full'); setTimeout(()=>t.classList.add('translate-x-full'),3000); }
-        
+
         document.getElementById('createUserForm').onsubmit = async (e) => {
             e.preventDefault();
             try {
                 const cred = await createUserWithEmailAndPassword(secondaryAuth, document.getElementById('newUserEmail').value, document.getElementById('newUserPassword').value);
                 const role = document.getElementById('newUserRole').value;
                 const sal = document.getElementById('newUserSalary').value;
-                await setDoc(doc(db,"users",cred.user.uid), { 
-                    name: document.getElementById('newUserName').value, 
-                    email: document.getElementById('newUserEmail').value, 
-                    role: role,
-                    salary: role==='member' ? 0 : Number(sal),
-                    joinedAt: serverTimestamp(), 
-                    mainWallet:0, bonusWallet:0, blockedWallet:0, strikes:0, rating:5, totalHours:0, totalDays:0, leavesTaken:0 
-                });
+                await setDoc(doc(db,"users",cred.user.uid), { name: document.getElementById('newUserName').value, email: document.getElementById('newUserEmail').value, role: role, salary: role==='member' ? 0 : Number(sal), joinedAt: serverTimestamp(), mainWallet:0, bonusWallet:0, blockedWallet:0, strikes:0, rating:5, totalHours:0, totalDays:0, leavesTaken:0 });
                 await signOut(secondaryAuth);
                 document.getElementById('createUserModal').classList.add('hidden'); e.target.reset(); showToast("User Created");
             } catch(x) { alert(x.message); }
         };
 
         window.deleteUser = async (uid) => { if(confirm("Delete User Data?")) await deleteDoc(doc(db,"users",uid)); };
-        window.delShift = async (id) => { if(confirm("Delete Record?")) await deleteDoc(doc(db,"shifts",id)); };
-        
+        window.delShift = async (id) => {
+            if(confirm("Delete Record?")) {
+                await deleteDoc(doc(db,"shifts",id));
+                const from = document.getElementById('shiftFilterFrom').value;
+                const to = document.getElementById('shiftFilterTo').value;
+                if (from && to) loadAdminShifts(from, to); else loadAdminShifts();
+            }
+        };
+
         window.handleReq = async (id, st) => {
             const ref = doc(db,"shift_requests",id);
             const req = (await getDoc(ref)).data();
@@ -1797,7 +1734,7 @@
                     await updateDoc(uRef, { leavesTaken: (u.leavesTaken||0) + 1 });
                 }
             } else { await updateDoc(ref, { status: st }); }
-            showToast("Updated"); 
+            showToast("Updated");
         };
 
         window.openRedeemModal = async () => {
@@ -1830,18 +1767,7 @@
                 const em = document.getElementById('cliEmail').value;
                 const ps = document.getElementById('cliPass').value;
                 const cred = await createUserWithEmailAndPassword(secondaryAuth, em, ps);
-                await setDoc(doc(db, "users", cred.user.uid), {
-                    name: document.getElementById('cliName').value,
-                    phone: document.getElementById('cliPhone').value,
-                    address: document.getElementById('cliAddress').value,
-                    lat: Number(document.getElementById('cliLat').value),
-                    lng: Number(document.getElementById('cliLng').value),
-                    email: em,
-                    role: 'client',
-                    dueAmount: 0,
-                    walletBalance: 0,
-                    joinedAt: serverTimestamp()
-                });
+                await setDoc(doc(db, "users", cred.user.uid), { name: document.getElementById('cliName').value, phone: document.getElementById('cliPhone').value, address: document.getElementById('cliAddress').value, lat: Number(document.getElementById('cliLat').value), lng: Number(document.getElementById('cliLng').value), email: em, role: 'client', dueAmount: 0, walletBalance: 0, joinedAt: serverTimestamp() });
                 await signOut(secondaryAuth);
                 document.getElementById('createClientModal').classList.add('hidden'); e.target.reset(); showToast("Client Registered");
             } catch(x) { alert(x.message); }
@@ -1852,14 +1778,7 @@
             const s = document.getElementById('serviceStart').value;
             const e = document.getElementById('serviceEnd').value;
             if(!d || !s || !e) return showToast("Fill all fields");
-            await addDoc(collection(db, "shift_requests"), {
-                clientId: currentUserData.uid,
-                clientName: currentUserData.name,
-                type: 'service',
-                date: d, startTime: s, endTime: e,
-                status: 'pending',
-                createdAt: serverTimestamp()
-            });
+            await addDoc(collection(db, "shift_requests"), { clientId: currentUserData.uid, clientName: currentUserData.name, type: 'service', date: d, startTime: s, endTime: e, status: 'pending', createdAt: serverTimestamp() });
             showToast("Request Sent");
         };
 
@@ -1867,12 +1786,7 @@
             document.getElementById('assignReqId').value = reqId;
             const s = document.getElementById('assignStaffSelect'); s.innerHTML = '';
             const snap = await getDocs(query(collection(db,"users"), where("role","==","member")));
-            snap.forEach(d => {
-                const u = d.data();
-                const o = document.createElement('option');
-                o.value = d.id; o.innerText = u.name;
-                s.appendChild(o);
-            });
+            snap.forEach(d => { const u = d.data(); const o = document.createElement('option'); o.value = d.id; o.innerText = u.name; s.appendChild(o); });
             document.getElementById('assignModal').classList.remove('hidden');
         };
 
@@ -1880,12 +1794,7 @@
             const rid = document.getElementById('assignReqId').value;
             const uid = document.getElementById('assignStaffSelect').value;
             const uName = document.getElementById('assignStaffSelect').options[document.getElementById('assignStaffSelect').selectedIndex].text;
-            await updateDoc(doc(db, "shift_requests", rid), {
-                status: 'assigned',
-                assignedTo: uid,
-                userId: uid,
-                assignedName: uName
-            });
+            await updateDoc(doc(db, "shift_requests", rid), { status: 'assigned', assignedTo: uid, userId: uid, assignedName: uName });
             document.getElementById('assignModal').classList.add('hidden');
             showToast("Staff Assigned");
         };
@@ -1919,11 +1828,8 @@
             const end = document.getElementById('manageSlotEnd').value;
             const uName = document.getElementById('manageSlotStaff').options[document.getElementById('manageSlotStaff').selectedIndex].text;
             let updates = { startTime: start, endTime: end };
-            if (uid) {
-                updates.assignedTo = uid; updates.userId = uid; updates.assignedName = uName; updates.status = 'approved'; 
-            } else {
-                updates.assignedTo = null; updates.userId = null; updates.assignedName = null; updates.status = 'pending';
-            }
+            if (uid) { updates.assignedTo = uid; updates.userId = uid; updates.assignedName = uName; updates.status = 'approved'; }
+            else { updates.assignedTo = null; updates.userId = null; updates.assignedName = null; updates.status = 'pending'; }
             await updateDoc(doc(db, "shift_requests", id), updates);
             document.getElementById('manageSlotModal').classList.add('hidden');
             showToast("Slot Updated");
@@ -1936,7 +1842,7 @@
             document.getElementById('manageSlotModal').classList.add('hidden');
             showToast("Slot Deleted");
         };
-        
+
         window.openRechargeModal = (uid) => {
             document.getElementById('rechargeUid').value = uid;
             document.getElementById('rechargeAmount').value = '';
@@ -1986,9 +1892,8 @@
                 snap.forEach(d => txns.push(d.data()));
                 txns.sort((a, b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
                 contentDiv.innerHTML = '';
-                if(txns.length === 0) {
-                    contentDiv.innerHTML = '<div class="text-center py-8"><div class="bg-gray-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 text-gray-300"><i class="fas fa-receipt"></i></div><p class="text-gray-400 text-xs italic">No history found.</p></div>';
-                } else {
+                if(txns.length === 0) { contentDiv.innerHTML = '<div class="text-center py-8"><div class="bg-gray-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 text-gray-300"><i class="fas fa-receipt"></i></div><p class="text-gray-400 text-xs italic">No history found.</p></div>'; }
+                else {
                     txns.forEach(t => {
                         const dateObj = t.date ? t.date.toDate() : new Date();
                         const dateStr = dateObj.toLocaleDateString();
@@ -2003,145 +1908,12 @@
             } catch (e) { contentDiv.innerHTML = `<p class="text-center text-red-400 text-xs p-4 bg-red-50 rounded border border-red-100">Error: ${e.message}</p>`; }
         };
 
-
-        // ============================================================
-        // STAFF DETAIL PANEL
-        // ============================================================
-        window._staffDetailUid = null;
-
-        window.openStaffDetail = async (uid) => {
-            window._staffDetailUid = uid;
-            const panel = document.getElementById('staffDetailPanel');
-            panel.classList.remove('hidden');
-
-            // Load user data
-            const uSnap = await getDoc(doc(db, 'users', uid));
-            if (!uSnap.exists()) { panel.classList.add('hidden'); showToast('User not found'); return; }
-            const u = uSnap.data();
-
-            // Header
-            document.getElementById('staffDetailName').innerText = u.name;
-            document.getElementById('staffDetailRole').innerText = u.role.toUpperCase();
-            document.getElementById('staffDetailNameBig').innerText = u.name;
-            document.getElementById('staffDetailEmail').innerText = u.email || '';
-            document.getElementById('staffDetailInitials').innerText = u.name.substring(0,2).toUpperCase();
-            document.getElementById('staffDetailJoined').innerText = 'Joined: ' + (u.joinedAt?.toDate().toLocaleDateString() || '-');
-
-            // Stats
-            const statsEl = document.getElementById('staffDetailStats');
-            if (u.role === 'member') {
-                const walletInfo = document.getElementById('staffDetailWalletInfo');
-                walletInfo.innerText = `Available wallet: ₹${(u.mainWallet||0).toFixed(0)} | Locked: ₹${(u.blockedWallet||0).toFixed(0)}`;
-                statsEl.innerHTML = `
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Wallet</p><p class="font-bold text-base">₹${(u.mainWallet||0).toFixed(0)}</p></div>
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Points</p><p class="font-bold text-base text-orange-400">${u.bonusWallet||0}</p></div>
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Strikes</p><p class="font-bold text-base text-red-400">${u.strikes||0}</p></div>`;
-                document.getElementById('staffDetailPayoutArea').classList.remove('hidden');
-            } else {
-                statsEl.innerHTML = `
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Salary</p><p class="font-bold text-base">₹${u.salary||0}</p></div>
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Days</p><p class="font-bold text-base">${u.totalDays||0}</p></div>
-                    <div class="text-center p-2 rounded-lg bg-gray-800/50"><p class="text-[10px] uppercase text-gray-400 mb-1">Leaves</p><p class="font-bold text-base text-red-400">${u.leavesTaken||0}</p></div>`;
-                document.getElementById('staffDetailPayoutArea').classList.remove('hidden');
-                document.getElementById('staffDetailWalletInfo').innerText = 'Record salary payment';
-            }
-
-            // Load payout history
-            const payoutsEl = document.getElementById('staffDetailPayouts');
-            payoutsEl.innerHTML = '<p class="text-center text-xs text-gray-400 italic">Loading...</p>';
-            const paySnap = await getDocs(query(collection(db, 'payouts'), where('userId', '==', uid), orderBy('date', 'desc'), limit(30)));
-            payoutsEl.innerHTML = '';
-            if (paySnap.empty) {
-                payoutsEl.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-3">No payouts recorded yet.</p>';
-            } else {
-                paySnap.forEach(d => {
-                    const p = d.data();
-                    const dateStr = p.date?.toDate().toLocaleDateString() || '-';
-                    const timeStr = p.date?.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) || '';
-                    payoutsEl.innerHTML += `<div class="flex justify-between items-center bg-green-50 border border-green-100 rounded-lg px-3 py-2">
-                        <div><div class="text-xs font-bold text-gray-700">${dateStr} <span class="text-gray-400 font-normal">${timeStr}</span></div><div class="text-[10px] text-gray-400">by ${p.by||'Admin'}</div></div>
-                        <span class="font-bold text-green-600 text-sm">+₹${p.amount}</span>
-                    </div>`;
-                });
-            }
-
-            // Load shift history
-            const shiftsEl = document.getElementById('staffDetailShifts');
-            const shiftCountEl = document.getElementById('staffDetailShiftCount');
-            shiftsEl.innerHTML = '<p class="text-center text-xs text-gray-400 italic p-4">Loading...</p>';
-            const shiftSnap = await getDocs(query(collection(db, 'shifts'), where('userId', '==', uid), where('status', '==', 'completed'), orderBy('checkInTime', 'desc'), limit(50)));
-            shiftsEl.innerHTML = '';
-            shiftCountEl.innerText = shiftSnap.size + ' shifts';
-            if (shiftSnap.empty) {
-                shiftsEl.innerHTML = '<p class="text-center text-xs text-gray-400 italic p-4">No completed shifts yet.</p>';
-            } else {
-                shiftSnap.forEach(d => {
-                    const s = d.data();
-                    const start = s.checkInTime.toDate();
-                    const end = s.checkOutTime?.toDate();
-                    const timeStr = end ? `${start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} – ${end.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}` : '';
-                    const earn = u.role === 'member' ? `<span class="text-green-600 font-bold text-xs">₹${(s.earnings||0).toFixed(0)}</span>` : '';
-                    shiftsEl.innerHTML += `<div class="flex justify-between items-center px-4 py-3 hover:bg-gray-50 transition">
-                        <div>
-                            <div class="text-xs font-bold text-gray-700">${start.toLocaleDateString()}</div>
-                            <div class="text-[10px] text-gray-400 font-mono">${timeStr}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-gray-600">${(s.hoursWorked||0).toFixed(2)}h</div>
-                            ${earn}
-                        </div>
-                    </div>`;
-                });
-            }
-        };
-
-        window.closeStaffDetail = () => {
-            document.getElementById('staffDetailPanel').classList.add('hidden');
-            window._staffDetailUid = null;
-        };
-
-        window.deleteStaffFromDetail = async () => {
-            if (!window._staffDetailUid) return;
-            if (!confirm('Delete this staff member? This cannot be undone.')) return;
-            await deleteDoc(doc(db, 'users', window._staffDetailUid));
-            window.closeStaffDetail();
-            showToast('Staff deleted');
-        };
-
-        window.processStaffDetailPayout = async () => {
-            const uid = window._staffDetailUid;
-            if (!uid) return;
-            const amt = Number(document.getElementById('staffDetailPayAmt').value);
-            if (!amt || amt <= 0) return showToast('Enter a valid amount');
-            try {
-                await runTransaction(db, async (t) => {
-                    const userRef = doc(db, 'users', uid);
-                    const userDoc = await t.get(userRef);
-                    const u = userDoc.data();
-                    if (u.role === 'member') {
-                        const newBal = (u.mainWallet || 0) - amt;
-                        if (newBal < 0) throw 'Insufficient wallet balance';
-                        t.update(userRef, { mainWallet: newBal });
-                    }
-                    const payRef = doc(collection(db, 'payouts'));
-                    t.set(payRef, { userId: uid, amount: amt, date: serverTimestamp(), by: currentUserData.name });
-                });
-                showToast('Payment Recorded');
-                document.getElementById('staffDetailPayAmt').value = '';
-                // Refresh the panel
-                window.openStaffDetail(uid);
-            } catch(err) { alert(err); }
-        };
-        // ============================================================
-
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); }
-            catch(x) { document.getElementById('authError').innerText = x.message; document.getElementById('authError').classList.remove('hidden'); }
+            catch(x) { document.getElementById('authError').innerText = "Invalid Credentials"; document.getElementById('authError').classList.remove('hidden'); }
         };
-
         document.getElementById('logoutBtn').onclick = () => signOut(auth);
-
     </script>
 </body>
 </html>
