@@ -2179,4 +2179,24 @@
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); }
-            catch(x) { document.getElementById('authError
+            catch(x) { document.getElementById('authError').innerText = x.message; document.getElementById('authError').classList.remove('hidden'); }
+        };
+
+        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+    </script>
+
+    <!-- Unregister any ghost service workers (e.g. from old Cloudflare/PWA deployments) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                registrations.forEach(reg => {
+                    reg.unregister().then(unregistered => {
+                        if (unregistered) console.log('[SW] Ghost service worker unregistered:', reg.scope);
+                    });
+                });
+            });
+        }
+    </script>
+</body>
+</html>
