@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JT Squad Manager v2.4</title>
+    <title>JT Squad Manager v2.3</title>
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkp1aWNlIFRoZXJhcHkgU3F1YWQiLAogICJzaG9ydF9uYW1lIjogIkpUIFNxdWFkIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciI6ICIjZjk3MzE2Igp9">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -474,9 +474,11 @@
                     </div>
 
                     <!-- Tabs -->
-                    <div class="flex border-b bg-white shrink-0">
-                        <button class="flex-1 py-2.5 text-xs font-bold detail-tab-btn active-detail-tab" onclick="switchDetailTab('payouts', event)"><i class="fas fa-receipt mr-1"></i>Payouts</button>
-                        <button class="flex-1 py-2.5 text-xs font-bold detail-tab-btn" onclick="switchDetailTab('shifts', event)"><i class="fas fa-clock mr-1"></i>Shifts</button>
+                    <div class="flex border-b bg-white shrink-0 overflow-x-auto">
+                        <button class="flex-1 py-2.5 text-xs font-bold detail-tab-btn active-detail-tab whitespace-nowrap px-2" onclick="switchDetailTab('payouts', event)"><i class="fas fa-receipt mr-1"></i>Payouts</button>
+                        <button class="flex-1 py-2.5 text-xs font-bold detail-tab-btn whitespace-nowrap px-2" onclick="switchDetailTab('shifts', event)"><i class="fas fa-clock mr-1"></i>Shifts</button>
+                        <button id="detailBonusTabBtn" class="flex-1 py-2.5 text-xs font-bold detail-tab-btn hidden whitespace-nowrap px-2" onclick="switchDetailTab('bonus', event)"><i class="fas fa-gift mr-1"></i>Bonus</button>
+                        <button id="detailLeavesTabBtn" class="flex-1 py-2.5 text-xs font-bold detail-tab-btn hidden whitespace-nowrap px-2" onclick="switchDetailTab('leaves', event)"><i class="fas fa-calendar-alt mr-1"></i>Leaves</button>
                     </div>
 
                     <!-- Tab Content -->
@@ -486,6 +488,21 @@
                         </div>
                         <div id="detailTab-shifts" class="hidden space-y-3">
                             <div id="detailShiftList"><p class="text-center text-xs text-gray-400 italic py-4">Loading shifts...</p></div>
+                        </div>
+                        <div id="detailTab-bonus" class="hidden space-y-3">
+                            <div id="detailBonusList"><p class="text-center text-xs text-gray-400 italic py-4">Loading bonus history...</p></div>
+                        </div>
+                        <div id="detailTab-leaves" class="hidden space-y-3">
+                            <!-- Upcoming approved -->
+                            <div class="mb-2">
+                                <p class="text-[10px] font-bold text-green-600 uppercase tracking-wide mb-2"><i class="fas fa-calendar-check mr-1"></i>Upcoming Approved Leaves</p>
+                                <div id="detailUpcomingLeaves"><p class="text-center text-xs text-gray-400 italic">Loading...</p></div>
+                            </div>
+                            <!-- Full leave history -->
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2"><i class="fas fa-history mr-1"></i>All Leave Requests</p>
+                                <div id="detailLeaveHistory"><p class="text-center text-xs text-gray-400 italic">Loading...</p></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1083,24 +1100,35 @@
             // Default to payouts tab
             switchDetailTab('payouts', null, true);
             loadDetailPayouts(uid);
+
+            // Show role-specific tabs
+            const isSquad = u.role === 'member';
+            const isFullTime = u.role === 'fulltime';
+            document.getElementById('detailBonusTabBtn').classList.toggle('hidden', !isSquad);
+            document.getElementById('detailLeavesTabBtn').classList.toggle('hidden', !isFullTime);
         };
 
         function switchDetailTab(tab, event, skipButtonToggle = false) {
+            const allTabs = ['payouts', 'shifts', 'bonus', 'leaves'];
             if (!skipButtonToggle && event) {
                 document.querySelectorAll('.detail-tab-btn').forEach(b => b.classList.remove('active-detail-tab'));
                 event.currentTarget.classList.add('active-detail-tab');
             } else if (!skipButtonToggle) {
                 document.querySelectorAll('.detail-tab-btn').forEach((b, i) => {
-                    b.classList.toggle('active-detail-tab', (tab === 'payouts' && i === 0) || (tab === 'shifts' && i === 1));
+                    b.classList.toggle('active-detail-tab', allTabs[i] === tab);
                 });
             } else {
                 document.querySelectorAll('.detail-tab-btn').forEach((b, i) => {
                     b.classList.toggle('active-detail-tab', i === 0);
                 });
             }
-            document.getElementById('detailTab-payouts').classList.toggle('hidden', tab !== 'payouts');
-            document.getElementById('detailTab-shifts').classList.toggle('hidden', tab !== 'shifts');
+            allTabs.forEach(t => {
+                const el = document.getElementById(`detailTab-${t}`);
+                if (el) el.classList.toggle('hidden', t !== tab);
+            });
             if (tab === 'shifts' && detailModalUserId) loadDetailShifts(detailModalUserId);
+            if (tab === 'bonus' && detailModalUserId) loadDetailBonusHistory(detailModalUserId);
+            if (tab === 'leaves' && detailModalUserId) loadDetailLeaveHistory(detailModalUserId);
         }
         window.switchDetailTab = switchDetailTab;
 
@@ -1162,6 +1190,104 @@
                 });
                 container.innerHTML = `<div class="bg-gray-800 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-gray-400">${totalHours.toFixed(1)}h · ${snap.size} shifts</span><span class="font-bold text-green-400">₹${totalEarnings.toFixed(0)} earned</span></div>` + container.innerHTML;
             } catch(e) { container.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`; }
+        }
+
+        async function loadDetailBonusHistory(uid) {
+            const container = document.getElementById('detailBonusList');
+            container.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4"><i class="fas fa-circle-notch fa-spin mr-2"></i>Loading...</p>';
+            try {
+                const snap = await getDocs(query(collection(db, "bonus_redemptions"), where("userId", "==", uid), orderBy("date", "desc"), limit(50)));
+                container.innerHTML = '';
+                if (snap.empty) {
+                    container.innerHTML = '<div class="text-center py-8"><i class="fas fa-gift text-gray-200 text-3xl mb-2"></i><p class="text-xs text-gray-400 italic">No bonus redemptions yet.</p></div>';
+                    return;
+                }
+                let totalPts = 0;
+                snap.forEach(d => {
+                    const r = d.data();
+                    totalPts += r.points;
+                    const dateObj = r.date ? r.date.toDate() : new Date();
+                    const dateStr = dateObj.toLocaleDateString();
+                    const timeStr = dateObj.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    container.innerHTML += `
+                        <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
+                            <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fas fa-gift text-sm"></i></div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <span class="font-bold text-xs text-gray-800 truncate pr-2">${r.description || 'Bonus Redeemed'}</span>
+                                    <span class="font-bold text-sm text-orange-600 whitespace-nowrap">-${r.points} pts</span>
+                                </div>
+                                <div class="text-[10px] text-gray-400 mt-0.5 flex justify-between">
+                                    <span><i class="far fa-clock mr-1"></i>${dateStr} at ${timeStr}</span>
+                                    <span class="text-gray-400">By: ${r.by || 'Admin'}</span>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = `<div class="bg-orange-600 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-orange-100">Total Redeemed</span><span class="font-bold text-white">${totalPts} pts across ${snap.size} redemptions</span></div>` + container.innerHTML;
+            } catch(e) { container.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`; }
+        }
+
+        async function loadDetailLeaveHistory(uid) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const upcomingContainer = document.getElementById('detailUpcomingLeaves');
+            const histContainer = document.getElementById('detailLeaveHistory');
+            upcomingContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-2"><i class="fas fa-circle-notch fa-spin mr-1"></i>Loading...</p>';
+            histContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-2"><i class="fas fa-circle-notch fa-spin mr-1"></i>Loading...</p>';
+            try {
+                const snap = await getDocs(query(collection(db, "shift_requests"), where("userId", "==", uid), where("type", "==", "leave"), orderBy("date", "desc"), limit(50)));
+                let leaves = [];
+                snap.forEach(d => leaves.push({ id: d.id, ...d.data() }));
+
+                // Upcoming approved
+                const upcoming = leaves.filter(r => r.status === 'approved' && r.date >= todayStr).sort((a,b) => a.date > b.date ? 1 : -1);
+                upcomingContainer.innerHTML = '';
+                if (upcoming.length === 0) {
+                    upcomingContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No upcoming approved leaves.</p>';
+                } else {
+                    upcoming.forEach(r => {
+                        upcomingContainer.innerHTML += `
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100 mb-2">
+                                <div>
+                                    <div class="font-bold text-sm text-green-800">${r.date}</div>
+                                    <div class="text-[10px] text-green-600 italic mt-0.5">${r.reason || 'No reason given'}</div>
+                                </div>
+                                <span class="text-[10px] bg-green-600 text-white px-2 py-1 rounded font-bold">UPCOMING</span>
+                            </div>`;
+                    });
+                }
+
+                // All leaves history
+                histContainer.innerHTML = '';
+                if (leaves.length === 0) {
+                    histContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No leave requests found.</p>';
+                    return;
+                }
+                const statusConfig = {
+                    'approved': { bg: 'bg-green-50 border-green-100', badge: 'bg-green-600 text-white', label: 'APPROVED', icon: 'fa-check-circle text-green-500' },
+                    'rejected': { bg: 'bg-red-50 border-red-100',   badge: 'bg-red-600 text-white',   label: 'REJECTED', icon: 'fa-times-circle text-red-500' },
+                    'pending':  { bg: 'bg-yellow-50 border-yellow-100', badge: 'bg-yellow-500 text-white', label: 'PENDING', icon: 'fa-clock text-yellow-500' }
+                };
+                const totalLeaves = leaves.filter(r => r.status === 'approved').length;
+                histContainer.innerHTML = `<div class="bg-gray-800 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-gray-400">Total Requests</span><span class="font-bold text-yellow-300">${leaves.length} requests · ${totalLeaves} approved</span></div>`;
+                leaves.forEach(r => {
+                    const cfg = statusConfig[r.status] || statusConfig['pending'];
+                    histContainer.innerHTML += `
+                        <div class="flex items-center gap-3 p-3 ${cfg.bg} rounded-xl border mb-2">
+                            <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"><i class="fas ${cfg.icon} text-sm"></i></div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <span class="font-bold text-sm text-gray-800">${r.date}</span>
+                                    <span class="text-[10px] ${cfg.badge} px-2 py-0.5 rounded font-bold">${cfg.label}</span>
+                                </div>
+                                <div class="text-[10px] text-gray-500 italic mt-0.5">${r.reason || 'No reason given'}</div>
+                            </div>
+                        </div>`;
+                });
+            } catch(e) {
+                upcomingContainer.innerHTML = '';
+                histContainer.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`;
+            }
         }
 
         window.openDetailPay = () => {
