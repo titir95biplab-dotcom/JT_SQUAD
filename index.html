@@ -3,6 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Kill any ghost service workers FIRST before Firebase or anything else loads -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                if (regs.length > 0) {
+                    Promise.all(regs.map(r => r.unregister())).then(() => {
+                        // Reload once so this page load is fully SW-free
+                        window.location.reload();
+                    });
+                }
+            });
+        }
+    </script>
     <title>JT Squad Manager v2.3</title>
     <script>
         // Generate a valid PWA manifest as a Blob URL so start_url resolves correctly on any domain
@@ -1120,8 +1133,7 @@
             switchDetailTab('payouts', null, true);
             loadDetailPayouts(uid);
 
-            // Show role-specific tabs
-            const isSquad = u.role === 'member';
+            // Show role-specific tabs (isSquad already declared above)
             const isFullTime = u.role === 'fulltime';
             document.getElementById('detailBonusTabBtn').classList.toggle('hidden', !isSquad);
             document.getElementById('detailLeavesTabBtn').classList.toggle('hidden', !isFullTime);
@@ -2184,19 +2196,6 @@
 
         document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
-    </script>
-
-    <!-- Unregister any ghost service workers (e.g. from old Cloudflare/PWA deployments) -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-                registrations.forEach(reg => {
-                    reg.unregister().then(unregistered => {
-                        if (unregistered) console.log('[SW] Ghost service worker unregistered:', reg.scope);
-                    });
-                });
-            });
-        }
     </script>
 </body>
 </html>
