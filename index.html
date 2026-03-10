@@ -389,6 +389,24 @@
                     </div>
                     <div id="ftLeaveUI" class="hidden space-y-3">
                         <input type="date" id="leaveDate" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+                        <!-- Full day / Half day toggle -->
+                        <div class="flex gap-2">
+                            <button id="leaveFull" onclick="window.setLeaveType('full')" class="flex-1 py-2.5 rounded-lg border-2 border-blue-500 bg-blue-500 text-white text-xs font-bold transition">
+                                <i class="fas fa-sun mr-1"></i> Full Day
+                            </button>
+                            <button id="leaveHalf" onclick="window.setLeaveType('half')" class="flex-1 py-2.5 rounded-lg border-2 border-gray-200 bg-white text-gray-500 text-xs font-bold transition">
+                                <i class="fas fa-adjust mr-1"></i> Half Day
+                            </button>
+                        </div>
+                        <!-- Half day session selector (hidden by default) -->
+                        <div id="halfDaySession" class="hidden flex gap-2">
+                            <button id="sessionAM" onclick="window.setLeaveSession('AM')" class="flex-1 py-2 rounded-lg border-2 border-orange-400 bg-orange-400 text-white text-xs font-bold transition">
+                                <i class="fas fa-cloud-sun mr-1"></i> Morning (AM)
+                            </button>
+                            <button id="sessionPM" onclick="window.setLeaveSession('PM')" class="flex-1 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-500 text-xs font-bold transition">
+                                <i class="fas fa-moon mr-1"></i> Afternoon (PM)
+                            </button>
+                        </div>
                         <textarea id="leaveReason" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm" placeholder="Reason for leave..."></textarea>
                         <button id="requestLeaveBtn" class="w-full py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 rounded-lg font-bold text-sm transition">Submit Leave Request</button>
                     </div>
@@ -871,7 +889,7 @@
             }
         };
 
-        window.forceStop = async (id, checkoutPhoto = null) => {
+        window.forceStop = async (id, checkoutPhoto = null, terminatedBy = null) => {
             try {
                 await runTransaction(db, async (t) => {
                     const sRef = doc(db, "shifts", id);
@@ -908,7 +926,9 @@
                             t.set(transRef, { clientId: s.clientId, amount: bill, type: 'service_deduction', date: serverTimestamp(), details: `Service: ${s.userName} (${hoursWorked.toFixed(2)}h)` });
                         }
                     }
-                    t.update(sRef, { status: 'completed', checkOutTime: serverTimestamp(), hoursWorked: hoursWorked, earnings: pay, checkOutPhoto: checkoutPhoto });
+                    const shiftUpdate = { status: 'completed', checkOutTime: serverTimestamp(), hoursWorked: hoursWorked, earnings: pay, checkOutPhoto: checkoutPhoto };
+                    if (terminatedBy) { shiftUpdate.terminatedBy = terminatedBy; }
+                    t.update(sRef, shiftUpdate);
                     t.update(uRef, updates);
                 });
                 showToast("Shift Ended & Verified!");
@@ -978,7 +998,7 @@
                 snap.forEach(d => {
                     const r = d.data();
                     const el = document.createElement('div'); el.className="bg-red-50 p-3 rounded-lg flex justify-between items-center border border-red-100";
-                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName} <span class="text-[10px] bg-red-200 text-red-800 px-1 rounded">LEAVE</span></p><p class="text-xs text-gray-600">${r.date}</p><p class="text-[10px] italic text-gray-500">"${r.reason||'No reason'}"</p></div><div class="flex gap-2"><button onclick="window.handleReq('${d.id}','approved')" class="text-green-600 bg-white border px-2 py-1 rounded text-xs font-bold">Approve</button><button onclick="window.handleReq('${d.id}','rejected')" class="text-red-600 bg-white border px-2 py-1 rounded text-xs font-bold">Reject</button></div>`;
+                    el.innerHTML = `<div><p class="font-bold text-sm">${r.userName} <span class="text-[10px] bg-red-200 text-red-800 px-1 rounded">LEAVE</span> ${r.leaveType === 'half' ? `<span class="text-[10px] bg-purple-200 text-purple-800 px-1 rounded">${r.session||'AM'} HALF</span>` : '<span class="text-[10px] bg-blue-200 text-blue-800 px-1 rounded">FULL DAY</span>'}</p><p class="text-xs text-gray-600">${r.date}</p><p class="text-[10px] italic text-gray-500">"${r.reason||'No reason'}"</p></div><div class="flex gap-2"><button onclick="window.handleReq('${d.id}','approved')" class="text-green-600 bg-white border px-2 py-1 rounded text-xs font-bold">Approve</button><button onclick="window.handleReq('${d.id}','rejected')" class="text-red-600 bg-white border px-2 py-1 rounded text-xs font-bold">Reject</button></div>`;
                     l.appendChild(el);
                 });
             }));
@@ -1205,13 +1225,15 @@
                     const dateStr = start?.toLocaleDateString();
                     const timeIn = start?.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                     const timeOut = end ? end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '—';
-                    const statusColor = s.status === 'active' ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100';
+                    const statusColor = s.status === 'active' ? 'bg-green-50 border-green-100' : (s.terminatedBy ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100');
                     const statusBadge = s.status === 'active' ? '<span class="text-[10px] bg-green-200 text-green-800 px-1.5 py-0.5 rounded font-bold animate-pulse">ACTIVE</span>' : `<span class="text-[10px] font-bold text-green-700">₹${(s.earnings||0).toFixed(2)}</span>`;
+                    const terminatedBadge = s.terminatedBy ? `<div class="text-[10px] text-red-500 font-bold mt-1"><i class="fas fa-exclamation-circle mr-1"></i>Ended by ${s.terminatedBy}</div>` : '';
                     container.innerHTML += `
                         <div class="flex justify-between items-center p-3 rounded-xl border ${statusColor}">
                             <div>
                                 <div class="font-bold text-sm text-gray-800">${dateStr}</div>
                                 <div class="text-[10px] font-mono text-gray-500">${timeIn} → ${timeOut}</div>
+                                ${terminatedBadge}
                             </div>
                             <div class="text-right">
                                 <div class="text-xs font-bold text-gray-700">${s.status === 'active' ? '...' : (s.hoursWorked||0).toFixed(2)} hrs</div>
@@ -1303,12 +1325,15 @@
                 histContainer.innerHTML = `<div class="bg-gray-800 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-gray-400">Total Requests</span><span class="font-bold text-yellow-300">${leaves.length} requests · ${totalLeaves} approved</span></div>`;
                 leaves.forEach(r => {
                     const cfg = statusConfig[r.status] || statusConfig['pending'];
+                    const leaveTypeBadge = r.leaveType === 'half'
+                        ? `<span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold ml-1">${r.session || 'AM'} Half</span>`
+                        : `<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold ml-1">Full Day</span>`;
                     histContainer.innerHTML += `
                         <div class="flex items-center gap-3 p-3 ${cfg.bg} rounded-xl border mb-2">
                             <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"><i class="fas ${cfg.icon} text-sm"></i></div>
                             <div class="flex-grow">
                                 <div class="flex justify-between items-start">
-                                    <span class="font-bold text-sm text-gray-800">${r.date}</span>
+                                    <span class="font-bold text-sm text-gray-800">${r.date} ${leaveTypeBadge}</span>
                                     <span class="text-[10px] ${cfg.badge} px-2 py-0.5 rounded font-bold">${cfg.label}</span>
                                 </div>
                                 <div class="text-[10px] text-gray-500 italic mt-0.5">${r.reason || 'No reason given'}</div>
@@ -1516,7 +1541,7 @@
                     const s = d.data(); count++;
                     const start = s.checkInTime.toDate();
                     const el = document.createElement('div'); el.className="flex justify-between items-center bg-green-50 p-3 rounded-lg border border-green-100";
-                    el.innerHTML = `<div><p class="font-bold text-sm">${s.userName}</p><p class="text-[10px] text-green-700 font-mono">In: ${start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div><button onclick="window.forceStop('${d.id}')" class="text-xs bg-white border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50">End Session</button>`;
+                    el.innerHTML = `<div><p class="font-bold text-sm">${s.userName}</p><p class="text-[10px] text-green-700 font-mono">In: ${start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div><button onclick="window.forceStop('${d.id}', null, currentUserData.name)" class="text-xs bg-white border border-red-200 text-red-500 px-2 py-1 rounded hover:bg-red-50">End Session</button>`;
                     l.appendChild(el);
                 });
                 document.getElementById('mgrLiveCount').innerText = count + " Active";
@@ -1698,12 +1723,15 @@
                         'pending':  { bg: 'bg-yellow-50 border-yellow-100', badge: 'bg-yellow-500 text-white', label: 'PENDING', icon: 'fa-clock text-yellow-500' }
                     };
                     const cfg = statusConfig[r.status] || statusConfig['pending'];
+                    const leaveTypeBadge = r.leaveType === 'half'
+                        ? `<span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold ml-1">${r.session || 'AM'} Half</span>`
+                        : `<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold ml-1">Full Day</span>`;
                     histContainer.innerHTML += `
                         <div class="flex items-center gap-3 p-3 ${cfg.bg} rounded-xl border mb-2">
                             <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"><i class="fas ${cfg.icon} text-sm"></i></div>
                             <div class="flex-grow">
                                 <div class="flex justify-between items-start">
-                                    <span class="font-bold text-sm text-gray-800">${r.date}</span>
+                                    <span class="font-bold text-sm text-gray-800">${r.date} ${leaveTypeBadge}</span>
                                     <span class="text-[10px] ${cfg.badge} px-2 py-0.5 rounded font-bold">${cfg.label}</span>
                                 </div>
                                 <div class="text-[10px] text-gray-500 italic mt-0.5">${r.reason || 'No reason given'}</div>
@@ -1806,9 +1834,10 @@
                 const end = s.checkOutTime.toDate();
                 const timeStr = `${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
                 const earn = currentUserData.role === 'member' ? `<span class="text-green-600 font-bold text-xs">₹${(s.earnings||0).toFixed(2)}</span>` : '';
+                const terminatedBadge = s.terminatedBy ? `<div class="text-[10px] text-red-500 font-bold mt-0.5"><i class="fas fa-exclamation-circle mr-1"></i>Ended by ${s.terminatedBy}</div>` : '';
                 const el = document.createElement('div');
-                el.className = "bg-white p-3 rounded-lg border border-gray-100 flex justify-between items-center";
-                el.innerHTML = `<div><div class="text-xs font-bold text-gray-700">${end.toLocaleDateString()}</div><div class="text-[10px] text-gray-400 font-mono mt-1">${timeStr}</div></div><div class="text-right"><div class="text-xs font-bold text-gray-600">${(s.hoursWorked||0).toFixed(2)}h</div>${earn}</div>`;
+                el.className = `bg-white p-3 rounded-lg border ${s.terminatedBy ? 'border-red-100' : 'border-gray-100'} flex justify-between items-center`;
+                el.innerHTML = `<div><div class="text-xs font-bold text-gray-700">${end.toLocaleDateString()}</div><div class="text-[10px] text-gray-400 font-mono mt-1">${timeStr}</div>${terminatedBadge}</div><div class="text-right"><div class="text-xs font-bold text-gray-600">${(s.hoursWorked||0).toFixed(2)}h</div>${earn}</div>`;
                 l.appendChild(el);
             });
         }
@@ -1967,8 +1996,46 @@
             const date = document.getElementById('leaveDate').value;
             const reason = document.getElementById('leaveReason').value;
             if(!date) return showToast("Select Date");
-            await addDoc(collection(db,"shift_requests"), { userId: currentUserData.uid, userName: currentUserData.name, date: date, reason: reason, status: 'pending', type: 'leave' });
-            showToast("Leave Requested");
+            const leaveType = window._leaveType || 'full';
+            const session = leaveType === 'half' ? (window._leaveSession || 'AM') : null;
+            const payload = { userId: currentUserData.uid, userName: currentUserData.name, date: date, reason: reason, status: 'pending', type: 'leave', leaveType: leaveType };
+            if (session) payload.session = session;
+            await addDoc(collection(db,"shift_requests"), payload);
+            showToast(`${leaveType === 'half' ? (session + ' Half Day') : 'Full Day'} Leave Requested`);
+            // Reset UI
+            window.setLeaveType('full');
+        };
+
+        window._leaveType = 'full';
+        window._leaveSession = 'AM';
+
+        window.setLeaveType = (type) => {
+            window._leaveType = type;
+            const fullBtn = document.getElementById('leaveFull');
+            const halfBtn = document.getElementById('leaveHalf');
+            const halfSession = document.getElementById('halfDaySession');
+            if (type === 'full') {
+                fullBtn.className = 'flex-1 py-2.5 rounded-lg border-2 border-blue-500 bg-blue-500 text-white text-xs font-bold transition';
+                halfBtn.className = 'flex-1 py-2.5 rounded-lg border-2 border-gray-200 bg-white text-gray-500 text-xs font-bold transition';
+                halfSession.classList.add('hidden');
+            } else {
+                halfBtn.className = 'flex-1 py-2.5 rounded-lg border-2 border-purple-500 bg-purple-500 text-white text-xs font-bold transition';
+                fullBtn.className = 'flex-1 py-2.5 rounded-lg border-2 border-gray-200 bg-white text-gray-500 text-xs font-bold transition';
+                halfSession.classList.remove('hidden');
+            }
+        };
+
+        window.setLeaveSession = (session) => {
+            window._leaveSession = session;
+            const amBtn = document.getElementById('sessionAM');
+            const pmBtn = document.getElementById('sessionPM');
+            if (session === 'AM') {
+                amBtn.className = 'flex-1 py-2 rounded-lg border-2 border-orange-400 bg-orange-400 text-white text-xs font-bold transition';
+                pmBtn.className = 'flex-1 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-500 text-xs font-bold transition';
+            } else {
+                pmBtn.className = 'flex-1 py-2 rounded-lg border-2 border-indigo-500 bg-indigo-500 text-white text-xs font-bold transition';
+                amBtn.className = 'flex-1 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-500 text-xs font-bold transition';
+            }
         };
 
         function getDist(lat1,lon1,lat2,lon2) {
