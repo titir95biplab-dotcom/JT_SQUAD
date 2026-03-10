@@ -4,7 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JT Squad Manager v2.3</title>
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkp1aWNlIFRoZXJhcHkgU3F1YWQiLAogICJzaG9ydF9uYW1lIjogIkpUIFNxdWFkIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciI6ICIjZjk3MzE2Igp9">
+    <script>
+        // Generate a valid PWA manifest as a Blob URL so start_url resolves correctly on any domain
+        (function() {
+            const manifest = {
+                name: "Juice Therapy Squad",
+                short_name: "JT Squad",
+                start_url: location.href,
+                display: "standalone",
+                background_color: "#ffffff",
+                theme_color: "#f97316",
+                icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f97316'/><text y='.9em' font-size='70' x='50%25' text-anchor='middle' dominant-baseline='auto' fill='white' font-weight='bold' font-family='system-ui'>JT</text></svg>", sizes: "any", type: "image/svg+xml" }]
+            };
+            const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = url;
+            document.currentScript.after(link);
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -373,7 +392,7 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-6 text-center shadow-sm">
                     <div class="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-gray-400 font-bold" id="profileInitials">JT</div>
                     <h2 class="text-lg font-bold text-gray-800" id="profileName">User</h2>
-                    <p class="text-xs text-gray-500 mb-1" id="profileEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60050d01090c200518010d100c054e030f0d">[email&#160;protected]</a></p>
+                    <p class="text-xs text-gray-500 mb-1" id="profileEmail"></p>
                     <p class="text-xs font-bold text-blue-600 mb-3" id="profileSalaryDisplay"></p>
                     <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-3 py-1 rounded-full font-bold">Joined: <span id="profileJoined">-</span></span>
                 </div>
@@ -684,7 +703,7 @@
         .active-detail-tab { color: #ea580c; border-bottom-color: #ea580c; font-weight: 700; background-color: #fff7ed; }
     </style>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, deleteDoc, serverTimestamp, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
