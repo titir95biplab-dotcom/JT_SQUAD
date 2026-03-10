@@ -536,23 +536,25 @@
                         <div id="detailTab-payouts" class="space-y-3">
                             <div id="detailPayoutList"><p class="text-center text-xs text-gray-400 italic py-4">Loading payouts...</p></div>
                         </div>
-                        <div id="detailTab-shifts" class="hidden space-y-3">
-                            <div id="detailShiftList"><p class="text-center text-xs text-gray-400 italic py-4">Loading shifts...</p></div>
+                        <div id="detailTab-shifts" class="space-y-3 hidden">
+                            <!-- Month filter for shifts -->
+                            <div class="flex gap-2 items-center">
+                                <select id="detailShiftMonthFilter" onchange="window.onDetailShiftFilterChange()" class="flex-grow p-2 border border-gray-200 rounded-lg text-xs font-bold bg-white text-gray-600 focus:border-orange-400 outline-none"></select>
+                            </div>
+                            <!-- Stats summary row -->
+                            <div class="grid grid-cols-3 gap-2" id="detailShiftSummary"></div>
+                            <div id="detailShiftList"></div>
                         </div>
                         <div id="detailTab-bonus" class="hidden space-y-3">
                             <div id="detailBonusList"><p class="text-center text-xs text-gray-400 italic py-4">Loading bonus history...</p></div>
                         </div>
                         <div id="detailTab-leaves" class="hidden space-y-3">
-                            <!-- Upcoming approved -->
-                            <div class="mb-2">
-                                <p class="text-[10px] font-bold text-green-600 uppercase tracking-wide mb-2"><i class="fas fa-calendar-check mr-1"></i>Upcoming Approved Leaves</p>
-                                <div id="detailUpcomingLeaves"><p class="text-center text-xs text-gray-400 italic">Loading...</p></div>
+                            <!-- Month filter for leaves -->
+                            <div class="flex gap-2 items-center">
+                                <select id="detailLeaveMonthFilter" onchange="window.onDetailLeaveFilterChange()" class="flex-grow p-2 border border-gray-200 rounded-lg text-xs font-bold bg-white text-gray-600 focus:border-orange-400 outline-none"></select>
                             </div>
-                            <!-- Full leave history -->
-                            <div>
-                                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2"><i class="fas fa-history mr-1"></i>All Leave Requests</p>
-                                <div id="detailLeaveHistory"><p class="text-center text-xs text-gray-400 italic">Loading...</p></div>
-                            </div>
+                            <!-- Leave history only (no upcoming) -->
+                            <div id="detailLeaveHistory"><p class="text-center text-xs text-gray-400 italic">Loading...</p></div>
                         </div>
                     </div>
                 </div>
@@ -1177,7 +1179,11 @@
             document.getElementById('detailName').innerText = u.name;
             document.getElementById('detailRole').innerText = u.role.toUpperCase();
 
-            // Stats bar
+            // Populate month filter dropdowns
+            buildMonthOptions('detailShiftMonthFilter');
+            buildMonthOptions('detailLeaveMonthFilter');
+
+            // Stats bar — all-time figures; leavesTaken already excludes future (recalc uses date <= today)
             const statsBar = document.getElementById('detailStatsBar');
             const isSquad = u.role === 'member';
             if (isSquad) {
@@ -1186,10 +1192,11 @@
                     <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Points</p><p class="font-bold text-orange-400 text-sm">${u.bonusWallet||0}</p></div>
                     <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Strikes</p><p class="font-bold text-red-400 text-sm">${u.strikes||0}</p></div>`;
             } else {
+                const lt = u.leavesTaken || 0;
                 statsBar.innerHTML = `
                     <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Days</p><p class="font-bold text-white text-sm">${u.totalDays||0}</p></div>
                     <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Hours</p><p class="font-bold text-white text-sm">${(u.totalHours||0).toFixed(1)}</p></div>
-                    <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Leaves</p><p class="font-bold text-red-400 text-sm">${((u.leavesTaken||0) % 1 === 0) ? (u.leavesTaken||0) : (u.leavesTaken||0).toFixed(1)}</p></div>`;
+                    <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Leaves</p><p class="font-bold text-red-400 text-sm">${lt % 1 === 0 ? lt : lt.toFixed(1)}</p></div>`;
             }
 
             document.getElementById('staffDetailModal').classList.remove('hidden');
@@ -1197,7 +1204,7 @@
             switchDetailTab('payouts', null, true);
             loadDetailPayouts(uid);
 
-            // Show role-specific tabs (isSquad already declared above)
+            // Show role-specific tabs
             const isFullTime = u.role === 'fulltime';
             document.getElementById('detailBonusTabBtn').classList.toggle('hidden', !isSquad);
             document.getElementById('detailLeavesTabBtn').classList.toggle('hidden', !isFullTime);
@@ -1253,41 +1260,116 @@
             } catch(e) { container.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`; }
         }
 
+        // Build month options for detail modal filters
+        // Returns {year, month} for the selected value, or null for "all_time"
+        function buildMonthOptions(selectId) {
+            const sel = document.getElementById(selectId);
+            if (!sel) return;
+            sel.innerHTML = '';
+            const now = new Date();
+            // "All Time" option
+            const allOpt = document.createElement('option');
+            allOpt.value = 'all_time';
+            allOpt.textContent = 'All Time';
+            sel.appendChild(allOpt);
+            // Last 13 months newest-first
+            for (let i = 0; i <= 12; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const y = d.getFullYear(), m = d.getMonth();
+                const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+                const opt = document.createElement('option');
+                opt.value = `${y}-${String(m+1).padStart(2,'0')}`;
+                opt.textContent = label;
+                if (i === 0) opt.selected = true; // default = current month
+                sel.appendChild(opt);
+            }
+        }
+
+        // Parse filter value → {startTs, endTs} Timestamps, or null for all_time
+        function getMonthRange(filterValue) {
+            if (!filterValue || filterValue === 'all_time') return null;
+            const [y, m] = filterValue.split('-').map(Number);
+            const start = new Date(y, m - 1, 1, 0, 0, 0, 0);
+            const end   = new Date(y, m, 0, 23, 59, 59, 999); // last day of month
+            return { start, end };
+        }
+
         async function loadDetailShifts(uid) {
-            const container = document.getElementById('detailShiftList');
-            container.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-4"><i class="fas fa-circle-notch fa-spin mr-2"></i>Loading...</p>';
+            const listContainer   = document.getElementById('detailShiftList');
+            const summaryContainer = document.getElementById('detailShiftSummary');
+            listContainer.innerHTML   = '<p class="text-center text-xs text-gray-400 italic py-4"><i class="fas fa-circle-notch fa-spin mr-2"></i>Loading...</p>';
+            summaryContainer.innerHTML = '';
             try {
-                const snap = await getDocs(query(collection(db, "shifts"), where("userId", "==", uid), orderBy("checkInTime", "desc"), limit(50)));
-                container.innerHTML = '';
-                if (snap.empty) { container.innerHTML = '<div class="text-center py-8"><i class="fas fa-clock text-gray-200 text-3xl mb-2"></i><p class="text-xs text-gray-400 italic">No shifts found.</p></div>'; return; }
-                let totalHours = 0, totalEarnings = 0;
+                const filterVal = document.getElementById('detailShiftMonthFilter')?.value || 'all_time';
+                const range = getMonthRange(filterVal);
+                let q;
+                if (range) {
+                    q = query(collection(db, "shifts"), where("userId", "==", uid),
+                        where("checkInTime", ">=", Timestamp.fromDate(range.start)),
+                        where("checkInTime", "<=", Timestamp.fromDate(range.end)),
+                        orderBy("checkInTime", "desc"));
+                } else {
+                    q = query(collection(db, "shifts"), where("userId", "==", uid), orderBy("checkInTime", "desc"), limit(200));
+                }
+                const snap = await getDocs(q);
+                listContainer.innerHTML = '';
+
+                if (snap.empty) {
+                    summaryContainer.innerHTML = '';
+                    listContainer.innerHTML = '<div class="text-center py-8"><i class="fas fa-clock text-gray-200 text-3xl mb-2"></i><p class="text-xs text-gray-400 italic">No shifts found for this period.</p></div>';
+                    return;
+                }
+
+                let totalHours = 0, totalEarnings = 0, totalDays = 0;
+                const isSquad = detailModalUserData?.role === 'member';
+
                 snap.forEach(d => {
                     const s = d.data();
-                    if (s.status === 'completed') { totalHours += s.hoursWorked || 0; totalEarnings += s.earnings || 0; }
-                    const start = s.checkInTime?.toDate();
-                    const end = s.checkOutTime?.toDate();
-                    const dateStr = start?.toLocaleDateString();
-                    const timeIn = start?.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                    const timeOut = end ? end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '—';
-                    const statusColor = s.status === 'active' ? 'bg-green-50 border-green-100' : (s.terminatedBy ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100');
-                    const statusBadge = s.status === 'active' ? '<span class="text-[10px] bg-green-200 text-green-800 px-1.5 py-0.5 rounded font-bold animate-pulse">ACTIVE</span>' : `<span class="text-[10px] font-bold text-green-700">₹${(s.earnings||0).toFixed(2)}</span>`;
+                    if (s.status === 'completed') {
+                        totalHours    += s.hoursWorked || 0;
+                        totalEarnings += s.earnings    || 0;
+                        totalDays++;
+                    }
+                    const start  = s.checkInTime?.toDate();
+                    const end    = s.checkOutTime?.toDate();
+                    const dateStr  = start?.toLocaleDateString();
+                    const timeIn   = start?.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    const timeOut  = end ? end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '—';
+                    const statusColor  = s.status === 'active' ? 'bg-green-50 border-green-100' : (s.terminatedBy ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100');
+                    const statusBadge  = s.status === 'active'
+                        ? '<span class="text-[10px] bg-green-200 text-green-800 px-1.5 py-0.5 rounded font-bold animate-pulse">ACTIVE</span>'
+                        : (isSquad ? `<span class="text-[10px] font-bold text-green-700">₹${(s.earnings||0).toFixed(2)}</span>` : '');
                     const terminatedBadge = s.terminatedBy ? `<div class="text-[10px] text-red-500 font-bold mt-1"><i class="fas fa-exclamation-circle mr-1"></i>Ended by ${s.terminatedBy}</div>` : '';
-                    container.innerHTML += `
-                        <div class="flex justify-between items-center p-3 rounded-xl border ${statusColor}">
+                    listContainer.innerHTML += `
+                        <div class="flex justify-between items-center p-3 rounded-xl border ${statusColor} mb-2">
                             <div>
                                 <div class="font-bold text-sm text-gray-800">${dateStr}</div>
                                 <div class="text-[10px] font-mono text-gray-500">${timeIn} → ${timeOut}</div>
                                 ${terminatedBadge}
                             </div>
                             <div class="text-right">
-                                <div class="text-xs font-bold text-gray-700">${s.status === 'active' ? '...' : (s.hoursWorked||0).toFixed(2)} hrs</div>
+                                <div class="text-xs font-bold text-gray-700">${s.status === 'active' ? '—' : (s.hoursWorked||0).toFixed(2)} hrs</div>
                                 <div>${statusBadge}</div>
                             </div>
                         </div>`;
                 });
-                container.innerHTML = `<div class="bg-gray-800 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-gray-400">${totalHours.toFixed(1)}h · ${snap.size} shifts</span><span class="font-bold text-green-400">₹${totalEarnings.toFixed(0)} earned</span></div>` + container.innerHTML;
-            } catch(e) { container.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`; }
+
+                // Summary mini-cards
+                const earnCard = isSquad ? `<div class="text-center p-2 rounded-xl bg-green-50 border border-green-100"><p class="text-[9px] uppercase text-green-600 font-bold">Earned</p><p class="font-bold text-green-700">₹${totalEarnings.toFixed(0)}</p></div>` : '';
+                summaryContainer.innerHTML = `
+                    <div class="text-center p-2 rounded-xl bg-blue-50 border border-blue-100"><p class="text-[9px] uppercase text-blue-600 font-bold">Days</p><p class="font-bold text-blue-800">${totalDays}</p></div>
+                    <div class="text-center p-2 rounded-xl bg-purple-50 border border-purple-100"><p class="text-[9px] uppercase text-purple-600 font-bold">Hours</p><p class="font-bold text-purple-800">${totalHours.toFixed(1)}</p></div>
+                    ${earnCard || '<div class="text-center p-2 rounded-xl bg-gray-50 border border-gray-100"><p class="text-[9px] uppercase text-gray-500 font-bold">Shifts</p><p class="font-bold text-gray-700">' + snap.size + '</p></div>'}`;
+
+            } catch(e) {
+                summaryContainer.innerHTML = '';
+                listContainer.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`;
+            }
         }
+
+        window.onDetailShiftFilterChange = () => {
+            if (detailModalUserId) loadDetailShifts(detailModalUserId);
+        };
 
         async function loadDetailBonusHistory(uid) {
             const container = document.getElementById('detailBonusList');
@@ -1326,69 +1408,89 @@
         }
 
         async function loadDetailLeaveHistory(uid) {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const upcomingContainer = document.getElementById('detailUpcomingLeaves');
+            const todayStr     = new Date().toISOString().split('T')[0];
             const histContainer = document.getElementById('detailLeaveHistory');
-            upcomingContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-2"><i class="fas fa-circle-notch fa-spin mr-1"></i>Loading...</p>';
             histContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic py-2"><i class="fas fa-circle-notch fa-spin mr-1"></i>Loading...</p>';
             try {
-                const snap = await getDocs(query(collection(db, "shift_requests"), where("userId", "==", uid), where("type", "==", "leave"), orderBy("date", "desc"), limit(50)));
+                const filterVal = document.getElementById('detailLeaveMonthFilter')?.value || 'all_time';
+                const range = getMonthRange(filterVal);
+
+                // Build query — only past & today leaves (date <= today)
+                let q;
+                if (range) {
+                    // Clamp range end to today so future leaves are always excluded
+                    const clampedEnd = range.end > new Date() ? new Date() : range.end;
+                    q = query(collection(db, "shift_requests"),
+                        where("userId", "==", uid), where("type", "==", "leave"),
+                        where("date", ">=", range.start.toISOString().split('T')[0]),
+                        where("date", "<=", clampedEnd.toISOString().split('T')[0]),
+                        orderBy("date", "desc"));
+                } else {
+                    // All time — still only up to today
+                    q = query(collection(db, "shift_requests"),
+                        where("userId", "==", uid), where("type", "==", "leave"),
+                        where("date", "<=", todayStr),
+                        orderBy("date", "desc"));
+                }
+
+                const snap = await getDocs(q);
                 let leaves = [];
                 snap.forEach(d => leaves.push({ id: d.id, ...d.data() }));
 
-                // Upcoming approved
-                const upcoming = leaves.filter(r => r.status === 'approved' && r.date >= todayStr).sort((a,b) => a.date > b.date ? 1 : -1);
-                upcomingContainer.innerHTML = '';
-                if (upcoming.length === 0) {
-                    upcomingContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No upcoming approved leaves.</p>';
-                } else {
-                    upcoming.forEach(r => {
-                        upcomingContainer.innerHTML += `
-                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100 mb-2">
-                                <div>
-                                    <div class="font-bold text-sm text-green-800">${r.date}</div>
-                                    <div class="text-[10px] text-green-600 italic mt-0.5">${r.reason || 'No reason given'}</div>
-                                </div>
-                                <span class="text-[10px] bg-green-600 text-white px-2 py-1 rounded font-bold">UPCOMING</span>
-                            </div>`;
-                    });
-                }
-
-                // All leaves history
                 histContainer.innerHTML = '';
                 if (leaves.length === 0) {
-                    histContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No leave requests found.</p>';
+                    histContainer.innerHTML = '<div class="text-center py-8"><i class="fas fa-calendar text-gray-200 text-3xl mb-2"></i><p class="text-xs text-gray-400 italic">No leave records for this period.</p></div>';
                     return;
                 }
+
                 const statusConfig = {
-                    'approved': { bg: 'bg-green-50 border-green-100', badge: 'bg-green-600 text-white', label: 'APPROVED', icon: 'fa-check-circle text-green-500' },
-                    'rejected': { bg: 'bg-red-50 border-red-100',   badge: 'bg-red-600 text-white',   label: 'REJECTED', icon: 'fa-times-circle text-red-500' },
-                    'pending':  { bg: 'bg-yellow-50 border-yellow-100', badge: 'bg-yellow-500 text-white', label: 'PENDING', icon: 'fa-clock text-yellow-500' }
+                    'approved': { bg: 'bg-green-50 border-green-100',   badge: 'bg-green-600 text-white',  label: 'APPROVED', icon: 'fa-check-circle text-green-500' },
+                    'rejected': { bg: 'bg-red-50 border-red-100',       badge: 'bg-red-600 text-white',    label: 'REJECTED', icon: 'fa-times-circle text-red-500'  },
+                    'pending':  { bg: 'bg-yellow-50 border-yellow-100', badge: 'bg-yellow-500 text-white', label: 'PENDING',  icon: 'fa-clock text-yellow-500'       }
                 };
-                const totalLeaves = leaves.filter(r => r.status === 'approved').length;
-                histContainer.innerHTML = `<div class="bg-gray-800 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-gray-400">Total Requests</span><span class="font-bold text-yellow-300">${leaves.length} requests · ${totalLeaves} approved</span></div>`;
+
+                // Count approved leaves (0.5 for half, 1.0 for full)
+                let approvedCount = 0;
+                leaves.filter(r => r.status === 'approved').forEach(r => {
+                    approvedCount += (r.leaveType === 'half') ? 0.5 : 1;
+                });
+                const approvedDisplay = approvedCount % 1 === 0 ? approvedCount : approvedCount.toFixed(1);
+
+                // Summary bar
+                histContainer.innerHTML = `
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <div class="text-center p-2 rounded-xl bg-gray-800 border border-gray-700"><p class="text-[9px] uppercase text-gray-400 font-bold">Requests</p><p class="font-bold text-white">${leaves.length}</p></div>
+                        <div class="text-center p-2 rounded-xl bg-red-900/60 border border-red-800"><p class="text-[9px] uppercase text-red-300 font-bold">Approved</p><p class="font-bold text-red-300">${approvedDisplay}</p></div>
+                        <div class="text-center p-2 rounded-xl bg-yellow-900/40 border border-yellow-800"><p class="text-[9px] uppercase text-yellow-300 font-bold">Pending</p><p class="font-bold text-yellow-200">${leaves.filter(r=>r.status==='pending').length}</p></div>
+                    </div>`;
+
                 leaves.forEach(r => {
                     const cfg = statusConfig[r.status] || statusConfig['pending'];
                     const leaveTypeBadge = r.leaveType === 'half'
                         ? `<span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold ml-1">${r.session || 'AM'} Half</span>`
                         : `<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold ml-1">Full Day</span>`;
+                    const editBtn = `<button onclick="window.openEditLeave('${r.id}')" class="text-[10px] text-blue-500 font-bold underline mt-0.5">Edit</button>`;
                     histContainer.innerHTML += `
-                        <div class="flex items-center gap-3 p-3 ${cfg.bg} rounded-xl border mb-2">
-                            <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"><i class="fas ${cfg.icon} text-sm"></i></div>
+                        <div class="flex items-start gap-3 p-3 ${cfg.bg} rounded-xl border mb-2">
+                            <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0 mt-0.5"><i class="fas ${cfg.icon} text-sm"></i></div>
                             <div class="flex-grow">
                                 <div class="flex justify-between items-start">
                                     <span class="font-bold text-sm text-gray-800">${r.date} ${leaveTypeBadge}</span>
                                     <span class="text-[10px] ${cfg.badge} px-2 py-0.5 rounded font-bold">${cfg.label}</span>
                                 </div>
                                 <div class="text-[10px] text-gray-500 italic mt-0.5">${r.reason || 'No reason given'}</div>
+                                ${editBtn}
                             </div>
                         </div>`;
                 });
             } catch(e) {
-                upcomingContainer.innerHTML = '';
                 histContainer.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`;
             }
         }
+
+        window.onDetailLeaveFilterChange = () => {
+            if (detailModalUserId) loadDetailLeaveHistory(detailModalUserId);
+        };
 
         window.openDetailPay = () => {
             if (!detailModalUserData) return;
@@ -2133,9 +2235,14 @@
             }
         };
 
-        // Recalculate leavesTaken from scratch for a user (sums approved leaves, 0.5 for half, 1 for full)
+        // Recalculate leavesTaken from scratch — only counts approved leaves on or before today
         async function recalcLeavesTaken(userId) {
-            const snap = await getDocs(query(collection(db, "shift_requests"), where("userId", "==", userId), where("type", "==", "leave"), where("status", "==", "approved")));
+            const todayStr = new Date().toISOString().split('T')[0];
+            const snap = await getDocs(query(collection(db, "shift_requests"),
+                where("userId", "==", userId),
+                where("type", "==", "leave"),
+                where("status", "==", "approved"),
+                where("date", "<=", todayStr)));
             let total = 0;
             snap.forEach(d => {
                 const r = d.data();
