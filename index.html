@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JT Squad Manager v2.3</title>
+    <title>JT Squad Manager v2.4</title>
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkp1aWNlIFRoZXJhcHkgU3F1YWQiLAogICJzaG9ydF9uYW1lIjogIkpUIFNxdWFkIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJ0aGVtZV9jb2xvciI6ICIjZjk3MzE2Igp9">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -373,13 +373,38 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-6 text-center shadow-sm">
                     <div class="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-gray-400 font-bold" id="profileInitials">JT</div>
                     <h2 class="text-lg font-bold text-gray-800" id="profileName">User</h2>
-                    <p class="text-xs text-gray-500 mb-1" id="profileEmail">email@example.com</p>
+                    <p class="text-xs text-gray-500 mb-1" id="profileEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60050d01090c200518010d100c054e030f0d">[email&#160;protected]</a></p>
                     <p class="text-xs font-bold text-blue-600 mb-3" id="profileSalaryDisplay"></p>
                     <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-3 py-1 rounded-full font-bold">Joined: <span id="profileJoined">-</span></span>
                 </div>
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Financials</h3></div>
                     <div id="payoutHistoryList" class="p-4 space-y-2 text-xs text-gray-500"><p class="text-center italic">No records found.</p></div>
+                </div>
+                <!-- Bonus Redemption History - Squad Only -->
+                <div id="bonusHistorySection" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="p-3 border-b border-orange-50 bg-orange-50/60 flex items-center gap-2">
+                        <i class="fas fa-gift text-orange-500 text-xs"></i>
+                        <h3 class="font-bold text-xs text-orange-700 uppercase">Bonus Redemption History</h3>
+                    </div>
+                    <div id="bonusRedemptionList" class="p-4 space-y-2"><p class="text-center text-xs text-gray-400 italic">No redemptions yet.</p></div>
+                </div>
+                <!-- Leave History - Full Time Only -->
+                <div id="leaveHistorySection" class="hidden bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="p-3 border-b border-blue-50 bg-blue-50/60 flex items-center gap-2">
+                        <i class="fas fa-calendar-alt text-blue-500 text-xs"></i>
+                        <h3 class="font-bold text-xs text-blue-700 uppercase">My Leave History</h3>
+                    </div>
+                    <!-- Upcoming approved leaves -->
+                    <div id="myUpcomingLeaves" class="border-b border-gray-100 p-4 space-y-2">
+                        <p class="text-[10px] font-bold text-green-600 uppercase tracking-wide mb-2"><i class="fas fa-calendar-check mr-1"></i>Upcoming Approved Leaves</p>
+                        <div id="myUpcomingLeaveList"><p class="text-center text-xs text-gray-400 italic">None upcoming.</p></div>
+                    </div>
+                    <!-- All leave history -->
+                    <div class="p-4 space-y-2">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2"><i class="fas fa-history mr-1"></i>All Leave Requests</p>
+                        <div id="myLeaveHistoryList"><p class="text-center text-xs text-gray-400 italic">No leave requests found.</p></div>
+                    </div>
                 </div>
             </div>
 
@@ -642,7 +667,7 @@
         .active-detail-tab { color: #ea580c; border-bottom-color: #ea580c; font-weight: 700; background-color: #fff7ed; }
     </style>
 
-    <script type="module">
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, deleteDoc, serverTimestamp, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -1386,6 +1411,8 @@
                 document.getElementById('ftLeaveUI').classList.remove('hidden');
                 document.getElementById('bookingTitle').innerText = "Request Leave";
                 document.getElementById('memberUpcomingSlotsBox').classList.add('hidden');
+                document.getElementById('bonusHistorySection').classList.add('hidden');
+                document.getElementById('leaveHistorySection').classList.remove('hidden');
             } else {
                 const days = Math.floor((new Date() - (d.joinedAt?.toDate()||new Date()))/(1000*60*60*24));
                 if (days < APP_CONFIG.trainingDays) { trainingAlert.classList.remove('hidden'); document.getElementById('memberBlockedWallet').innerText = (d.blockedWallet||0).toFixed(0); }
@@ -1396,6 +1423,8 @@
                 document.getElementById('ftLeaveUI').classList.add('hidden');
                 document.getElementById('bookingTitle').innerText = "Book Slot (Next Day)";
                 document.getElementById('memberUpcomingSlotsBox').classList.remove('hidden');
+                document.getElementById('bonusHistorySection').classList.remove('hidden');
+                document.getElementById('leaveHistorySection').classList.add('hidden');
             }
             window.renderFullTimeStats();
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("userId", "==", d.uid), where("status", "==", "active")), (snap) => {
@@ -1430,9 +1459,101 @@
                     });
                     if(count === 0) l.innerHTML = '<p class="text-center italic opacity-50 text-xs">No upcoming slots</p>';
                 }));
+                // Load bonus redemption history for squad members
+                loadBonusRedemptionHistory(d.uid);
+            } else {
+                // Load leave history for full-time staff
+                loadMyLeaveHistory(d.uid);
             }
             loadHistory();
             loadPayouts();
+        }
+
+        async function loadBonusRedemptionHistory(uid) {
+            const container = document.getElementById('bonusRedemptionList');
+            container.innerHTML = '<p class="text-center text-xs text-gray-400 italic"><i class="fas fa-circle-notch fa-spin mr-1"></i> Loading...</p>';
+            try {
+                const snap = await getDocs(query(collection(db, "bonus_redemptions"), where("userId", "==", uid), orderBy("date", "desc"), limit(30)));
+                container.innerHTML = '';
+                if (snap.empty) { container.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No redemptions yet.</p>'; return; }
+                let totalPts = 0;
+                snap.forEach(d => {
+                    const r = d.data();
+                    totalPts += r.points;
+                    const dateObj = r.date ? r.date.toDate() : new Date();
+                    const dateStr = dateObj.toLocaleDateString();
+                    const timeStr = dateObj.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    container.innerHTML += `
+                        <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
+                            <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fas fa-gift text-sm"></i></div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <span class="font-bold text-xs text-gray-800 truncate pr-2">${r.description || 'Bonus Redeemed'}</span>
+                                    <span class="font-bold text-sm text-orange-600 whitespace-nowrap">-${r.points} pts</span>
+                                </div>
+                                <div class="text-[10px] text-gray-400 flex items-center mt-0.5">
+                                    <i class="far fa-clock mr-1 text-[9px]"></i> ${dateStr} at ${timeStr}
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = `<div class="bg-orange-600 text-white px-4 py-2 rounded-lg mb-3 flex justify-between items-center"><span class="text-xs font-bold uppercase text-orange-100">Total Redeemed</span><span class="font-bold text-white">${totalPts} pts</span></div>` + container.innerHTML;
+            } catch(e) { container.innerHTML = `<p class="text-center text-red-400 text-xs p-4">Error: ${e.message}</p>`; }
+        }
+
+        function loadMyLeaveHistory(uid) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            // Upcoming approved leaves
+            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", uid), where("type", "==", "leave"), where("status", "==", "approved")), (snap) => {
+                const upcomingContainer = document.getElementById('myUpcomingLeaveList');
+                upcomingContainer.innerHTML = '';
+                let upcomingCount = 0;
+                let allLeaves = [];
+                snap.forEach(d => allLeaves.push({ id: d.id, ...d.data() }));
+                allLeaves.sort((a,b) => (a.date > b.date ? 1 : -1));
+                allLeaves.forEach(r => {
+                    if (r.date >= todayStr) {
+                        upcomingCount++;
+                        upcomingContainer.innerHTML += `
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100 mb-2">
+                                <div>
+                                    <div class="font-bold text-sm text-green-800">${r.date}</div>
+                                    <div class="text-[10px] text-green-600 italic mt-0.5">${r.reason || 'No reason given'}</div>
+                                </div>
+                                <span class="text-[10px] bg-green-600 text-white px-2 py-1 rounded font-bold">APPROVED</span>
+                            </div>`;
+                    }
+                });
+                if(upcomingCount === 0) upcomingContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No upcoming approved leaves.</p>';
+            }));
+            // Full leave history (all statuses)
+            listeners.push(onSnapshot(query(collection(db, "shift_requests"), where("userId", "==", uid), where("type", "==", "leave")), (snap) => {
+                const histContainer = document.getElementById('myLeaveHistoryList');
+                histContainer.innerHTML = '';
+                let leaves = [];
+                snap.forEach(d => leaves.push({ id: d.id, ...d.data() }));
+                leaves.sort((a,b) => (a.date > b.date ? -1 : 1));
+                if (leaves.length === 0) { histContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No leave requests found.</p>'; return; }
+                leaves.forEach(r => {
+                    const statusConfig = {
+                        'approved': { bg: 'bg-green-50 border-green-100', badge: 'bg-green-600 text-white', label: 'APPROVED', icon: 'fa-check-circle text-green-500' },
+                        'rejected': { bg: 'bg-red-50 border-red-100', badge: 'bg-red-600 text-white', label: 'REJECTED', icon: 'fa-times-circle text-red-500' },
+                        'pending':  { bg: 'bg-yellow-50 border-yellow-100', badge: 'bg-yellow-500 text-white', label: 'PENDING', icon: 'fa-clock text-yellow-500' }
+                    };
+                    const cfg = statusConfig[r.status] || statusConfig['pending'];
+                    histContainer.innerHTML += `
+                        <div class="flex items-center gap-3 p-3 ${cfg.bg} rounded-xl border mb-2">
+                            <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"><i class="fas ${cfg.icon} text-sm"></i></div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-start">
+                                    <span class="font-bold text-sm text-gray-800">${r.date}</span>
+                                    <span class="text-[10px] ${cfg.badge} px-2 py-0.5 rounded font-bold">${cfg.label}</span>
+                                </div>
+                                <div class="text-[10px] text-gray-500 italic mt-0.5">${r.reason || 'No reason given'}</div>
+                            </div>
+                        </div>`;
+                });
+            }));
         }
 
         // --- CLIENT CONTROLLER ---
@@ -1755,6 +1876,8 @@
                     const u = (await t.get(ref)).data();
                     if((u.bonusWallet||0) < pts) throw "Insufficient Points";
                     t.update(ref, { bonusWallet: u.bonusWallet - pts });
+                    const redemptionRef = doc(collection(db, "bonus_redemptions"));
+                    t.set(redemptionRef, { userId: uid, points: pts, description: desc, date: serverTimestamp(), by: currentUserData.name });
                 });
                 showToast("Redeemed!");
                 document.getElementById('redeemModal').classList.add('hidden'); e.target.reset();
@@ -1911,9 +2034,4 @@
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             try { await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); }
-            catch(x) { document.getElementById('authError').innerText = "Invalid Credentials"; document.getElementById('authError').classList.remove('hidden'); }
-        };
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
-    </script>
-</body>
-</html>
+            catch(x) { document.getElementById('authError
