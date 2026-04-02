@@ -806,11 +806,13 @@
         const secondaryApp = initializeApp(firebaseConfig, "Secondary");
         const secondaryAuth = getAuth(secondaryApp);
 
-        const OUTLETS = {
-            birati: { name: "Birati Outlet", lat: 13.024976, lng: 77.562472 },
-            nimta:  { name: "Nimta Outlet",  lat: 22.66259288943178, lng: 88.40855189654023 }
-        };
         let APP_CONFIG = { hourlyRate: 30, bonusRate: 5, radius: 200, trainingDays: 30, outletLat: 13.024976, outletLng: 77.562472 };
+        // OUTLETS.birati uses a getter so it always reflects the live APP_CONFIG coordinates
+        // (loaded from Firestore settings/global on login — set via the Config tab)
+        const OUTLETS = {
+            get birati() { return { name: "Birati Outlet", lat: APP_CONFIG.outletLat, lng: APP_CONFIG.outletLng }; },
+            nimta: { name: "Nimta Outlet", lat: 22.66259288943178, lng: 88.40855189654023 }
+        };
         let currentUserData = null, workTimerInterval = null, currentShiftId = null, listeners = [];
         let isCheckoutMode = false;
 
