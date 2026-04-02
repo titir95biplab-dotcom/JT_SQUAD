@@ -424,7 +424,8 @@
                     <div class="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl text-gray-400 font-bold" id="profileInitials">JT</div>
                     <h2 class="text-lg font-bold text-gray-800" id="profileName">User</h2>
                     <p class="text-xs text-gray-500 mb-1" id="profileEmail"></p>
-                    <p class="text-xs font-bold text-blue-600 mb-3" id="profileSalaryDisplay"></p>
+                    <p class="text-xs font-bold text-blue-600 mb-1" id="profileSalaryDisplay"></p>
+                    <p class="text-xs font-bold mb-3" id="profileOutletDisplay" style="color:#0d9488"></p>
                     <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-3 py-1 rounded-full font-bold">Joined: <span id="profileJoined">-</span></span>
                 </div>
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
@@ -580,6 +581,13 @@
                             </select>
                             <input type="number" id="newUserSalary" class="w-full p-3 border rounded-lg text-sm hidden" placeholder="Monthly Salary (₹)">
                         </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase ml-1">Assigned Outlet</label>
+                            <select id="newUserOutlet" class="w-full p-3 border rounded-lg text-sm bg-white mt-1">
+                                <option value="birati">🏪 Birati Outlet</option>
+                                <option value="nimta">🏪 Nimta Outlet</option>
+                            </select>
+                        </div>
                         <div id="squadRateOverride" class="text-xs text-gray-500 bg-gray-50 p-2 rounded">Standard Rate: ₹<span id="displayStdRate">30</span>/hr. Can edit in profile later.</div>
                         <button type="submit" class="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">Create Account</button>
                     </form>
@@ -601,6 +609,13 @@
                             <div><label class="text-[10px] font-bold text-gray-400">Bonus Bal</label><input type="number" id="editUserBonus" class="w-full border p-2 rounded text-sm"></div>
                             <div><label class="text-[10px] font-bold text-red-400">Blocked (₹)</label><input type="number" id="editUserBlocked" class="w-full border p-2 rounded text-sm bg-red-50"></div>
                             <div><label class="text-[10px] font-bold text-red-400">Strikes</label><input type="number" id="editUserStrikes" class="w-full border p-2 rounded text-sm bg-red-50"></div>
+                        </div>
+                        <div class="pt-2 border-t border-gray-100">
+                            <label class="text-[10px] font-bold text-blue-600 uppercase">Assigned Outlet</label>
+                            <select id="editUserOutlet" class="w-full border p-2 rounded text-sm mt-1 bg-blue-50">
+                                <option value="birati">🏪 Birati Outlet</option>
+                                <option value="nimta">🏪 Nimta Outlet</option>
+                            </select>
                         </div>
                         <div class="flex gap-2 mt-4 pt-2">
                             <button id="addStrikeBtn" class="hidden flex-1 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold">+1 Strike</button>
@@ -791,6 +806,10 @@
         const secondaryApp = initializeApp(firebaseConfig, "Secondary");
         const secondaryAuth = getAuth(secondaryApp);
 
+        const OUTLETS = {
+            birati: { name: "Birati Outlet", lat: 13.024976, lng: 77.562472 },
+            nimta:  { name: "Nimta Outlet",  lat: 22.66259288943178, lng: 88.40855189654023 }
+        };
         let APP_CONFIG = { hourlyRate: 30, bonusRate: 5, radius: 200, trainingDays: 30, outletLat: 13.024976, outletLng: 77.562472 };
         let currentUserData = null, workTimerInterval = null, currentShiftId = null, listeners = [];
         let isCheckoutMode = false;
@@ -861,7 +880,9 @@
             const todayStr = new Date().toISOString().split('T')[0];
             const q = query(collection(db, "shift_requests"), where("assignedTo", "==", currentUserData.uid), where("status", "==", "approved"), where("date", "==", todayStr), where("type", "==", "service"));
             const jobs = await getDocs(q);
-            let targetLat = APP_CONFIG.outletLat, targetLng = APP_CONFIG.outletLng;
+            // Determine target location: client job > assigned outlet > default
+            const assignedOutlet = OUTLETS[currentUserData.assignedOutlet] || OUTLETS.birati;
+            let targetLat = assignedOutlet.lat, targetLng = assignedOutlet.lng;
             let jobDetails = null;
             if(!jobs.empty) {
                 const job = jobs.docs[0].data();
@@ -881,7 +902,7 @@
                     }).catch(e => { alert("Camera Error: " + e); btn.innerText="CHECK IN"; });
                 } else {
                     btn.innerText="CHECK IN";
-                    document.getElementById('geoError').innerText = `You are ${(dist*1000).toFixed(0)}m away from ${jobDetails ? jobDetails.clientName : 'Base'}.`;
+                    document.getElementById('geoError').innerText = `You are ${(dist*1000).toFixed(0)}m away from ${jobDetails ? jobDetails.clientName : assignedOutlet.name}.`;
                     document.getElementById('geoError').classList.remove('hidden');
                 }
             }, err => { alert("GPS Error"); btn.innerText="CHECK IN"; }, {enableHighAccuracy: true});
@@ -892,10 +913,11 @@
             btn.innerText = "Verifying Location...";
             if(!navigator.geolocation) return alert("Geolocation Access Required");
             navigator.geolocation.getCurrentPosition(async (pos) => {
-                const dist = getDist(pos.coords.latitude, pos.coords.longitude, APP_CONFIG.outletLat, APP_CONFIG.outletLng);
+                const assignedOutlet = OUTLETS[currentUserData.assignedOutlet] || OUTLETS.birati;
+                const dist = getDist(pos.coords.latitude, pos.coords.longitude, assignedOutlet.lat, assignedOutlet.lng);
                 if (dist * 1000 > APP_CONFIG.radius) {
                     btn.innerText = "END SHIFT";
-                    document.getElementById('geoError').innerText = `Too far to checkout! You are ${(dist*1000).toFixed(0)}m away.`;
+                    document.getElementById('geoError').innerText = `Too far to checkout! You are ${(dist*1000).toFixed(0)}m away from ${assignedOutlet.name}.`;
                     document.getElementById('geoError').classList.remove('hidden');
                     return;
                 }
@@ -1007,6 +1029,9 @@
                         ? `<div class="flex gap-3 mt-2"><span class="text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100">₹${(u.mainWallet||0).toFixed(0)} wallet</span><span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100">${u.bonusWallet||0} pts</span>${(u.blockedWallet||0) > 0 ? `<span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100">₹${u.blockedWallet||0} locked</span>` : ''}</div>`
                         : `<div class="mt-2"><span class="text-xs text-gray-500">Salary: ₹${u.salary||0}</span></div>`;
                     const badge = isSquad ? `<span class="text-[10px] text-red-500 font-bold">${u.strikes||0} ⚡ strikes</span>` : `<span class="text-[10px] text-blue-500 font-bold">${((u.leavesTaken||0) % 1 === 0) ? (u.leavesTaken||0) : (u.leavesTaken||0).toFixed(1)} leaves</span>`;
+                    const outletKey = u.assignedOutlet || 'birati';
+                    const outletLabel = OUTLETS[outletKey]?.name || 'Birati Outlet';
+                    const outletColor = outletKey === 'nimta' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-teal-50 text-teal-600 border-teal-100';
                     card.innerHTML = `
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full ${roleColor} flex items-center justify-center text-white font-bold text-sm shrink-0">${initials}</div>
@@ -1020,7 +1045,7 @@
                         </div>
                         <div class="mt-3 pt-3 border-t border-gray-50 text-[10px] text-gray-400 flex items-center justify-between">
                             <span><i class="fas fa-clock mr-1"></i>${(u.totalHours||0).toFixed(1)}h total · ${u.totalDays||0} days</span>
-                            <span class="text-orange-500 font-bold"><i class="fas fa-chevron-right mr-1"></i>Tap to view details</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${outletColor}"><i class="fas fa-store mr-1"></i>${outletLabel}</span>
                         </div>
                     `;
                     card.onclick = () => window.openStaffDetail(d.id);
@@ -1178,6 +1203,19 @@
             document.getElementById('detailInitials').innerText = initials;
             document.getElementById('detailName').innerText = u.name;
             document.getElementById('detailRole').innerText = u.role.toUpperCase();
+            // Show assigned outlet
+            const outletKey = u.assignedOutlet || 'birati';
+            const outletName = OUTLETS[outletKey]?.name || 'Birati Outlet';
+            const outletColor = outletKey === 'nimta' ? 'color: #4f46e5' : 'color: #0d9488';
+            let outletBadgeEl = document.getElementById('detailOutletBadge');
+            if (!outletBadgeEl) {
+                outletBadgeEl = document.createElement('span');
+                outletBadgeEl.id = 'detailOutletBadge';
+                outletBadgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded border bg-gray-50 mt-0.5 inline-block';
+                document.getElementById('detailRole').after(outletBadgeEl);
+            }
+            outletBadgeEl.style = outletColor;
+            outletBadgeEl.innerHTML = `<i class="fas fa-store mr-1"></i>${outletName}`;
 
             // Populate month filter dropdowns
             buildMonthOptions('detailShiftMonthFilter');
@@ -1730,6 +1768,14 @@
             document.getElementById('profileName').innerText = d.name;
             document.getElementById('profileEmail').innerText = d.email;
             document.getElementById('profileJoined').innerText = d.joinedAt?.toDate().toLocaleDateString() || '-';
+            // Show assigned outlet
+            const memberOutletKey = d.assignedOutlet || 'birati';
+            const memberOutletName = OUTLETS[memberOutletKey]?.name || 'Birati Outlet';
+            const profileOutletEl = document.getElementById('profileOutletDisplay');
+            if (profileOutletEl) {
+                profileOutletEl.style.color = memberOutletKey === 'nimta' ? '#4f46e5' : '#0d9488';
+                profileOutletEl.innerHTML = `<i class="fas fa-store mr-1"></i>${memberOutletName}`;
+            }
             const trainingAlert = document.getElementById('blockedFundsAlert');
             if(!isSquad) {
                 trainingAlert.classList.add('hidden');
@@ -2122,6 +2168,7 @@
                 document.getElementById('editUserBlocked').value = u.blockedWallet||0;
                 document.getElementById('editUserStrikes').value = u.strikes||0;
             } else if (isFt) { document.getElementById('editUserSalary').value = u.salary || 0; }
+            document.getElementById('editUserOutlet').value = u.assignedOutlet || 'birati';
             document.getElementById('editUserModal').classList.remove('hidden');
             document.getElementById('addStrikeBtn').onclick = async () => {
                 if(!confirm("Add 1 Strike to this user?")) return;
@@ -2134,7 +2181,7 @@
         document.getElementById('saveUserChangesBtn').onclick = async () => {
             const uid = document.getElementById('editUserId').value;
             const u = (await getDoc(doc(db,"users",uid))).data();
-            const updates = { name: document.getElementById('editUserName').value };
+            const updates = { name: document.getElementById('editUserName').value, assignedOutlet: document.getElementById('editUserOutlet').value || 'birati' };
             if(u.role === 'member') {
                 updates.customRate = Number(document.getElementById('editUserRate').value);
                 updates.customBonus = Number(document.getElementById('editUserBonusRate').value);
@@ -2219,7 +2266,7 @@
                 const cred = await createUserWithEmailAndPassword(secondaryAuth, document.getElementById('newUserEmail').value, document.getElementById('newUserPassword').value);
                 const role = document.getElementById('newUserRole').value;
                 const sal = document.getElementById('newUserSalary').value;
-                await setDoc(doc(db,"users",cred.user.uid), { name: document.getElementById('newUserName').value, email: document.getElementById('newUserEmail').value, role: role, salary: role==='member' ? 0 : Number(sal), joinedAt: serverTimestamp(), mainWallet:0, bonusWallet:0, blockedWallet:0, strikes:0, rating:5, totalHours:0, totalDays:0, leavesTaken:0 });
+                await setDoc(doc(db,"users",cred.user.uid), { name: document.getElementById('newUserName').value, email: document.getElementById('newUserEmail').value, role: role, salary: role==='member' ? 0 : Number(sal), joinedAt: serverTimestamp(), mainWallet:0, bonusWallet:0, blockedWallet:0, strikes:0, rating:5, totalHours:0, totalDays:0, leavesTaken:0, assignedOutlet: document.getElementById('newUserOutlet').value || 'birati' });
                 await signOut(secondaryAuth);
                 document.getElementById('createUserModal').classList.add('hidden'); e.target.reset(); showToast("User Created");
             } catch(x) { alert(x.message); }
