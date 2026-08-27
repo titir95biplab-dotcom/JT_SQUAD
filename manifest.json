@@ -1,0 +1,21 @@
+{
+  "name": "Juice Therapy Squad",
+  "short_name": "JT Squad",
+  "description": "Staff attendance, shifts and payroll for Juice Therapy outlets",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "logo-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "logo-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "categories": ["business", "productivity"],
+  "prefer_related_applications": false,
+  "related_applications": [
+    { "platform": "webapp", "url": "https://titir95biplab-dotcom.github.io/JT_SQUAD/manifest.json" }
+  ]
+}
