@@ -139,6 +139,35 @@
         .auth-logo { width: 96px; height: 96px; border-radius: 30px; object-fit: cover; background: #fff; box-shadow: 0 18px 40px -16px rgba(43,20,66,.5); }
         .btn-grad { background: var(--grad) !important; box-shadow: 0 14px 28px -14px rgba(238,63,87,.8) !important; }
 
+        /* ===== Training ===== */
+        .tr-hero { border-radius: 24px; padding: 18px; color: #fff; background: radial-gradient(110% 120% at 100% 0%, rgba(245,197,66,.35), rgba(245,197,66,0) 55%), linear-gradient(150deg, #3E9F4B 0%, #237036 100%); box-shadow: 0 18px 36px -18px rgba(35,112,54,.8); display: flex; align-items: center; gap: 16px; }
+        .ring { --p: 0; width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: conic-gradient(#fff calc(var(--p) * 1%), rgba(255,255,255,.22) 0); }
+        .ring > span { width: 66px; height: 66px; border-radius: 50%; background: #2C8340; display: grid; place-items: center; font-weight: 800; font-size: 18px; font-family: 'JetBrains Mono', monospace; }
+        .tr-cat { background: #fff; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow-sm); }
+        .tr-cat-h { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+        .tr-cat-h .ic { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 14px; flex-shrink: 0; }
+        .tr-cat-h b { font-size: 14.5px; flex: 1; }
+        .tr-cat-h small { font-size: 12px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+        .tr-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid #F5F0F4; cursor: pointer; transition: background .15s; width: 100%; text-align: left; }
+        .tr-item:first-of-type { border-top: 0; }
+        .tr-item:hover { background: #FCFAFB; }
+        .tr-box { width: 26px; height: 26px; border-radius: 9px; border: 2px solid #D9CFDD; display: grid; place-items: center; flex-shrink: 0; color: transparent; transition: .18s; }
+        .tr-item.done .tr-box { background: var(--kiwi); border-color: var(--kiwi); color: #fff; }
+        .tr-item .tt { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; color: var(--ink); line-height: 1.45; }
+        .tr-item.done .tt { color: #4A4258; }
+        .tr-item .when { font-size: 11px; font-weight: 700; color: #2E7D39; background: #EAF6EC; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+        .tr-item.ro { cursor: default; }
+        .tr-item.ro:hover { background: transparent; }
+        .tr-mini { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 18px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow-sm); cursor: pointer; width: 100%; text-align: left; }
+        .bar { height: 8px; border-radius: 99px; background: #F0EAF0; overflow: hidden; }
+        .bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #46B254, var(--kiwi)); }
+        .tr-row { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: #fff; cursor: pointer; transition: .15s; }
+        .tr-row:hover { box-shadow: 0 12px 26px -16px rgba(43,20,66,.4); transform: translateY(-1px); }
+        .tr-av { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-weight: 800; background: #F3ECF8; color: var(--plum-2); flex-shrink: 0; }
+        .seg { display: inline-flex; background: #F3EEF2; border-radius: 12px; padding: 4px; gap: 4px; }
+        .seg button { padding: 8px 14px; border-radius: 9px !important; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+        .seg button.on { background: #fff; color: var(--plum); box-shadow: 0 2px 6px rgba(43,20,66,.12); }
+
         /* ---- Wide screens (admin on a laptop): keep content at a readable width ---- */
         @media (min-width: 900px) {
             #adminView > .p-4 { max-width: 1000px; width: 100%; margin: 0 auto; }
@@ -271,6 +300,7 @@
                     <button class="admin-tab-btn active" onclick="switchAdminTab('overview', event)"><i class="fas fa-chart-pie"></i>Stats</button>
                     <button class="admin-tab-btn" onclick="switchAdminTab('users', event)"><i class="fas fa-users"></i>Staff</button>
                     <button class="admin-tab-btn" onclick="switchAdminTab('joining', event)"><i class="fas fa-id-card"></i>Joining <span id="joinPendingDot" class="tab-dot hidden">0</span></button>
+                    <button class="admin-tab-btn" onclick="switchAdminTab('training', event)"><i class="fas fa-graduation-cap"></i>Training</button>
                     <button class="admin-tab-btn" onclick="switchAdminTab('shifts', event)"><i class="fas fa-clock"></i>Shifts</button>
                     <button class="admin-tab-btn" onclick="switchAdminTab('requests', event)"><i class="fas fa-envelope-open-text"></i>Leaves</button>
                     <button class="admin-tab-btn" onclick="switchAdminTab('clients', event)"><i class="fas fa-store"></i>Clients</button>
@@ -340,6 +370,22 @@
                             <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center"><h3 class="font-bold text-xs uppercase" style="color:var(--kiwi)">Submitted Forms</h3><span id="joinDoneCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700">0</span></div>
                             <div class="px-4 pt-3"><div class="relative"><i class="fas fa-search absolute left-3 top-3 text-gray-300 text-xs"></i><input type="text" id="joinSearch" oninput="window.filterJoinList()" placeholder="Search name or mobile…" class="w-full pl-8 p-2.5 text-sm border"></div></div>
                             <div id="joinDoneList" class="p-4 space-y-2"><p class="text-center text-xs text-gray-400 italic">Loading…</p></div>
+                        </div>
+                    </div>
+
+                    <!-- TRAINING TAB -->
+                    <div id="adminTab-training" class="hidden space-y-4 bn">
+                        <div id="adminTrainBoard"></div>
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                            <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center"><h3 class="font-bold text-xs uppercase" style="color:var(--plum-2)">Training List — Edit</h3><span class="text-[10px] font-bold" style="color:var(--muted)" id="trEditCount"></span></div>
+                            <div class="p-4 space-y-3">
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <input type="text" id="trNewTitle" class="flex-1 p-2.5 text-sm border" placeholder="নতুন ট্রেনিংয়ের নাম, যেমন: Mocktail তৈরি">
+                                    <select id="trNewCat" class="p-2.5 text-sm border bg-white"></select>
+                                    <button onclick="window.trAddItem()" class="px-4 py-2.5 text-white text-sm font-bold" style="background:var(--plum)"><i class="fas fa-plus mr-1"></i>Add</button>
+                                </div>
+                                <div id="trEditList" class="flex flex-col gap-1.5"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -454,6 +500,7 @@
                     </div>
                     <div id="liveWorkersList" class="p-4 space-y-3"><p class="text-center text-gray-400 text-xs italic">Floor is clear.</p></div>
                 </div>
+                <div id="mgrTrainBoard" class="bn"></div>
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50"><h3 class="font-bold text-xs text-gray-600 uppercase">Squad Schedule (Today & Next Day)</h3></div>
                     <div id="mgrScheduleList" class="p-4 space-y-3"><p class="text-center text-xs text-gray-400 italic">Loading Schedule...</p></div>
@@ -547,6 +594,14 @@
                     <button class="go" onclick="window.openJoinForm()"><i class="fas fa-pen-to-square"></i> ফর্ম শুরু করুন</button>
                 </div>
                 <div id="joinDoneChip" class="hidden text-center"><span class="done-chip bn"><i class="fas fa-circle-check"></i> Registration form submitted</span></div>
+                <button id="trainMini" class="tr-mini bn" onclick="window.goTrainingTab()">
+                    <div class="tr-av" style="background:#EAF6EC;color:var(--kiwi)"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline gap-2"><p class="font-bold text-[14px]">আমার ট্রেনিং</p><p class="text-[12px] font-extrabold mono" style="color:var(--kiwi)" id="trainMiniCount">0/0</p></div>
+                        <div class="bar mt-2"><i id="trainMiniBar" style="width:0%"></i></div>
+                    </div>
+                    <i class="fas fa-chevron-right text-xs" style="color:#C9BFD0"></i>
+                </button>
                 <div id="blockedFundsAlert" class="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 hidden">
                     <div class="bg-orange-100 text-orange-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fas fa-lock text-xs"></i></div>
                     <div><p class="text-xs font-bold text-gray-700">Training Wallet Locked</p><p class="text-[10px] text-gray-500">Held Funds: <span class="font-bold text-gray-800">₹<span id="memberBlockedWallet">0</span></span></p></div>
@@ -622,6 +677,18 @@
             <div id="memberHistory" class="member-tab hidden p-4 pb-24 space-y-4">
                 <h2 class="text-lg font-bold text-gray-800 px-1">Work History</h2>
                 <div id="historyList" class="space-y-3"></div>
+            </div>
+
+            <div id="memberTraining" class="member-tab hidden p-4 pb-28 space-y-4 bn">
+                <div class="tr-hero">
+                    <div class="ring" id="trRing" style="--p:0"><span id="trPct">0%</span></div>
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-bold tracking-[.14em] uppercase" style="color:rgba(255,255,255,.75)">My Training</p>
+                        <p class="font-bold text-[19px] leading-snug" id="trHeadline">ট্রেনিং শুরু করুন</p>
+                        <p class="text-[13px] mt-0.5" style="color:rgba(255,255,255,.88)">যেটা শেখা হয়ে যাবে, সেটায় টিক দিন। Admin ও Manager দেখতে পাবেন।</p>
+                    </div>
+                </div>
+                <div id="trMyList" class="flex flex-col gap-3"><p class="text-center text-xs text-gray-400 italic">Loading…</p></div>
             </div>
 
             <div id="memberProfile" class="member-tab hidden p-4 pb-24 space-y-4">
@@ -1141,9 +1208,27 @@
         </div>
         <div id="imgViewer" class="imgview hidden" onclick="this.classList.add('hidden')"><img id="imgViewerImg" alt=""></div>
 
+        <!-- ======= TRAINING VIEWER (admin / manager, read-only) ======= -->
+        <div id="trViewModal" class="fixed inset-0 z-[75] hidden flex items-end sm:items-center justify-center" style="background:rgba(28,21,40,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
+            <div class="w-full max-w-lg flex flex-col max-h-[94vh]" style="background:var(--canvas);border-radius:26px 26px 0 0;box-shadow:0 30px 60px -20px rgba(28,21,40,.45)">
+                <div class="p-4 flex items-center justify-between gap-3 shrink-0 bg-white" style="border-bottom:1px solid var(--line);border-radius:26px 26px 0 0">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="tr-av" id="tvAv">JT</div>
+                        <div class="min-w-0">
+                            <p class="font-extrabold text-[16px] truncate" id="tvName">—</p>
+                            <p class="text-[12px]" style="color:var(--muted)" id="tvSub">—</p>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('trViewModal').classList.add('hidden')" class="icon-btn" title="Close"><i class="fas fa-xmark"></i></button>
+                </div>
+                <div class="overflow-y-auto p-4 flex flex-col gap-3 bn" id="tvBody"></div>
+            </div>
+        </div>
+
         <nav class="floatnav flex justify-around items-center z-40 hidden fixed shrink-0" id="bottomNav">
             <button class="nav-btn active flex-1 flex flex-col items-center p-2 rounded-lg" onclick="switchMemberTab('dashboard')"><i class="fas fa-house mb-1"></i><span class="text-[10px] font-bold">Home</span></button>
             <button class="nav-btn flex-1 flex flex-col items-center p-2 rounded-lg" onclick="switchMemberTab('history')"><i class="fas fa-clock-rotate-left mb-1"></i><span class="text-[10px] font-bold">History</span></button>
+            <button class="nav-btn flex-1 flex flex-col items-center p-2 rounded-lg" onclick="switchMemberTab('training')"><i class="fas fa-graduation-cap mb-1"></i><span class="text-[10px] font-bold">Training</span></button>
             <button class="nav-btn flex-1 flex flex-col items-center p-2 rounded-lg" onclick="switchMemberTab('profile')"><i class="fas fa-user mb-1"></i><span class="text-[10px] font-bold">Profile</span></button>
         </nav>
     </div>
@@ -1234,9 +1319,9 @@
             if (role === 'admin') { document.getElementById('adminView').classList.remove('hidden'); initAdmin(); }
             else if (role === 'client') { document.getElementById('clientView').classList.remove('hidden'); initClient(); }
             else if (role === 'manager') {
-                if (window.isMyZoneActive) { document.getElementById('memberDashboard').classList.remove('hidden'); nav.classList.remove('hidden'); initMember(); }
+                if (window.isMyZoneActive) { showCurrentMemberTab(); nav.classList.remove('hidden'); initMember(); }
                 else { document.getElementById('managerView').classList.remove('hidden'); initManager(); }
-            } else { document.getElementById('memberDashboard').classList.remove('hidden'); nav.classList.remove('hidden'); initMember(); }
+            } else { showCurrentMemberTab(); nav.classList.remove('hidden'); initMember(); }
         }
 
         // --- ATTENDANCE ---
@@ -1433,6 +1518,8 @@
             // Shifts with date range (load recent 20 by default)
             loadAdminShifts();
             initJoiningAdmin();
+            initTrainingBoard('adminTrainBoard');
+            trRenderers.set('editor', renderTrainEditor); renderTrainEditor();
 
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
                 document.getElementById('adminActiveStaff').innerText = snap.size;
@@ -2105,6 +2192,7 @@
         // --- MANAGER CONTROLLER ---
         function initManager() {
             const today = new Date(); document.getElementById('mgrDateDisplay').innerText = today.toDateString();
+            initTrainingBoard('mgrTrainBoard');
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
                 const l = document.getElementById('liveWorkersList'); l.innerHTML = '';
                 let count = 0;
@@ -2153,6 +2241,7 @@
             document.getElementById('memberName').innerText = d.name;
             document.getElementById('memberInitials').innerText = d.name.substring(0,2).toUpperCase();
             renderJoinGate(d);
+            initMyTraining(d);
             const hr = new Date().getHours();
             document.getElementById('memberGreeting').innerText = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + ' 👋';
             document.getElementById('attendDate').innerText = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -2458,15 +2547,20 @@
 
         window.switchAdminTab = (t, e) => {
             document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active')); e.currentTarget.classList.add('active');
-            ['overview','users','joining','shifts','requests','settings','clients'].forEach(k => document.getElementById(`adminTab-${k}`).classList.add('hidden'));
+            ['overview','users','joining','training','shifts','requests','settings','clients'].forEach(k => document.getElementById(`adminTab-${k}`).classList.add('hidden'));
             document.getElementById(`adminTab-${t}`).classList.remove('hidden');
         };
 
+        // Remember the open member tab so a live users/{uid} update (router re-run) doesn't bounce back to Home
+        let curMemberTab = 'Dashboard';
+        function showCurrentMemberTab() {
+            ['Dashboard','History','Training','Profile'].forEach(k => document.getElementById('member'+k).classList.toggle('hidden', k !== curMemberTab));
+        }
         window.switchMemberTab = (t) => {
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
-            ['Dashboard','History','Profile'].forEach(k => document.getElementById('member'+k).classList.add('hidden'));
-            document.getElementById('member'+t.charAt(0).toUpperCase()+t.slice(1)).classList.remove('hidden');
+            curMemberTab = t.charAt(0).toUpperCase() + t.slice(1);
+            showCurrentMemberTab();
         };
 
         window.filterStaffTable = () => {
@@ -2954,7 +3048,7 @@
             catch(x) { document.getElementById('authError').innerText = x.message; document.getElementById('authError').classList.remove('hidden'); }
         };
 
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
+        document.getElementById('logoutBtn').onclick = () => { curMemberTab = 'Dashboard'; document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === 0)); signOut(auth); };
 
         // ===================== JOINING FORM =====================
         // Staff created with regRequired=true must submit this once before their first check-in.
@@ -3296,6 +3390,228 @@
                 a.onclick = (e) => { e.preventDefault(); window.viewImage(dd.image); };
                 box.appendChild(a);
             });
+        };
+
+
+        // ===================== TRAINING =====================
+        // A checklist every staff member ticks off as they learn each skill; admin & manager see everyone's progress.
+        // The list lives in settings/training (falls back to TRAINING_DEFAULT until admin edits it);
+        // progress lives in training_progress/{uid} as items: { <itemId>: { done, at } }.
+        const TR_CATS = [
+            { id: 'shop', name: 'দোকানের নিয়ম ও কাজ', icon: 'fa-store', bg: '#FFF1EC', fg: '#D9364C' },
+            { id: 'apps', name: 'অ্যাপ ও সিস্টেম', icon: 'fa-mobile-screen', bg: '#EEF0FF', fg: '#4F46E5' },
+            { id: 'cust', name: 'কাস্টমার সার্ভিস', icon: 'fa-face-smile', bg: '#FFF7E0', fg: '#B7791F' },
+            { id: 'food', name: 'খাবার তৈরি', icon: 'fa-blender', bg: '#EAF6EC', fg: '#2E7D39' }
+        ];
+        const TRAINING_DEFAULT = [
+            { id: 't01', cat: 'shop', title: 'Apron ও Cap পরা' },
+            { id: 't02', cat: 'shop', title: 'দোকানের কোন জিনিস কোথায় থাকে' },
+            { id: 't09', cat: 'shop', title: 'দোকানের Machine কীভাবে ব্যবহার করতে হয় (নিয়মাবলী সহ)' },
+            { id: 't10', cat: 'shop', title: 'Raw material দোকানে ঢুকলে কী কী করতে হবে' },
+            { id: 't13', cat: 'shop', title: 'Cleaning — দোকান পরিষ্কার রাখা' },
+            { id: 't14', cat: 'shop', title: 'দোকানের প্রতিটা বিষয় Owner-কে জানানো' },
+            { id: 't17', cat: 'shop', title: 'বসার ঘরে নজর রাখা, Table পরিষ্কার করা, খাবার দিয়ে আসা' },
+            { id: 't18', cat: 'shop', title: 'দোকান Closing শেখা' },
+            { id: 't03', cat: 'apps', title: 'Billing শেখা' },
+            { id: 't04', cat: 'apps', title: 'WhatsApp group-গুলো জানা' },
+            { id: 't05', cat: 'apps', title: 'Messaging app শেখা' },
+            { id: 't06', cat: 'apps', title: 'Recipe app' },
+            { id: 't07', cat: 'apps', title: 'Stock app' },
+            { id: 't08', cat: 'apps', title: 'Task manager app' },
+            { id: 't11', cat: 'cust', title: 'Customer-এর সাথে কীভাবে কথা বলতে হবে' },
+            { id: 't12', cat: 'cust', title: 'কোন খাবার কোন পাত্রে কীভাবে দেওয়া হয়' },
+            { id: 't15', cat: 'cust', title: 'Customer-এর WhatsApp message-এর reply কীভাবে দেবে' },
+            { id: 't16', cat: 'cust', title: 'Delivery কীভাবে handle করবে' },
+            { id: 'f01', cat: 'food', title: 'Juice তৈরি' },
+            { id: 'f02', cat: 'food', title: 'Milkshake তৈরি' },
+            { id: 'f03', cat: 'food', title: 'Brownie তৈরি' },
+            { id: 'f04', cat: 'food', title: 'Soda item তৈরি' },
+            { id: 'f05', cat: 'food', title: 'Ice cream shake তৈরি' },
+            { id: 'f06', cat: 'food', title: 'Ice cream sundae তৈরি' },
+            { id: 'f07', cat: 'food', title: 'Sandwich তৈরি' },
+            { id: 'f08', cat: 'food', title: 'Burger তৈরি' },
+            { id: 'f09', cat: 'food', title: 'Fried items তৈরি' },
+            { id: 'f10', cat: 'food', title: 'Roll তৈরি' },
+            { id: 'f11', cat: 'food', title: 'Coffee তৈরি' },
+            { id: 'f12', cat: 'food', title: 'Salad তৈরি' },
+            { id: 'f13', cat: 'food', title: 'Momo items তৈরি' }
+        ];
+        let trItems = TRAINING_DEFAULT.slice(), myTrProg = {}, trStaff = [], trProgAll = {};
+        const trMode = {};
+        const trSubs = {};          // key -> unsubscribe; renderRouter re-runs init*, so subscribe once per login
+        const trRenderers = new Map();
+        const trRerender = () => trRenderers.forEach(fn => fn());
+        function trSub(key, make) {
+            if (trSubs[key] && listeners.includes(trSubs[key])) return;
+            const un = make(); listeners.push(un); trSubs[key] = un;
+        }
+        const pct = (a, b) => (b ? Math.round(a * 100 / b) : 0);
+        const shortDate = ts => { const dt = ts?.toDate?.(); return dt ? dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'আজ'; };
+        const trDone = prog => { const it = prog?.items || {}; return trItems.filter(t => it[t.id]?.done).length; };
+        const roleLabel = r => ({ member: 'Squad', fulltime: 'Full Time', manager: 'Manager' }[r] || r || '');
+
+        function trWatchList() {
+            trSub('list', () => onSnapshot(doc(db, 'settings', 'training'), snap => {
+                const items = snap.exists() ? snap.data().items : null;
+                trItems = Array.isArray(items) && items.length ? items : TRAINING_DEFAULT.slice();
+                trRerender();
+            }));
+        }
+
+        // Checklist markup shared by the staff tab (tappable) and the admin/manager viewer (read-only)
+        function trChecklistHTML(prog, readOnly) {
+            const it = prog?.items || {};
+            return TR_CATS.map(c => {
+                const list = trItems.filter(t => t.cat === c.id);
+                if (!list.length) return '';
+                const done = list.filter(t => it[t.id]?.done).length;
+                return `<div class="tr-cat">
+                    <div class="tr-cat-h"><span class="ic" style="background:${c.bg};color:${c.fg}"><i class="fas ${c.icon}"></i></span><b>${c.name}</b><small>${bnNum(done)}/${bnNum(list.length)}</small></div>
+                    ${list.map(t => {
+                        const ok = !!it[t.id]?.done;
+                        return `<button type="button" class="tr-item${ok ? ' done' : ''}${readOnly ? ' ro' : ''}" ${readOnly ? 'tabindex="-1"' : `onclick="window.trToggle('${t.id}')"`}>
+                            <span class="tr-box"><i class="fas fa-check text-[12px]"></i></span>
+                            <span class="tt">${esc(t.title)}</span>
+                            ${ok ? `<span class="when">${shortDate(it[t.id].at)}</span>` : ''}
+                        </button>`;
+                    }).join('')}
+                </div>`;
+            }).join('');
+        }
+
+        // ---- Staff: My Training ----
+        function initMyTraining(d) {
+            trWatchList();
+            trRenderers.set('mine', renderMyTraining);
+            trSub('mine:' + d.uid, () => onSnapshot(doc(db, 'training_progress', d.uid), snap => {
+                myTrProg = snap.exists() ? snap.data() : {};
+                renderMyTraining();
+            }));
+            renderMyTraining();
+        }
+        function renderMyTraining() {
+            const done = trDone(myTrProg), total = trItems.length, p = pct(done, total);
+            document.getElementById('trRing').style.setProperty('--p', p);
+            document.getElementById('trPct').textContent = p + '%';
+            document.getElementById('trHeadline').textContent = total && done === total ? 'সব ট্রেনিং সম্পূর্ণ 🎉' : `${bnNum(done)}/${bnNum(total)} শেখা হয়েছে`;
+            document.getElementById('trainMiniCount').textContent = `${done}/${total}`;
+            document.getElementById('trainMiniBar').style.width = p + '%';
+            document.getElementById('trMyList').innerHTML = trChecklistHTML(myTrProg, false);
+        }
+        window.trToggle = async (id) => {
+            const d = currentUserData; if (!d) return;
+            const was = !!myTrProg.items?.[id]?.done;
+            if (was && !confirm('এই ট্রেনিং থেকে টিক সরিয়ে দেবেন?')) return;
+            myTrProg.items = { ...(myTrProg.items || {}), [id]: { done: !was, at: was ? null : Timestamp.now() } };
+            renderMyTraining();
+            try {
+                await setDoc(doc(db, 'training_progress', d.uid), { uid: d.uid, name: d.name || '', role: d.role || '', items: { [id]: { done: !was, at: was ? null : serverTimestamp() } }, updatedAt: serverTimestamp() }, { merge: true });
+                if (!was) showToast('ট্রেনিং সম্পূর্ণ ✓');
+            } catch (e) { alert('Save হয়নি: ' + e.message); }
+        };
+        window.goTrainingTab = () => document.querySelector('#bottomNav .nav-btn[onclick*="training"]').click();
+
+        // ---- Admin / Manager: Squad Training board ----
+        function initTrainingBoard(boxId) {
+            trWatchList();
+            trRenderers.set('board:' + boxId, () => renderTrainBoard(boxId));
+            trSub('staff', () => onSnapshot(query(collection(db, 'users'), where('role', 'in', ['member', 'fulltime', 'manager'])), snap => {
+                trStaff = snap.docs.map(x => ({ uid: x.id, ...x.data() })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                trRerender();
+            }));
+            trSub('prog', () => onSnapshot(collection(db, 'training_progress'), snap => {
+                trProgAll = {}; snap.forEach(x => { trProgAll[x.id] = x.data(); });
+                trRerender();
+            }));
+            renderTrainBoard(boxId);
+        }
+        window.trSetMode = (boxId, m) => { trMode[boxId] = m; renderTrainBoard(boxId); };
+        function renderTrainBoard(boxId) {
+            const box = document.getElementById(boxId); if (!box) return;
+            const mode = trMode[boxId] || 'staff', total = trItems.length;
+            const rows = trStaff.map(u => ({ u, done: trDone(trProgAll[u.uid]) }));
+            const avg = rows.length ? Math.round(rows.reduce((a, r) => a + pct(r.done, total), 0) / rows.length) : 0;
+            const finished = rows.filter(r => total && r.done === total).length;
+            let inner;
+            if (!rows.length) inner = '<p class="text-center text-xs text-gray-400 italic py-2">কোনো স্টাফ নেই।</p>';
+            else if (mode === 'staff') {
+                inner = rows.sort((a, b) => b.done - a.done).map(({ u, done }) => {
+                    const p = pct(done, total);
+                    return `<div class="tr-row" onclick="window.openTrainView('${u.uid}')">
+                        <div class="tr-av">${esc((u.name || '?').substring(0, 2).toUpperCase())}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-baseline gap-2"><p class="font-bold text-sm truncate">${esc(u.name)}</p><p class="text-[12px] font-extrabold mono" style="color:${p === 100 ? 'var(--kiwi)' : 'var(--ink)'}">${done}/${total}</p></div>
+                            <p class="text-[10.5px] uppercase font-bold mb-1.5" style="color:var(--muted)">${roleLabel(u.role)} · ${p}%</p>
+                            <div class="bar"><i style="width:${p}%"></i></div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } else {
+                inner = TR_CATS.map(c => {
+                    const list = trItems.filter(t => t.cat === c.id);
+                    if (!list.length) return '';
+                    return `<p class="reg-sec mt-1" style="color:${c.fg}"><i class="fas ${c.icon}"></i> ${c.name}</p>` + list.map(t => {
+                        const who = rows.filter(r => trProgAll[r.u.uid]?.items?.[t.id]?.done);
+                        const left = rows.filter(r => !trProgAll[r.u.uid]?.items?.[t.id]?.done).map(r => r.u.name);
+                        const p = pct(who.length, rows.length);
+                        return `<div class="py-2.5" style="border-bottom:1px solid #F5F0F4">
+                            <div class="flex justify-between gap-3"><p class="text-[13.5px] font-semibold">${esc(t.title)}</p><p class="text-[12px] font-extrabold mono whitespace-nowrap" style="color:${p === 100 ? 'var(--kiwi)' : 'var(--ink)'}">${who.length}/${rows.length} জন</p></div>
+                            <div class="bar my-1.5"><i style="width:${p}%"></i></div>
+                            ${left.length ? `<p class="text-[11.5px]" style="color:var(--muted)">বাকি: ${esc(left.slice(0, 6).join(', '))}${left.length > 6 ? ` +${left.length - 6}` : ''}</p>` : '<p class="text-[11.5px] font-semibold" style="color:var(--kiwi)">সবাই শিখেছে ✓</p>'}
+                        </div>`;
+                    }).join('');
+                }).join('');
+            }
+            box.innerHTML = `<div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center gap-2">
+                    <h3 class="font-bold text-xs uppercase" style="color:var(--kiwi)"><i class="fas fa-graduation-cap mr-1"></i>Squad Training</h3>
+                    <div class="seg"><button class="${mode === 'staff' ? 'on' : ''}" onclick="window.trSetMode('${boxId}','staff')">স্টাফ</button><button class="${mode === 'topic' ? 'on' : ''}" onclick="window.trSetMode('${boxId}','topic')">বিষয়</button></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 px-4 pt-4">
+                    <div class="text-center rounded-xl py-2.5" style="background:#EAF6EC"><p class="text-[10px] font-bold uppercase" style="color:#2E7D39">গড় অগ্রগতি</p><p class="font-extrabold mono text-[18px]" style="color:#2E7D39">${avg}%</p></div>
+                    <div class="text-center rounded-xl py-2.5" style="background:#F3ECF8"><p class="text-[10px] font-bold uppercase" style="color:var(--plum-2)">স্টাফ</p><p class="font-extrabold mono text-[18px]" style="color:var(--plum-2)">${rows.length}</p></div>
+                    <div class="text-center rounded-xl py-2.5" style="background:var(--tint)"><p class="text-[10px] font-bold uppercase" style="color:#B42F44">সব শেষ</p><p class="font-extrabold mono text-[18px]" style="color:#B42F44">${finished}</p></div>
+                </div>
+                <div class="p-4 flex flex-col gap-2">${inner}</div>
+            </div>`;
+        }
+        window.openTrainView = (uid) => {
+            const u = trStaff.find(x => x.uid === uid) || {};
+            const prog = trProgAll[uid] || {}, done = trDone(prog), total = trItems.length;
+            document.getElementById('tvAv').textContent = (u.name || '?').substring(0, 2).toUpperCase();
+            document.getElementById('tvName').textContent = u.name || '—';
+            document.getElementById('tvSub').textContent = `${roleLabel(u.role)} · ${done}/${total} শেখা (${pct(done, total)}%)`;
+            document.getElementById('tvBody').innerHTML = trChecklistHTML(prog, true);
+            document.getElementById('trViewModal').classList.remove('hidden');
+        };
+
+        // ---- Admin: edit the training list ----
+        function renderTrainEditor() {
+            const sel = document.getElementById('trNewCat');
+            if (!sel.options.length) sel.innerHTML = TR_CATS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            document.getElementById('trEditCount').textContent = `${trItems.length} items`;
+            document.getElementById('trEditList').innerHTML = TR_CATS.map(c => {
+                const list = trItems.filter(t => t.cat === c.id);
+                return `<p class="reg-sec mt-2" style="color:${c.fg}"><i class="fas ${c.icon}"></i> ${c.name} · ${list.length}</p>` + list.map(t =>
+                    `<div class="flex items-center gap-2 py-1.5 px-2 rounded-lg" style="background:#FCFAFB"><span class="flex-1 text-[13.5px]">${esc(t.title)}</span><button onclick="window.trDelItem('${t.id}')" class="w-8 h-8 text-xs" style="color:var(--melon)" title="Remove"><i class="fas fa-trash-can"></i></button></div>`).join('');
+            }).join('');
+        }
+        async function trSaveList(items) {
+            await setDoc(doc(db, 'settings', 'training'), { items, updatedAt: serverTimestamp() });
+        }
+        window.trAddItem = async () => {
+            const title = document.getElementById('trNewTitle').value.trim();
+            if (!title) return document.getElementById('trNewTitle').focus();
+            const cat = document.getElementById('trNewCat').value;
+            await trSaveList([...trItems, { id: 'c' + Date.now().toString(36), cat, title }]);
+            document.getElementById('trNewTitle').value = '';
+            showToast('Training added');
+        };
+        window.trDelItem = async (id) => {
+            const t = trItems.find(x => x.id === id); if (!t) return;
+            if (!confirm(`"${t.title}" তালিকা থেকে সরাবেন?`)) return;
+            await trSaveList(trItems.filter(x => x.id !== id));
+            showToast('Training removed');
         };
 
     </script>
