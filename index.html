@@ -794,7 +794,7 @@
                                 <option value="nimta">🏪 Nimta Outlet</option>
                             </select>
                         </div>
-                        <div class="text-[12px] p-3 rounded-xl bn" style="background:var(--tint);color:#B42F44"><i class="fas fa-id-card mr-1"></i> নতুন Squad Member ও Full Time স্টাফকে প্রথমে Joining Form পূরণ করতে হবে — তারপর Check In চালু হবে। (Manager-দের লাগবে না)</div>
+                        <div class="text-[12px] p-3 rounded-xl bn" style="background:var(--tint);color:#B42F44"><i class="fas fa-id-card mr-1"></i> নতুন স্টাফকে প্রথমে Joining Form পূরণ করতে হবে — তারপর Check In চালু হবে।</div>
                         <div id="squadRateOverride" class="text-xs text-gray-500 bg-gray-50 p-2 rounded">Standard Rate: ₹<span id="displayStdRate">30</span>/hr. Can edit in profile later.</div>
                         <button type="submit" class="w-full py-3 bg-gray-900 text-white rounded-xl font-bold text-sm">Create Account</button>
                     </form>
@@ -2657,7 +2657,7 @@
                 const cred = await createUserWithEmailAndPassword(secondaryAuth, document.getElementById('newUserEmail').value, document.getElementById('newUserPassword').value);
                 const role = document.getElementById('newUserRole').value;
                 const sal = document.getElementById('newUserSalary').value;
-                await setDoc(doc(db,"users",cred.user.uid), { name: document.getElementById('newUserName').value, email: document.getElementById('newUserEmail').value, role: role, salary: role==='member' ? 0 : Number(sal), joinedAt: serverTimestamp(), mainWallet:0, bonusWallet:0, blockedWallet:0, strikes:0, rating:5, totalHours:0, totalDays:0, leavesTaken:0, assignedOutlet: document.getElementById('newUserOutlet').value || 'birati', regRequired: ['member','fulltime'].includes(role) });
+                await setDoc(doc(db,"users",cred.user.uid), { name: document.getElementById('newUserName').value, email: document.getElementById('newUserEmail').value, role: role, salary: role==='member' ? 0 : Number(sal), joinedAt: serverTimestamp(), mainWallet:0, bonusWallet:0, blockedWallet:0, strikes:0, rating:5, totalHours:0, totalDays:0, leavesTaken:0, assignedOutlet: document.getElementById('newUserOutlet').value || 'birati', regRequired: ['member','fulltime','manager'].includes(role) });
                 await signOut(secondaryAuth);
                 document.getElementById('createUserModal').classList.add('hidden'); e.target.reset(); showToast("User Created");
             } catch(x) { alert(x.message); }
