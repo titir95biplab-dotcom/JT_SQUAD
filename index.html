@@ -139,6 +139,33 @@
         .auth-logo { width: 96px; height: 96px; border-radius: 30px; object-fit: cover; background: #fff; box-shadow: 0 18px 40px -16px rgba(43,20,66,.5); }
         .btn-grad { background: var(--grad) !important; box-shadow: 0 14px 28px -14px rgba(238,63,87,.8) !important; }
 
+        /* ===== Off days, leave alerts ===== */
+        .bell-badge { position: absolute; top: 2px; right: 1px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: var(--melon); color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #fff; }
+        .bell-badge.fresh { animation: bellpulse 1.2s infinite; }
+        @keyframes bellpulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.18) } }
+        #bellBtn.has i { color: var(--melon); }
+        .bell-panel { position: fixed; z-index: 85; top: calc(64px + env(safe-area-inset-top, 0px)); right: 12px; width: min(380px, calc(100vw - 24px)); max-height: 72vh; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 30px 60px -20px rgba(28,21,40,.45); overflow: hidden; }
+        .bell-item { display: flex; gap: 12px; padding: 12px 14px; border-top: 1px solid #F5F0F4; cursor: pointer; }
+        .bell-item:hover { background: #FCFAFB; }
+        .bell-item.unseen { background: #FFF6F3; }
+        .bell-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--melon); margin-top: 6px; flex-shrink: 0; }
+        .off-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow-sm); }
+        .off-chips { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .off-chips button { padding: 9px 0; border-radius: 11px !important; font-size: 12.5px; font-weight: 700; background: #F6F1F5; color: var(--muted); border: 1.5px solid transparent; }
+        .off-chips button.on { background: #F3ECF8; color: var(--plum); border-color: var(--plum-2); }
+        .off-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; padding: 5px 10px; border-radius: 999px; background: #F3ECF8; color: var(--plum-2); white-space: nowrap; }
+        .remind { border-radius: 18px; border: 1px solid #F6D9B8; background: linear-gradient(180deg, #FFF9F0 0%, #FFFFFF 100%); padding: 14px 16px; box-shadow: var(--shadow-sm); }
+        .remind-day { display: flex; gap: 10px; align-items: flex-start; padding-top: 10px; margin-top: 10px; border-top: 1px dashed #F1DCC2; }
+        .remind-day:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+        .remind-tag { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+        .person { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; padding: 4px 9px; border-radius: 10px; background: #fff; border: 1px solid var(--line); margin: 0 6px 6px 0; }
+        .person small { font-weight: 600; color: var(--muted); }
+        .lv-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff; text-align: left; }
+        .lv-chip { font-size: 10px; font-weight: 800; letter-spacing: .05em; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+        .lv-chip.pending { background: #FFF4D6; color: #9A6A00; }
+        .lv-chip.approved { background: #EAF6EC; color: #2E7D39; }
+        .lv-chip.rejected { background: #FDECEE; color: #C02640; }
+
         /* ===== Inactive staff ===== */
         .flt-off { display: none !important; }
         .staff-card.is-inactive { opacity: .62; background: #FAF8F9 !important; }
@@ -199,10 +226,10 @@
         .jf-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 12px; }
         .jf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 380px) { .jf-grid { grid-template-columns: 1fr; } }
-        .jf label.f { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; font-weight: 600; color: #4A4258; min-width: 0; }
-        .jf label.f .req { color: var(--melon); }
-        .jf input:not([type=file]), .jf select, .jf textarea { width: 100%; padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px; background: #FCFAFB; font-size: 15px; color: var(--ink); font-family: inherit; }
-        .jf input:focus, .jf select:focus, .jf textarea:focus { outline: none; border-color: var(--melon); background: #fff; box-shadow: 0 0 0 4px rgba(238,63,87,.12); }
+        :is(.jf,.jf-lite) label.f { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; font-weight: 600; color: #4A4258; min-width: 0; }
+        :is(.jf,.jf-lite) label.f .req { color: var(--melon); }
+        :is(.jf,.jf-lite) input:not([type=file]), :is(.jf,.jf-lite) select, :is(.jf,.jf-lite) textarea { width: 100%; padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px; background: #FCFAFB; font-size: 15px; color: var(--ink); font-family: inherit; }
+        :is(.jf,.jf-lite) input:focus, :is(.jf,.jf-lite) select:focus, :is(.jf,.jf-lite) textarea:focus { outline: none; border-color: var(--melon); background: #fff; box-shadow: 0 0 0 4px rgba(238,63,87,.12); }
         .jf input.bad, .jf select.bad, .jf textarea.bad { border-color: var(--melon); background: #FFF5F6; }
         .jf .hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
         .rate-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -291,6 +318,7 @@
                 </div>
             </div>
             <div class="flex gap-1">
+                <button id="bellBtn" class="icon-btn relative hidden" title="Leave requests" onclick="window.toggleBell(event)"><i class="fas fa-bell text-sm"></i><span id="bellBadge" class="bell-badge hidden">0</span></button>
                 <button onclick="window.location.reload()" class="icon-btn" title="Refresh"><i class="fas fa-rotate-right text-sm"></i></button>
                 <button id="logoutBtn" class="icon-btn" title="Log out"><i class="fas fa-power-off text-sm"></i></button>
             </div>
@@ -340,6 +368,7 @@
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Active Now</p><p id="adminActiveStaff" class="text-2xl font-bold text-green-600">0</p></div>
                             <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm"><p class="text-gray-400 text-[10px] font-bold uppercase">Pending Wages</p><p class="text-2xl font-bold text-gray-800">₹<span id="adminPendingPayout">0</span></p></div>
                         </div>
+                        <div id="adminOffReminder" class="bn"></div>
                         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                             <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
                                 <h3 class="font-bold text-xs text-gray-600 uppercase">Live Floor (Active Now)</h3>
@@ -415,6 +444,7 @@
 
                     <!-- SHIFTS TAB -->
                     <div id="adminTab-shifts" class="hidden space-y-4">
+                        <button onclick="window.openManualShift()" class="w-full py-3.5 rounded-2xl font-extrabold text-white text-sm bn" style="background:var(--plum);box-shadow:0 12px 24px -14px rgba(43,20,66,.8)"><i class="fas fa-plus mr-1.5"></i> Session যোগ করুন (Entry / Exit)</button>
                         <!-- Date Range Filter -->
                         <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                             <h3 class="font-bold text-xs text-gray-500 uppercase mb-3">Filter by Date Range</h3>
@@ -517,6 +547,7 @@
                         <button onclick="window.openRedeemModal()" class="bg-orange-100 text-orange-700 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-orange-200"><i class="fas fa-gift"></i></button>
                     </div>
                 </div>
+                <div id="mgrOffReminder" class="bn"></div>
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div class="p-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
                         <h3 class="font-bold text-xs text-gray-600 uppercase">Live Floor (Squad)</h3>
@@ -626,6 +657,7 @@
                     </div>
                     <i class="fas fa-chevron-right text-xs" style="color:#C9BFD0"></i>
                 </button>
+                <div id="offDayCard" class="off-card bn"></div>
                 <div id="blockedFundsAlert" class="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 hidden">
                     <div class="bg-orange-100 text-orange-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fas fa-lock text-xs"></i></div>
                     <div><p class="text-xs font-bold text-gray-700">Training Wallet Locked</p><p class="text-[10px] text-gray-500">Held Funds: <span class="font-bold text-gray-800">₹<span id="memberBlockedWallet">0</span></span></p></div>
@@ -672,7 +704,8 @@
                         <button id="bookSlotBtn" class="w-full py-3 bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-100 rounded-lg font-bold text-sm transition">Request Slot</button>
                     </div>
                     <div id="ftLeaveUI" class="hidden space-y-3">
-                        <input type="date" id="leaveDate" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+                        <input type="date" id="leaveDate" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm" onchange="window.checkLeaveDate()">
+                        <p id="leaveDateWarn" class="hidden text-[12.5px] font-semibold rounded-lg px-3 py-2 bn" style="background:#FFF4D6;color:#8A5E00"></p>
                         <!-- Full day / Half day toggle -->
                         <div class="flex gap-2">
                             <button id="leaveFull" onclick="window.setLeaveType('full')" class="flex-1 py-2.5 rounded-lg border-2 border-blue-500 bg-blue-500 text-white text-xs font-bold transition">
@@ -693,6 +726,10 @@
                         </div>
                         <textarea id="leaveReason" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-sm" placeholder="Reason for leave..."></textarea>
                         <button id="requestLeaveBtn" class="w-full py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-100 rounded-lg font-bold text-sm transition">Submit Leave Request</button>
+                        <div class="pt-3 bn" style="border-top:1px solid var(--line)">
+                            <div class="flex items-center justify-between mb-2"><p class="font-bold text-[13px]">আমার পাঠানো Leave Request</p><button type="button" onclick="window.goProfileTab()" class="text-[12px] font-bold" style="color:var(--plum-2)">সব দেখুন <i class="fas fa-chevron-right text-[10px]"></i></button></div>
+                            <div id="homeLeaveList" class="flex flex-col gap-2"><p class="text-center text-xs text-gray-400 italic">Loading…</p></div>
+                        </div>
                     </div>
                     <div id="requestStatusDisplay" class="mt-4 pt-4 border-t border-gray-100 text-sm hidden"></div>
                 </div>
@@ -840,6 +877,7 @@
                             <!-- Month filter for shifts -->
                             <div class="flex gap-2 items-center">
                                 <select id="detailShiftMonthFilter" onchange="window.onDetailShiftFilterChange()" class="flex-grow p-2 border border-gray-200 rounded-lg text-xs font-bold bg-white text-gray-600 focus:border-orange-400 outline-none"></select>
+                                <button onclick="window.openManualShiftForDetail()" class="px-3 py-2 text-xs font-bold text-white whitespace-nowrap" style="background:var(--plum)"><i class="fas fa-plus mr-1"></i>Session</button>
                             </div>
                             <!-- Stats summary row -->
                             <div class="grid grid-cols-3 gap-2" id="detailShiftSummary"></div>
@@ -915,6 +953,12 @@
                             <select id="editUserOutlet" class="w-full border p-2 rounded text-sm mt-1 bg-blue-50">
                                 <option value="birati">🏪 Birati Outlet</option>
                                 <option value="nimta">🏪 Nimta Outlet</option>
+                            </select>
+                        </div>
+                        <div class="pt-2 border-t border-gray-100">
+                            <label class="text-[10px] font-bold uppercase" style="color:var(--plum-2)">Fixed Off Day (info only)</label>
+                            <select id="editUserOffDay" class="w-full border p-2 rounded text-sm mt-1 bn">
+                                <option value="">— Not set —</option><option value="0">রবিবার (Sun)</option><option value="1">সোমবার (Mon)</option><option value="2">মঙ্গলবার (Tue)</option><option value="3">বুধবার (Wed)</option><option value="4">বৃহস্পতিবার (Thu)</option><option value="5">শুক্রবার (Fri)</option><option value="6">শনিবার (Sat)</option>
                             </select>
                         </div>
                         <div class="flex gap-2 mt-4 pt-2">
@@ -1234,6 +1278,37 @@
         </div>
         <div id="imgViewer" class="imgview hidden" onclick="this.classList.add('hidden')"><img id="imgViewerImg" alt=""></div>
 
+        <!-- ======= MANUAL SESSION (admin) ======= -->
+        <div id="manualShiftModal" class="fixed inset-0 z-[78] hidden flex items-end sm:items-center justify-center bn" style="background:rgba(28,21,40,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
+            <div class="bg-white w-full max-w-md flex flex-col max-h-[94vh]" style="border-radius:26px 26px 0 0;box-shadow:0 30px 60px -20px rgba(28,21,40,.45)">
+                <div class="p-4 flex items-center justify-between shrink-0" style="border-bottom:1px solid var(--line)">
+                    <div><p class="font-extrabold text-[16px]">Session যোগ করুন</p><p class="text-[12px]" style="color:var(--muted)">Check In / Check Out ভুলে গেলে — হাতে Entry ও Exit দিন</p></div>
+                    <button onclick="document.getElementById('manualShiftModal').classList.add('hidden')" class="icon-btn" title="Close"><i class="fas fa-xmark"></i></button>
+                </div>
+                <div class="overflow-y-auto p-4 flex flex-col gap-3 jf-lite">
+                    <label class="f"><span>স্টাফ <span class="req">*</span></span><select id="msStaff" onchange="window.msStaffChange()"></select></label>
+                    <div class="jf-grid">
+                        <label class="f"><span>Entry (Check In) <span class="req">*</span></span><input type="datetime-local" id="msIn" oninput="window.msPreview()"></label>
+                        <label class="f"><span>Exit (Check Out)</span><input type="datetime-local" id="msOut" oninput="window.msPreview()"></label>
+                    </div>
+                    <label class="f"><span>Outlet</span><select id="msOutlet"><option value="birati">🏪 Birati Outlet</option><option value="nimta">🏪 Nimta Outlet</option></select></label>
+                    <label class="f"><span>Note (ঐচ্ছিক)</span><input type="text" id="msNote" placeholder="যেমন: Check In করতে ভুলে গিয়েছিল"></label>
+                    <div id="msPreviewBox" class="rate-box" style="grid-template-columns:1fr"></div>
+                    <div id="msErr" class="jf-err hidden"></div>
+                </div>
+                <div class="jf-foot"><button class="jf-back" onclick="document.getElementById('manualShiftModal').classList.add('hidden')">বাতিল</button><button class="jf-next" id="msSaveBtn" onclick="window.saveManualShift()"><i class="fas fa-check mr-1"></i> Session Save</button></div>
+            </div>
+        </div>
+
+        <!-- ======= LEAVE REQUEST ALERTS (admin / manager) ======= -->
+        <div id="bellPanel" class="bell-panel hidden bn" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-4 py-3" style="border-bottom:1px solid var(--line)">
+                <p class="font-extrabold text-[15px]"><i class="fas fa-bell mr-1.5" style="color:var(--melon)"></i>Leave Requests</p>
+                <span class="text-[11px] font-bold" style="color:var(--muted)" id="bellSub"></span>
+            </div>
+            <div id="bellList" class="overflow-y-auto"></div>
+        </div>
+
         <!-- ======= TRAINING VIEWER (admin / manager, read-only) ======= -->
         <div id="trViewModal" class="fixed inset-0 z-[75] hidden flex items-end sm:items-center justify-center" style="background:rgba(28,21,40,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
             <div class="w-full max-w-lg flex flex-col max-h-[94vh]" style="background:var(--canvas);border-radius:26px 26px 0 0;box-shadow:0 30px 60px -20px rgba(28,21,40,.45)">
@@ -1345,6 +1420,7 @@
             const off = currentUserData.inactive === true && role !== 'admin';
             const dot = document.querySelector('.role-chip > span');
             dot.classList.toggle('bg-green-500', !off); dot.classList.toggle('animate-pulse', !off); dot.classList.toggle('bg-gray-400', off);
+            initLeaveBell(off ? 'inactive' : role);
             if (off) {
                 ['History','Training','Profile'].forEach(k => document.getElementById('member'+k).classList.add('hidden'));
                 document.getElementById('joinForm').classList.add('hidden');
@@ -1563,6 +1639,7 @@
             loadAdminShifts();
             initJoiningAdmin();
             initTrainingBoard('adminTrainBoard');
+            initOffReminder('adminOffReminder');
             trRenderers.set('editor', renderTrainEditor); renderTrainEditor();
 
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
@@ -1681,7 +1758,7 @@
                     const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50";
                     tr.innerHTML = `
                         <td class="p-3 text-xs">${s.checkInTime?.toDate().toLocaleDateString()}</td>
-                        <td class="p-3 font-bold text-sm">${s.userName}</td>
+                        <td class="p-3 font-bold text-sm">${s.userName}${s.manualEntry ? ' <span class="inact-badge" style="background:#F3ECF8;color:var(--plum-2)" title="Added by ' + (s.createdBy || 'admin') + '">Manual</span>' : ''}</td>
                         <td class="p-3 text-xs text-gray-500">${dur}</td>
                         <td class="p-3">${earn}</td>
                         <td class="p-3 text-right flex justify-end gap-2">
@@ -2238,6 +2315,7 @@
         function initManager() {
             const today = new Date(); document.getElementById('mgrDateDisplay').innerText = today.toDateString();
             initTrainingBoard('mgrTrainBoard');
+            initOffReminder('mgrOffReminder');
             listeners.push(onSnapshot(query(collection(db, "shifts"), where("status", "==", "active")), (snap) => {
                 const l = document.getElementById('liveWorkersList'); l.innerHTML = '';
                 let count = 0;
@@ -2287,6 +2365,8 @@
             document.getElementById('memberInitials').innerText = d.name.substring(0,2).toUpperCase();
             renderJoinGate(d);
             initMyTraining(d);
+            renderOffDayCard(d);
+            document.getElementById('leaveDate').min = localISO(new Date());
             const hr = new Date().getHours();
             document.getElementById('memberGreeting').innerText = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + ' 👋';
             document.getElementById('attendDate').innerText = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -2432,6 +2512,7 @@
                 let leaves = [];
                 snap.forEach(d => leaves.push({ id: d.id, ...d.data() }));
                 leaves.sort((a,b) => (a.date > b.date ? -1 : 1));
+                myLeaves = leaves; renderHomeLeaves();
                 if (leaves.length === 0) { histContainer.innerHTML = '<p class="text-center text-xs text-gray-400 italic">No leave requests found.</p>'; }
                 else {
                     leaves.forEach(r => {
@@ -2699,6 +2780,7 @@
                 document.getElementById('editUserStrikes').value = u.strikes||0;
             } else if (isFt) { document.getElementById('editUserSalary').value = u.salary || 0; }
             document.getElementById('editUserOutlet').value = u.assignedOutlet || 'birati';
+            document.getElementById('editUserOffDay').value = Number.isInteger(u.offDay) ? String(u.offDay) : '';
             document.getElementById('editUserModal').classList.remove('hidden');
             document.getElementById('addStrikeBtn').onclick = async () => {
                 if(!confirm("Add 1 Strike to this user?")) return;
@@ -2712,6 +2794,8 @@
             const uid = document.getElementById('editUserId').value;
             const u = (await getDoc(doc(db,"users",uid))).data();
             const updates = { name: document.getElementById('editUserName').value, assignedOutlet: document.getElementById('editUserOutlet').value || 'birati' };
+            const offSel = document.getElementById('editUserOffDay').value;
+            updates.offDay = offSel === '' ? null : Number(offSel);
             if(u.role === 'member') {
                 updates.customRate = Number(document.getElementById('editUserRate').value);
                 updates.customBonus = Number(document.getElementById('editUserBonusRate').value);
@@ -2737,17 +2821,27 @@
         };
 
         document.getElementById('requestLeaveBtn').onclick = async () => {
+            const btn = document.getElementById('requestLeaveBtn');
+            if (btn.disabled) return;
             const date = document.getElementById('leaveDate').value;
             const reason = document.getElementById('leaveReason').value;
             if(!date) return showToast("Select Date");
+            // one request per date: staff kept re-sending because they couldn't see what they'd already sent
+            const dup = myLeaves.find(r => r.date === date && r.status !== 'rejected');
+            if (dup) { window.checkLeaveDate(); return showToast(dup.status === 'approved' ? 'এই দিনের ছুটি আগেই Approved' : 'এই দিনের request আগেই পাঠানো আছে (Pending)'); }
             const leaveType = window._leaveType || 'full';
             const session = leaveType === 'half' ? (window._leaveSession || 'AM') : null;
-            const payload = { userId: currentUserData.uid, userName: currentUserData.name, date: date, reason: reason, status: 'pending', type: 'leave', leaveType: leaveType };
+            const payload = { userId: currentUserData.uid, userName: currentUserData.name, date: date, reason: reason, status: 'pending', type: 'leave', leaveType: leaveType, createdAt: serverTimestamp() };
             if (session) payload.session = session;
-            await addDoc(collection(db,"shift_requests"), payload);
-            showToast(`${leaveType === 'half' ? (session + ' Half Day') : 'Full Day'} Leave Requested`);
-            // Reset UI
-            window.setLeaveType('full');
+            btn.disabled = true; btn.textContent = 'পাঠানো হচ্ছে…';
+            try {
+                await addDoc(collection(db,"shift_requests"), payload);
+                showToast(`${leaveType === 'half' ? (session + ' Half Day') : 'Full Day'} Leave Requested ✓`);
+                document.getElementById('leaveDate').value = ''; document.getElementById('leaveReason').value = '';
+                document.getElementById('leaveDateWarn').classList.add('hidden');
+                window.setLeaveType('full');
+            } catch (e) { alert('Request পাঠানো যায়নি: ' + e.message); }
+            finally { btn.disabled = false; btn.textContent = 'Submit Leave Request'; }
         };
 
         window._leaveType = 'full';
@@ -3708,6 +3802,270 @@
                 }
                 await window.openStaffDetail(u.uid);
             } catch (e) { alert('Update হয়নি: ' + e.message); }
+        };
+
+
+        // ===================== FIXED OFF DAY · OFF REMINDERS · LEAVE ALERTS =====================
+        // users.offDay (0=Sun..6=Sat) is information only — it never counts as leave or absence. Admin and
+        // manager see "today / tomorrow" reminders so they can rearrange staff in advance.
+        const DAY_BN = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
+        const DAY_SHORT = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'];
+        const localISO = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        let myLeaves = [], offEditOpen = false, apprLeaves = [];
+
+        // ---- Staff: pick fixed off day ----
+        function renderOffDayCard(d) {
+            const card = document.getElementById('offDayCard');
+            const has = Number.isInteger(d.offDay);
+            const showChips = !has || offEditOpen;
+            card.innerHTML = `<div class="flex items-center justify-between gap-3">
+                    <div class="min-w-0"><p class="font-bold text-[14px]"><i class="fas fa-calendar-week mr-1.5" style="color:var(--plum-2)"></i>Fixed Off Day</p>
+                    <p class="text-[12px] mt-0.5" style="color:var(--muted)">${has ? 'Admin ও Manager জানবেন — staff সাজাতে সুবিধা হবে' : 'সপ্তাহের কোন দিন আপনার fixed off — বেছে নিন'}</p></div>
+                    ${has ? `<span class="off-pill">${DAY_BN[d.offDay]}</span>` : ''}
+                </div>
+                ${showChips ? `<div class="off-chips mt-3">${DAY_SHORT.map((n, i) => `<button type="button" class="${d.offDay === i ? 'on' : ''}" onclick="window.setMyOffDay(${i})">${n}</button>`).join('')}</div>` : ''}
+                ${has ? `<button type="button" onclick="window.toggleOffEdit()" class="mt-2 text-[12px] font-bold" style="color:var(--plum-2)">${offEditOpen ? 'বন্ধ করুন' : 'বদলান'}</button>` : ''}`;
+        }
+        window.toggleOffEdit = () => { offEditOpen = !offEditOpen; renderOffDayCard(currentUserData); };
+        window.setMyOffDay = async (i) => {
+            const d = currentUserData; if (!d) return;
+            if (d.offDay === i) { offEditOpen = false; return renderOffDayCard(d); }
+            if (!confirm(`আপনার Fixed Off Day: ${DAY_BN[i]}। Admin ও Manager-কে জানানো হবে। ঠিক আছে?`)) return;
+            offEditOpen = false;
+            try { await updateDoc(doc(db, 'users', d.uid), { offDay: i, offDaySetAt: serverTimestamp() }); showToast(`Off day: ${DAY_BN[i]} ✓`); }
+            catch (e) { alert('Save হয়নি: ' + e.message); }
+        };
+
+        // ---- Staff: leave requests already sent (shown under the request form) ----
+        const LV_LABEL = { pending: 'PENDING', approved: 'APPROVED', rejected: 'REJECTED' };
+        function renderHomeLeaves() {
+            const box = document.getElementById('homeLeaveList'); if (!box) return;
+            if (!myLeaves.length) { box.innerHTML = '<p class="text-center text-[12px] text-gray-400 italic py-1">এখনো কোনো leave request পাঠাননি।</p>'; return; }
+            const today = localISO(new Date());
+            // pending first, then upcoming, then the most recent past ones
+            const rank = r => (r.status === 'pending' ? 0 : r.date >= today ? 1 : 2);
+            const list = myLeaves.slice().sort((a, b) => rank(a) - rank(b) || (rank(a) === 2 ? (a.date < b.date ? 1 : -1) : (a.date > b.date ? 1 : -1))).slice(0, 5);
+            box.innerHTML = list.map(r => {
+                const dt = new Date(r.date + 'T00:00');
+                const nice = dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + ' · ' + DAY_SHORT[dt.getDay()];
+                const kind = r.leaveType === 'half' ? `${r.session || 'AM'} Half` : 'Full Day';
+                const st = r.status || 'pending';
+                return `<div class="lv-row"><div class="flex-1 min-w-0"><p class="font-bold text-[13px]">${nice}</p><p class="text-[11.5px] truncate" style="color:var(--muted)">${kind}${r.reason ? ' · ' + esc(r.reason) : ''}</p></div><span class="lv-chip ${st}">${LV_LABEL[st] || st.toUpperCase()}</span></div>`;
+            }).join('') + (myLeaves.length > 5 ? `<p class="text-[11.5px] text-center" style="color:var(--muted)">আরও ${myLeaves.length - 5}টি — "সব দেখুন"</p>` : '');
+            window.checkLeaveDate();
+        }
+        window.checkLeaveDate = () => {
+            const date = document.getElementById('leaveDate').value, warn = document.getElementById('leaveDateWarn');
+            const dup = date && myLeaves.find(r => r.date === date && r.status !== 'rejected');
+            warn.classList.toggle('hidden', !dup);
+            if (dup) warn.innerHTML = `<i class="fas fa-circle-info mr-1"></i>এই দিনের request আগেই পাঠানো আছে — <b>${LV_LABEL[dup.status] || dup.status}</b>। আবার পাঠানোর দরকার নেই।`;
+        };
+        window.goProfileTab = () => document.querySelector('#bottomNav .nav-btn[onclick*="profile"]').click();
+
+        // ---- Admin / Manager: today & tomorrow off reminder ----
+        function initOffReminder(boxId) {
+            trRenderers.set('off:' + boxId, () => renderOffReminder(boxId));
+            trSub('apprLeaves', () => onSnapshot(query(collection(db, 'shift_requests'), where('type', '==', 'leave'), where('status', '==', 'approved')), snap => {
+                apprLeaves = snap.docs.map(x => x.data());
+                trRerender();
+            }));
+            renderOffReminder(boxId);
+        }
+        function renderOffReminder(boxId) {
+            const box = document.getElementById(boxId); if (!box) return;
+            const now = new Date();
+            const days = [{ label: 'আজ', d: now, tag: 'background:#FDECEE;color:#C02640' }, { label: 'কাল', d: new Date(now.getTime() + 864e5), tag: 'background:#FFF4D6;color:#8A5E00' }];
+            const active = new Set(trStaff.map(u => u.uid));
+            const rows = days.map(({ label, d, tag }) => {
+                const iso = localISO(d), wd = d.getDay();
+                const people = [
+                    ...trStaff.filter(u => u.offDay === wd).map(u => ({ name: u.name, kind: 'Weekly off' })),
+                    ...apprLeaves.filter(r => r.date === iso && active.has(r.userId)).map(r => ({ name: r.userName, kind: r.leaveType === 'half' ? `${r.session || 'AM'} half leave` : 'Leave' }))
+                ];
+                return `<div class="remind-day">
+                    <span class="remind-tag" style="${tag}">${label} · ${DAY_BN[wd]}</span>
+                    <div class="flex-1 min-w-0">${people.length ? people.map(p => `<span class="person">${esc(p.name)} <small>${p.kind}</small></span>`).join('') : '<p class="text-[12.5px]" style="color:var(--muted)">কারো ছুটি নেই</p>'}</div>
+                </div>`;
+            }).join('');
+            box.innerHTML = `<div class="remind"><p class="font-extrabold text-[13px] mb-3" style="color:#8A5E00"><i class="fas fa-calendar-day mr-1.5"></i>ছুটির রিমাইন্ডার — staff সাজিয়ে নিন</p>${rows}</div>`;
+        }
+
+        // ---- Admin / Manager: in-app alert for new leave requests ----
+        let bellItems = [], bellReady = false;
+        const BELL_KEY = 'jtBellSeen';
+        const bellSeen = new Set((() => { try { return JSON.parse(localStorage.getItem(BELL_KEY) || '[]'); } catch (e) { return []; } })());
+        function initLeaveBell(role) {
+            const on = role === 'admin' || role === 'manager';
+            document.getElementById('bellBtn').classList.toggle('hidden', !on);
+            if (!on) { document.getElementById('bellPanel').classList.add('hidden'); return; }
+            trSub('bell', () => {
+                bellReady = false;
+                return onSnapshot(query(collection(db, 'shift_requests'), where('type', '==', 'leave'), where('status', '==', 'pending')), snap => {
+                    const prev = new Set(bellItems.map(x => x.id));
+                    bellItems = snap.docs.map(x => ({ id: x.id, ...x.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0) || (a.date > b.date ? 1 : -1));
+                    const unseen = bellItems.filter(x => !bellSeen.has(x.id));
+                    if (!bellReady) { if (unseen.length) showToast(`🔔 ${unseen.length}টি নতুন Leave Request`); }
+                    else { const fresh = bellItems.filter(x => !prev.has(x.id)); if (fresh.length) { showToast(`🔔 নতুন Leave Request: ${fresh[0].userName} · ${new Date(fresh[0].date + 'T00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`); bellPing(); } }
+                    bellReady = true;
+                    renderBell();
+                });
+            });
+            renderBell();
+        }
+        function bellPing() {
+            try { navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch (e) {}
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [880, 1175].forEach((f, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f; o.connect(g); g.connect(ctx.destination); const t = ctx.currentTime + i * 0.16; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15); o.start(t); o.stop(t + 0.16); });
+            } catch (e) {}
+        }
+        function renderBell() {
+            const n = bellItems.length, unseen = bellItems.filter(x => !bellSeen.has(x.id)).length;
+            const badge = document.getElementById('bellBadge');
+            badge.textContent = n; badge.classList.toggle('hidden', !n); badge.classList.toggle('fresh', unseen > 0);
+            document.getElementById('bellBtn').classList.toggle('has', n > 0);
+            document.getElementById('bellSub').textContent = n ? `${n} pending` : '';
+            const isAdmin = currentUserData?.role === 'admin';
+            document.getElementById('bellList').innerHTML = n ? bellItems.map(r => {
+                const dt = new Date(r.date + 'T00:00');
+                const nice = dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' · ' + DAY_BN[dt.getDay()];
+                const sent = r.createdAt?.toDate?.();
+                return `<div class="bell-item${bellSeen.has(r.id) ? '' : ' unseen'}" onclick="window.bellOpen()">
+                    ${bellSeen.has(r.id) ? '<span style="width:8px"></span>' : '<span class="dot"></span>'}
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-[14px]">${esc(r.userName)} <span class="lv-chip pending ml-1">${r.leaveType === 'half' ? (r.session || 'AM') + ' HALF' : 'FULL DAY'}</span></p>
+                        <p class="text-[12.5px] font-semibold mt-0.5">${nice}</p>
+                        ${r.reason ? `<p class="text-[12px] mt-0.5 truncate" style="color:var(--muted)">"${esc(r.reason)}"</p>` : ''}
+                        <p class="text-[11px] mt-1" style="color:#A79FB0">${sent ? 'পাঠিয়েছে ' + sent.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}${isAdmin ? ' · tap → Leaves tab' : ''}</p>
+                    </div></div>`;
+            }).join('') : '<p class="text-center text-[13px] py-8" style="color:var(--muted)">কোনো pending leave request নেই ✓</p>';
+        }
+        window.toggleBell = (e) => {
+            e && e.stopPropagation();
+            const panel = document.getElementById('bellPanel');
+            const opening = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !opening);
+            if (opening) {
+                renderBell();
+                // mark as seen once the list has been shown
+                bellItems.forEach(x => bellSeen.add(x.id));
+                try { localStorage.setItem(BELL_KEY, JSON.stringify([...bellSeen].slice(-300))); } catch (err) {}
+                setTimeout(renderBell, 1500);
+            }
+        };
+        window.bellOpen = () => {
+            document.getElementById('bellPanel').classList.add('hidden');
+            if (currentUserData?.role !== 'admin') return;
+            const tab = [...document.querySelectorAll('.admin-tab-btn')].find(b => b.textContent.includes('Leaves'));
+            if (tab) tab.click();
+        };
+        document.addEventListener('click', () => document.getElementById('bellPanel').classList.add('hidden'));
+
+
+        // ===================== MANUAL SESSION (admin) =====================
+        // For staff who forgot to check in/out, admin records the session by hand. Pay, bonus points,
+        // training wallet and hours/days follow the same rules as a normal check-out (forceStop / edit shift).
+        let msStaffList = [];
+        const toLocalInput = d => `${localISO(d)}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        const msErr = (m) => { const e = document.getElementById('msErr'); e.textContent = m || ''; e.classList.toggle('hidden', !m); };
+        window.openManualShift = async (uid = '') => {
+            const snap = await getDocs(query(collection(db, 'users'), where('role', 'in', ['member', 'fulltime', 'manager'])));
+            msStaffList = snap.docs.map(x => ({ uid: x.id, ...x.data() })).filter(u => u.inactive !== true || u.uid === uid).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            const sel = document.getElementById('msStaff');
+            sel.innerHTML = '<option value="">স্টাফ বেছে নিন</option>' + msStaffList.map(u => `<option value="${u.uid}">${esc(u.name)} · ${roleLabel(u.role)}</option>`).join('');
+            sel.value = uid || '';
+            const maxV = toLocalInput(new Date());
+            ['msIn', 'msOut'].forEach(id => { const el = document.getElementById(id); el.value = ''; el.max = maxV; });
+            document.getElementById('msNote').value = '';
+            window.msStaffChange(); msErr('');
+            document.getElementById('manualShiftModal').classList.remove('hidden');
+        };
+        window.openManualShiftForDetail = () => window.openManualShift(detailModalUserId);
+        window.msStaffChange = () => {
+            const u = msStaffList.find(x => x.uid === document.getElementById('msStaff').value);
+            if (u) document.getElementById('msOutlet').value = u.assignedOutlet || 'birati';
+            window.msPreview();
+        };
+        function msCalc() {
+            const u = msStaffList.find(x => x.uid === document.getElementById('msStaff').value);
+            const inV = document.getElementById('msIn').value, outV = document.getElementById('msOut').value;
+            const c = { u, inD: inV ? new Date(inV) : null, outD: outV ? new Date(outV) : null };
+            if (u && c.inD && c.outD) {
+                c.mins = (c.outD - c.inD) / 60000; c.hours = c.mins / 60; c.pay = 0; c.pts = 0;
+                if (u.role === 'member') {
+                    const rate = u.customRate || APP_CONFIG.hourlyRate, bonusRate = u.customBonus || APP_CONFIG.bonusRate;
+                    c.pay = (rate / 60) * c.mins; c.pts = Math.floor(c.hours * bonusRate);
+                    const join = u.joinedAt?.toDate?.() || c.inD;
+                    c.training = Math.floor((c.inD - join) / 864e5) < APP_CONFIG.trainingDays;
+                }
+            }
+            return c;
+        }
+        function msProblem(c) {
+            if (!c.u) return 'স্টাফ বেছে নিন।';
+            if (!c.inD) return 'Entry time দিন।';
+            if (c.inD > new Date()) return 'Entry ভবিষ্যতের সময় হতে পারে না।';
+            if (c.outD) {
+                if (c.outD <= c.inD) return 'Exit অবশ্যই Entry-র পরে হতে হবে।';
+                if (c.outD > new Date(Date.now() + 5 * 60000)) return 'Exit ভবিষ্যতের সময় হতে পারে না।';
+                if (c.hours > 16) return 'একটি session ১৬ ঘণ্টার বেশি হতে পারে না — সময় চেক করুন।';
+            }
+            return '';
+        }
+        window.msPreview = () => {
+            const c = msCalc(), box = document.getElementById('msPreviewBox');
+            const prob = c.u && c.inD ? msProblem(c) : '';
+            if (!c.u || !c.inD) { box.innerHTML = '<div><p>Preview</p><p style="font-size:14px;font-family:inherit;font-weight:600;color:var(--muted)">স্টাফ ও Entry time দিন</p></div>'; return; }
+            if (prob) { box.innerHTML = `<div style="background:#FFF1F3"><p>সমস্যা</p><p style="font-size:14px;font-family:inherit;color:#C02640">${prob}</p></div>`; return; }
+            if (!c.outD) { box.innerHTML = '<div><p>Exit দেওয়া হয়নি</p><p style="font-size:14px;font-family:inherit;font-weight:600">Session <b>Active</b> থাকবে — পরে End Session / Edit করা যাবে।</p></div>'; return; }
+            const h = Math.floor(c.mins / 60), m = Math.round(c.mins % 60);
+            const money = c.u.role === 'member'
+                ? `₹${c.pay.toFixed(2)} · ${c.pts} pts${c.training ? ' <span style="font-size:11px;color:#C02640">(training — locked wallet)</span>' : ''}`
+                : 'Salary staff — ঘণ্টা ও দিন যোগ হবে';
+            box.innerHTML = `<div style="background:#EAF6EC"><p>Duration · Earnings</p><p>${h}h ${m}m <span style="font-size:13px;font-family:inherit;font-weight:600;color:#2E7D39">· ${money}</span></p></div>`;
+        };
+        window.saveManualShift = async () => {
+            const c = msCalc(), prob = msProblem(c);
+            if (prob) return msErr(prob);
+            msErr('');
+            const btn = document.getElementById('msSaveBtn'); if (btn.disabled) return;
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving…';
+            try {
+                // never let two sessions of the same person overlap
+                const mine = await getDocs(query(collection(db, 'shifts'), where('userId', '==', c.u.uid)));
+                const endNew = c.outD || new Date();
+                const clash = mine.docs.map(x => x.data()).find(s => {
+                    const sIn = s.checkInTime?.toDate?.(); if (!sIn) return false;
+                    const sOut = s.checkOutTime?.toDate?.() || (s.status === 'active' ? new Date() : sIn);
+                    return c.inD < sOut && endNew > sIn;
+                });
+                if (clash) {
+                    const a = clash.checkInTime.toDate(), b = clash.checkOutTime?.toDate?.();
+                    throw `এই সময়ে ${c.u.name}-এর আগেই একটি session আছে (${a.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} – ${b ? b.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Active'})।`;
+                }
+                const base = { userId: c.u.uid, userName: c.u.name, checkInTime: Timestamp.fromDate(c.inD), outlet: document.getElementById('msOutlet').value, manualEntry: true, createdBy: currentUserData.name || 'admin', note: document.getElementById('msNote').value.trim(), createdAt: serverTimestamp() };
+                if (!c.outD) {
+                    await addDoc(collection(db, 'shifts'), { ...base, status: 'active' });
+                } else {
+                    await runTransaction(db, async (t) => {
+                        const uRef = doc(db, 'users', c.u.uid);
+                        const u = (await t.get(uRef)).data();
+                        const updates = { totalHours: (u.totalHours || 0) + c.hours, totalDays: (u.totalDays || 0) + 1 };
+                        if (u.role === 'member') {
+                            if (c.training) updates.blockedWallet = (u.blockedWallet || 0) + c.pay;
+                            else updates.mainWallet = (u.mainWallet || 0) + c.pay;
+                            updates.bonusWallet = (u.bonusWallet || 0) + c.pts;
+                        }
+                        t.set(doc(collection(db, 'shifts')), { ...base, checkOutTime: Timestamp.fromDate(c.outD), status: 'completed', hoursWorked: c.hours, earnings: c.pay });
+                        t.update(uRef, updates);
+                    });
+                }
+                document.getElementById('manualShiftModal').classList.add('hidden');
+                showToast(`Session saved — ${c.u.name}`);
+                loadAdminShifts();
+                if (detailModalUserId === c.u.uid && !document.getElementById('staffDetailModal').classList.contains('hidden')) loadDetailShifts(c.u.uid);
+            } catch (e) { msErr(typeof e === 'string' ? e : 'Save হয়নি: ' + e.message); }
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check mr-1"></i> Session Save'; }
         };
 
     </script>
