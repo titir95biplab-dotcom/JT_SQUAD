@@ -139,6 +139,16 @@
         .auth-logo { width: 96px; height: 96px; border-radius: 30px; object-fit: cover; background: #fff; box-shadow: 0 18px 40px -16px rgba(43,20,66,.5); }
         .btn-grad { background: var(--grad) !important; box-shadow: 0 14px 28px -14px rgba(238,63,87,.8) !important; }
 
+        /* ===== Inactive staff ===== */
+        .flt-off { display: none !important; }
+        .staff-card.is-inactive { opacity: .62; background: #FAF8F9 !important; }
+        .staff-card.is-inactive:hover { opacity: .85; }
+        .inact-badge { font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #8A8296; background: #ECE7EE; padding: 2px 7px; border-radius: 999px; }
+        .status-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; font-size: 12.5px; }
+        .status-bar.on { background: #F4FBF5; color: #2E7D39; }
+        .status-bar.off { background: #F3EEF2; color: #6E6680; }
+        .status-bar button { font-size: 12px; font-weight: 800; padding: 7px 12px; border-radius: 10px !important; }
+
         /* ===== Training ===== */
         .tr-hero { border-radius: 24px; padding: 18px; color: #fff; background: radial-gradient(110% 120% at 100% 0%, rgba(245,197,66,.35), rgba(245,197,66,0) 55%), linear-gradient(150deg, #3E9F4B 0%, #237036 100%); box-shadow: 0 18px 36px -18px rgba(35,112,54,.8); display: flex; align-items: center; gap: 16px; }
         .ring { --p: 0; width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; background: conic-gradient(#fff calc(var(--p) * 1%), rgba(255,255,255,.22) 0); }
@@ -294,6 +304,17 @@
                 </div>
             </div>
 
+            <!-- INACTIVE ACCOUNT -->
+            <div id="inactiveView" class="hidden p-6 flex items-center justify-center bn" style="min-height:70vh">
+                <div class="bg-white rounded-2xl border p-7 text-center max-w-sm w-full" style="border-color:var(--line);box-shadow:var(--shadow)">
+                    <div class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-2xl mb-4" style="background:#F3EEF2;color:#8A8296"><i class="fas fa-user-slash"></i></div>
+                    <p class="font-extrabold text-xl mb-1">অ্যাকাউন্ট নিষ্ক্রিয়</p>
+                    <p class="text-[13px] font-semibold mb-3" style="color:var(--muted)">Account inactive</p>
+                    <p class="text-[14px] leading-relaxed" style="color:#4A4258">আপনার JT Squad অ্যাকাউন্টটি Admin নিষ্ক্রিয় করেছেন। কোনো প্রশ্ন থাকলে দোকানের Admin-এর সাথে যোগাযোগ করুন।</p>
+                    <button onclick="document.getElementById('logoutBtn').click()" class="mt-6 w-full py-3 rounded-xl font-bold text-white" style="background:var(--plum)"><i class="fas fa-power-off mr-1"></i> Log out</button>
+                </div>
+            </div>
+
             <!-- ADMIN VIEW -->
             <div id="adminView" class="view-section hidden flex flex-col h-full">
                 <div class="admin-tabs sticky top-0 z-30 overflow-x-auto flex shrink-0">
@@ -349,7 +370,10 @@
                             </div>
                             <button onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="bg-gray-800 text-white px-3 rounded-lg shadow"><i class="fas fa-plus"></i></button>
                         </div>
-                        <p class="text-[10px] text-gray-400 italic px-1"><i class="fas fa-hand-pointer mr-1"></i>Tap any staff card to view full details, history & payouts</p>
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <div class="seg"><button id="staffFltActive" class="on" onclick="window.setStaffFilter('active')">Active <span id="staffCntActive" class="mono">0</span></button><button id="staffFltInactive" onclick="window.setStaffFilter('inactive')">Inactive <span id="staffCntInactive" class="mono">0</span></button></div>
+                            <p class="text-[10px] text-gray-400 italic px-1"><i class="fas fa-hand-pointer mr-1"></i>Tap a card for details, history & payouts</p>
+                        </div>
                         <div id="staffCardsList" class="space-y-3"></div>
                     </div>
 
@@ -791,6 +815,8 @@
                         <button id="detailJoinBtn" onclick="window.openDetailJoining()" class="flex-1 py-2 border rounded-lg text-xs font-bold transition" style="background:#F3ECF8;color:var(--plum-2);border-color:#E4D6EC"><i class="fas fa-id-card mr-1"></i> Joining</button>
                         <button id="detailDeleteBtn" onclick="window.openDetailDelete()" class="flex-1 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 transition"><i class="fas fa-trash mr-1"></i> Delete</button>
                     </div>
+
+                    <div id="detailStatusBar" class="status-bar on shrink-0 bn"></div>
 
                     <!-- Stats Bar -->
                     <div class="grid grid-cols-3 gap-2 p-3 bg-gray-900 shrink-0" id="detailStatsBar">
@@ -1311,11 +1337,21 @@
         // --- ROUTER ---
         function renderRouter() {
             const role = currentUserData.role;
-            const views = ['adminView', 'managerView', 'memberDashboard', 'clientView'];
+            const views = ['adminView', 'managerView', 'memberDashboard', 'clientView', 'inactiveView'];
             const nav = document.getElementById('bottomNav');
             document.getElementById('headerRoleDisplay').innerText = role.toUpperCase();
             views.forEach(v => document.getElementById(v).classList.add('hidden'));
             nav.classList.add('hidden');
+            const off = currentUserData.inactive === true && role !== 'admin';
+            const dot = document.querySelector('.role-chip > span');
+            dot.classList.toggle('bg-green-500', !off); dot.classList.toggle('animate-pulse', !off); dot.classList.toggle('bg-gray-400', off);
+            if (off) {
+                ['History','Training','Profile'].forEach(k => document.getElementById('member'+k).classList.add('hidden'));
+                document.getElementById('joinForm').classList.add('hidden');
+                document.getElementById('headerRoleDisplay').innerText = 'INACTIVE';
+                document.getElementById('inactiveView').classList.remove('hidden');
+                return;
+            }
             if (role === 'admin') { document.getElementById('adminView').classList.remove('hidden'); initAdmin(); }
             else if (role === 'client') { document.getElementById('clientView').classList.remove('hidden'); initClient(); }
             else if (role === 'manager') {
@@ -1326,6 +1362,7 @@
 
         // --- ATTENDANCE ---
         document.getElementById('checkInBtn').onclick = async () => {
+            if (currentUserData.inactive === true) return;
             if (regPending(currentUserData)) { window.openJoinForm(); return; }
             isCheckoutMode = false;
             const btn = document.getElementById('checkInBtn');
@@ -1474,14 +1511,18 @@
             listeners.push(onSnapshot(query(collection(db, "users")), (snap) => {
                 const cardsContainer = document.getElementById('staffCardsList');
                 cardsContainer.innerHTML = '';
-                let totSquad = 0, liab = 0;
+                let totSquad = 0, liab = 0, nActive = 0, nInactive = 0;
                 snap.forEach(d => {
                     const u = d.data();
                     const isSquad = u.role === 'member';
-                    if(isSquad) { totSquad++; liab += (u.mainWallet||0); }
+                    const off = u.inactive === true;
+                    off ? nInactive++ : nActive++;
+                    // inactive staff keep their wallet in the liability (wages may still be owed) but leave the headcount
+                    if(isSquad) { if (!off) totSquad++; liab += (u.mainWallet||0); }
                     // Card UI
                     const card = document.createElement('div');
-                    card.className = "staff-card bg-white rounded-xl border border-gray-200 p-4 shadow-sm search-item";
+                    card.className = "staff-card bg-white rounded-xl border border-gray-200 p-4 shadow-sm search-item" + (off ? ' is-inactive' : '');
+                    card.dataset.state = off ? 'inactive' : 'active';
                     card.dataset.search = u.name.toLowerCase();
                     const initials = u.name.substring(0,2).toUpperCase();
                     const roleColor = {'admin':'bg-red-600','manager':'bg-blue-600','fulltime':'bg-purple-600','member':'bg-orange-500','client':'bg-gray-400'}[u.role] || 'bg-gray-400';
@@ -1497,7 +1538,7 @@
                             <div class="w-10 h-10 rounded-full ${roleColor} flex items-center justify-center text-white font-bold text-sm shrink-0">${initials}</div>
                             <div class="flex-grow">
                                 <div class="flex justify-between items-start">
-                                    <div><p class="font-bold text-gray-800">${u.name}</p><p class="text-[10px] uppercase font-bold text-gray-400">${u.role}</p></div>
+                                    <div><p class="font-bold text-gray-800">${u.name} ${off ? '<span class="inact-badge ml-1">Inactive</span>' : ''}</p><p class="text-[10px] uppercase font-bold text-gray-400">${u.role}${off && u.inactiveAt ? ' · left ' + fmtDate(u.inactiveAt) : ''}</p></div>
                                     <div class="text-right">${badge}</div>
                                 </div>
                                 ${financials}
@@ -1511,6 +1552,9 @@
                     card.onclick = () => window.openStaffDetail(d.id);
                     cardsContainer.appendChild(card);
                 });
+                document.getElementById('staffCntActive').innerText = nActive;
+                document.getElementById('staffCntInactive').innerText = nInactive;
+                applyStaffFilter();
                 document.getElementById('adminTotalSquad').innerText = totSquad;
                 document.getElementById('adminPendingPayout').innerText = liab.toFixed(0);
             }));
@@ -1711,6 +1755,7 @@
                     <div class="text-center"><p class="text-[9px] uppercase text-gray-400">Leaves</p><p class="font-bold text-red-400 text-sm">${lt % 1 === 0 ? lt : lt.toFixed(1)}</p></div>`;
             }
 
+            renderDetailStatus(u);
             document.getElementById('staffDetailModal').classList.remove('hidden');
             // Default to payouts tab
             switchDetailTab('payouts', null, true);
@@ -2872,7 +2917,7 @@
         window.openRedeemModal = async () => {
             const s = document.getElementById('redeemUserSelect'); s.innerHTML='<option value="">Select Staff</option>';
             const snap = await getDocs(query(collection(db,"users"), where("role","==","member")));
-            snap.forEach(d => { const u=d.data(); const o=document.createElement('option'); o.value=d.id; o.innerText=`${u.name} (${u.bonusWallet||0}pts)`; s.appendChild(o); });
+            snap.forEach(d => { const u=d.data(); if (u.inactive === true) return; const o=document.createElement('option'); o.value=d.id; o.innerText=`${u.name} (${u.bonusWallet||0}pts)`; s.appendChild(o); });
             document.getElementById('redeemModal').classList.remove('hidden');
         };
 
@@ -2920,7 +2965,7 @@
             document.getElementById('assignReqId').value = reqId;
             const s = document.getElementById('assignStaffSelect'); s.innerHTML = '';
             const snap = await getDocs(query(collection(db,"users"), where("role","==","member")));
-            snap.forEach(d => { const u = d.data(); const o = document.createElement('option'); o.value = d.id; o.innerText = u.name; s.appendChild(o); });
+            snap.forEach(d => { const u = d.data(); if (u.inactive === true) return; const o = document.createElement('option'); o.value = d.id; o.innerText = u.name; s.appendChild(o); });
             document.getElementById('assignModal').classList.remove('hidden');
         };
 
@@ -2950,6 +2995,7 @@
             usersSnap.forEach(u => {
                 const ud = u.data();
                 const selected = (r.assignedTo === u.id || r.userId === u.id) ? 'selected' : '';
+                if (ud.inactive === true && !selected) return;
                 s.innerHTML += `<option value="${u.id}" ${selected}>${ud.name}</option>`;
             });
             document.getElementById('manageSlotModal').classList.remove('hidden');
@@ -3294,7 +3340,7 @@
         let joinRegs = [];
         function initJoiningAdmin() {
             listeners.push(onSnapshot(query(collection(db, 'users'), where('regRequired', '==', true)), (snap) => {
-                const pend = snap.docs.filter(x => !x.data().regSubmitted);
+                const pend = snap.docs.filter(x => !x.data().regSubmitted && x.data().inactive !== true);
                 const box = document.getElementById('joinPendingList');
                 document.getElementById('joinPendingCount').textContent = pend.length;
                 const dot = document.getElementById('joinPendingDot');
@@ -3516,7 +3562,7 @@
             trWatchList();
             trRenderers.set('board:' + boxId, () => renderTrainBoard(boxId));
             trSub('staff', () => onSnapshot(query(collection(db, 'users'), where('role', 'in', ['member', 'fulltime', 'manager'])), snap => {
-                trStaff = snap.docs.map(x => ({ uid: x.id, ...x.data() })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                trStaff = snap.docs.map(x => ({ uid: x.id, ...x.data() })).filter(u => u.inactive !== true).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                 trRerender();
             }));
             trSub('prog', () => onSnapshot(collection(db, 'training_progress'), snap => {
@@ -3612,6 +3658,56 @@
             if (!confirm(`"${t.title}" তালিকা থেকে সরাবেন?`)) return;
             await trSaveList(trItems.filter(x => x.id !== id));
             showToast('Training removed');
+        };
+
+
+        // ===================== INACTIVE STAFF =====================
+        // Staff who leave are marked inactive instead of deleted, so shifts, payouts, joining form and
+        // training history stay intact. Inactive users see a blocked screen and drop out of staff pickers.
+        let staffFilter = 'active';
+        function applyStaffFilter() {
+            document.querySelectorAll('#staffCardsList .staff-card').forEach(c => c.classList.toggle('flt-off', c.dataset.state !== staffFilter));
+            document.getElementById('staffFltActive').classList.toggle('on', staffFilter === 'active');
+            document.getElementById('staffFltInactive').classList.toggle('on', staffFilter === 'inactive');
+            const box = document.getElementById('staffCardsList');
+            let empty = document.getElementById('staffFltEmpty');
+            const any = [...box.querySelectorAll('.staff-card')].some(c => c.dataset.state === staffFilter);
+            if (!any && !empty) { empty = document.createElement('p'); empty.id = 'staffFltEmpty'; empty.className = 'text-center text-xs text-gray-400 italic py-6'; box.appendChild(empty); }
+            if (empty) { empty.textContent = staffFilter === 'inactive' ? 'কোনো Inactive স্টাফ নেই।' : 'কোনো Active স্টাফ নেই।'; empty.classList.toggle('hidden', any); }
+        }
+        window.setStaffFilter = (f) => { staffFilter = f; applyStaffFilter(); };
+
+        function renderDetailStatus(u) {
+            const bar = document.getElementById('detailStatusBar');
+            const self = currentUserData && u.uid === currentUserData.uid;
+            const off = u.inactive === true;
+            bar.className = 'status-bar shrink-0 bn ' + (off ? 'off' : 'on');
+            if (off) {
+                bar.innerHTML = `<span><i class="fas fa-user-slash mr-1"></i><b>Inactive</b> · ${fmtDate(u.inactiveAt)}${u.inactiveReason ? ' · ' + esc(u.inactiveReason) : ''}</span>
+                    <button onclick="window.setStaffActive(true)" class="text-white" style="background:var(--kiwi)"><i class="fas fa-rotate-left mr-1"></i>Active করুন</button>`;
+            } else {
+                bar.innerHTML = `<span><i class="fas fa-circle-check mr-1"></i><b>Active</b> স্টাফ</span>
+                    ${self ? '' : '<button onclick="window.setStaffActive(false)" style="background:#F3EEF2;color:#6E6680"><i class="fas fa-user-slash mr-1"></i>Inactive করুন</button>'}`;
+            }
+        }
+        window.setStaffActive = async (makeActive) => {
+            const u = detailModalUserData; if (!u) return;
+            try {
+                if (makeActive) {
+                    if (!confirm(`${u.name}-কে আবার Active করবেন? আবার লগইন ও Check In করতে পারবে।`)) return;
+                    await updateDoc(doc(db, 'users', u.uid), { inactive: false, reactivatedAt: serverTimestamp(), reactivatedBy: currentUserData.name || '' });
+                    showToast(`${u.name} is active again`);
+                } else {
+                    if (!confirm(`${u.name}-কে Inactive করবেন?\n\nসব পুরোনো তথ্য (shift, payout, form, training) থেকে যাবে, কিন্তু এই স্টাফ আর অ্যাপ ব্যবহার বা Check In করতে পারবে না। পরে আবার Active করা যাবে।`)) return;
+                    const reason = (prompt('কারণ (ঐচ্ছিক) — যেমন: কাজ ছেড়ে দিয়েছে', 'কাজ ছেড়ে দিয়েছে') || '').trim();
+                    // close any running shift so it doesn't stay "on duty" forever
+                    const act = await getDocs(query(collection(db, 'shifts'), where('userId', '==', u.uid), where('status', '==', 'active')));
+                    for (const sh of act.docs) await window.forceStop(sh.id, null, currentUserData.name);
+                    await updateDoc(doc(db, 'users', u.uid), { inactive: true, inactiveAt: serverTimestamp(), inactiveBy: currentUserData.name || '', inactiveReason: reason });
+                    showToast(`${u.name} marked inactive`);
+                }
+                await window.openStaffDetail(u.uid);
+            } catch (e) { alert('Update হয়নি: ' + e.message); }
         };
 
     </script>
